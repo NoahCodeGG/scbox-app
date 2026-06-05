@@ -21,3 +21,14 @@ export interface BuildOrder {
   /** Cues in (expected) ascending `time` order. */
   steps: BuildStep[];
 }
+
+/**
+ * Result of the Rust `load_build_orders` command. Mirrors the serde
+ * `LoadResult` struct in `src-tauri/src/builds.rs` (camelCase keys). `builds`
+ * holds every successfully parsed file; `errors` holds one `"<file>: <reason>"`
+ * string per file that failed to parse.
+ */
+export interface LoadResult {
+  builds: BuildOrder[];
+  errors: string[];
+}

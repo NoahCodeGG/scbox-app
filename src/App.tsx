@@ -1,24 +1,12 @@
+import { useEffect, useRef } from "react";
 import { useGameSnapshot } from "./hooks/useGameSnapshot";
+import { useBuildOrders } from "./hooks/useBuildOrders";
 import { useBuildOrderVoice } from "./hooks/useBuildOrderVoice";
+import { pickActiveBuild } from "./lib/builds";
 import { formatGameTime, raceLabel } from "./lib/format";
 import type { BuildOrder } from "./types/build";
 import type { GameSnapshot } from "./types/sc2";
-import terranStandard from "./data/builds/terran-standard.json";
 import "./App.css";
-
-// MVP ships a single matchup; import the one authored build statically.
-// Build the typed value explicitly (instead of a bare `as` cast) so a renamed
-// or missing required field in the JSON fails the type-check. The JSON may also
-// carry doc-only keys (e.g. `_note`) that are intentionally dropped here.
-const BUILD_ORDER: BuildOrder = {
-  matchup: terranStandard.matchup,
-  race: terranStandard.race,
-  leadTimeSec: terranStandard.leadTimeSec,
-  steps: terranStandard.steps.map((step) => ({
-    time: step.time,
-    say: step.say,
-  })),
-};
 
 function statusText(snapshot: GameSnapshot): string {
   if (!snapshot.connected) return "SC2 未连接";
@@ -27,10 +15,62 @@ function statusText(snapshot: GameSnapshot): string {
   return "对局进行中";
 }
 
+interface BuildPanelProps {
+  build: BuildOrder;
+  snapshot: GameSnapshot;
+}
+
+/**
+ * The next-step coach panel. Extracted so the voice hook only runs (and only
+ * needs a non-null build) when there is actually a build to coach with.
+ */
+function BuildPanel({ build, snapshot }: BuildPanelProps) {
+  const { nextStep, spokenCount } = useBuildOrderVoice(snapshot, build);
+
+  if (nextStep) {
+    return (
+      <div className="build">
+        <span className="build-label">下一步</span>
+        <span className="build-say">{nextStep.say}</span>
+        <span className="build-time">
+          {formatGameTime(nextStep.time)}
+          <span className="build-countdown">
+            {" "}
+            ({Math.max(
+              0,
+              Math.ceil(
+                nextStep.time - build.leadTimeSec - snapshot.display_time,
+              ),
+            )}
+            s)
+          </span>
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="build">
+      <span className="build-done">建造顺序已播完 ({spokenCount})</span>
+    </div>
+  );
+}
+
 function App() {
   const snapshot = useGameSnapshot();
-  const { nextStep, spokenCount } = useBuildOrderVoice(snapshot, BUILD_ORDER);
+  const { builds, errors, loadError, reload } = useBuildOrders();
 
+  // Reload build orders on the transition INTO a live game, so an edit made
+  // between games is picked up without restarting the app.
+  const wasInGameRef = useRef(false);
+  useEffect(() => {
+    if (snapshot.in_game && !wasInGameRef.current) {
+      reload();
+    }
+    wasInGameRef.current = snapshot.in_game;
+  }, [snapshot.in_game, reload]);
+
+  const activeBuild = pickActiveBuild(builds);
   const showBuild = snapshot.in_game && !snapshot.is_replay;
 
   return (
@@ -44,7 +84,24 @@ function App() {
         {snapshot.in_game && (
           <span className="clock">{formatGameTime(snapshot.display_time)}</span>
         )}
+        <button type="button" className="reload-btn" onClick={reload}>
+          重载
+        </button>
       </div>
+
+      {loadError && (
+        <div className="load-error">无法加载建造顺序：{loadError}</div>
+      )}
+      {errors.length > 0 && (
+        <ul className="build-errors">
+          {errors.map((message) => (
+            <li key={message}>{message}</li>
+          ))}
+        </ul>
+      )}
+      {!activeBuild && !loadError && (
+        <div className="load-error">没有可用的建造顺序</div>
+      )}
 
       {snapshot.in_game && snapshot.players.length > 0 && (
         <ul className="players">
@@ -57,32 +114,8 @@ function App() {
         </ul>
       )}
 
-      {showBuild && (
-        <div className="build">
-          {nextStep ? (
-            <>
-              <span className="build-label">下一步</span>
-              <span className="build-say">{nextStep.say}</span>
-              <span className="build-time">
-                {formatGameTime(nextStep.time)}
-                <span className="build-countdown">
-                  {" "}
-                  ({Math.max(
-                    0,
-                    Math.ceil(
-                      nextStep.time -
-                        BUILD_ORDER.leadTimeSec -
-                        snapshot.display_time,
-                    ),
-                  )}
-                  s)
-                </span>
-              </span>
-            </>
-          ) : (
-            <span className="build-done">建造顺序已播完 ({spokenCount})</span>
-          )}
-        </div>
+      {showBuild && activeBuild && (
+        <BuildPanel build={activeBuild} snapshot={snapshot} />
       )}
     </main>
   );
