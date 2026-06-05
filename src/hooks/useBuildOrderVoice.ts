@@ -32,10 +32,16 @@ function hasResult(snapshot: GameSnapshot): boolean {
  * Drives announce-ahead voice cues for one build order against the live game
  * clock. Owns spoken-index state immutably, suppresses a late-connect backlog,
  * and cancels/resets speech on game end or replay.
+ *
+ * `currentTime` is the interpolated in-game clock (see useInterpolatedClock);
+ * cues are scheduled off it so they fire within ~100ms of `time - leadTimeSec`
+ * rather than up to ~1s late. `snapshot` is still used for live/replay/result
+ * gating only.
  */
 export function useBuildOrderVoice(
   snapshot: GameSnapshot,
   order: BuildOrder,
+  currentTime: number,
 ): BuildOrderVoiceState {
   const [spoken, setSpoken] = useState<Set<number>>(() => new Set());
   // Tracks whether we are mid-game so we only seed the spoken set once per game.
@@ -61,13 +67,13 @@ export function useBuildOrderVoice(
     if (!activeRef.current) {
       // First live snapshot: suppress steps whose trigger time already passed.
       activeRef.current = true;
-      const seeded = initialSpokenSet(order, snapshot.display_time);
+      const seeded = initialSpokenSet(order, currentTime);
       spokenGuardRef.current = new Set(seeded);
       setSpoken(seeded);
       return;
     }
 
-    const due = dueStepIndices(order, snapshot.display_time, spoken);
+    const due = dueStepIndices(order, currentTime, spoken);
     const toSpeak = due.filter((i) => !spokenGuardRef.current.has(i));
     if (toSpeak.length === 0) return;
 
@@ -80,7 +86,7 @@ export function useBuildOrderVoice(
       for (const i of toSpeak) next.add(i);
       return next;
     });
-  }, [snapshot, order, spoken]);
+  }, [snapshot, order, spoken, currentTime]);
 
   // Cancel any in-flight speech if the component unmounts entirely.
   useEffect(() => () => cancelAll(), []);

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useGameSnapshot } from "./hooks/useGameSnapshot";
 import { useBuildOrders } from "./hooks/useBuildOrders";
 import { useBuildOrderVoice } from "./hooks/useBuildOrderVoice";
+import { useInterpolatedClock } from "./hooks/useInterpolatedClock";
 import { pickActiveBuild } from "./lib/builds";
 import { formatGameTime, raceLabel } from "./lib/format";
 import type { BuildOrder } from "./types/build";
@@ -18,14 +19,21 @@ function statusText(snapshot: GameSnapshot): string {
 interface BuildPanelProps {
   build: BuildOrder;
   snapshot: GameSnapshot;
+  currentTime: number;
 }
 
 /**
  * The next-step coach panel. Extracted so the voice hook only runs (and only
  * needs a non-null build) when there is actually a build to coach with.
+ * `currentTime` is the interpolated in-game clock, driving both the cue
+ * scheduling and the smooth per-second countdown.
  */
-function BuildPanel({ build, snapshot }: BuildPanelProps) {
-  const { nextStep, spokenCount } = useBuildOrderVoice(snapshot, build);
+function BuildPanel({ build, snapshot, currentTime }: BuildPanelProps) {
+  const { nextStep, spokenCount } = useBuildOrderVoice(
+    snapshot,
+    build,
+    currentTime,
+  );
 
   if (nextStep) {
     return (
@@ -38,9 +46,7 @@ function BuildPanel({ build, snapshot }: BuildPanelProps) {
             {" "}
             ({Math.max(
               0,
-              Math.ceil(
-                nextStep.time - build.leadTimeSec - snapshot.display_time,
-              ),
+              Math.ceil(nextStep.time - build.leadTimeSec - currentTime),
             )}
             s)
           </span>
@@ -58,6 +64,7 @@ function BuildPanel({ build, snapshot }: BuildPanelProps) {
 
 function App() {
   const snapshot = useGameSnapshot();
+  const currentTime = useInterpolatedClock(snapshot);
   const { builds, errors, loadError, reload } = useBuildOrders();
 
   // Reload build orders on the transition INTO a live game, so an edit made
@@ -115,7 +122,11 @@ function App() {
       )}
 
       {showBuild && activeBuild && (
-        <BuildPanel build={activeBuild} snapshot={snapshot} />
+        <BuildPanel
+          build={activeBuild}
+          snapshot={snapshot}
+          currentTime={currentTime}
+        />
       )}
     </main>
   );
