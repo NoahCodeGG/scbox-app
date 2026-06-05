@@ -1,0 +1,9 @@
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "Core of this task: the #[tauri::command] + invoke/emit contract used to push 6119 poll results from Rust to the frontend; defines name/arg/return sync rules and Result<T,E> error pattern"}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "Any new plugin (e.g. http) needs a capability in src-tauri/capabilities/default.json; explains how to grant the narrowest permission"}
+{"file": ".trellis/spec/tauri/index.md", "reason": "Rust/Tauri layer layout and the rule to keep lib.rs thin; where the 6119 polling backend code lives"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "The React<->Rust IPC seam is this app's critical boundary; checklist for keeping command/invoke and serde/TS types in sync"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "Pattern for wrapping invoke and subscribing to Tauri events (listen) inside hooks with StrictMode-safe cleanup — used by the game-state poller and cue scheduler"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "useState-first, immutable updates, and event-listener cleanup rules for game-state and cue-scheduling state"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Typing invoke<T>/event payloads and mirroring the Rust serde game-state shape as TS types; strict-mode constraints"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Function-component/props/styling conventions for the always-on-top overlay UI"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Where new components/hooks/lib and the build-order JSON data files should live"}

@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Review gate: tsc+vite build must pass, forbidden patterns (any, console.log, untyped invoke, swallowed IPC errors, mutated state), review checklist"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify no any, typed invoke<T>/event payloads, TS types aligned with the Rust serde game-state shape, import type usage"}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "Verify the command/invoke contract stays in sync (name/args/return/registration) and commands return Result<T,E> with frontend try/catch"}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "Verify any added plugin has a matching, minimal capability in default.json"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Run the 'after adding/changing a command' checklist against the React<->Rust boundary; catch serde/TS field-rename drift"}

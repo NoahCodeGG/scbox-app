@@ -1,0 +1,113 @@
+:root {
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #f2f2f2;
+  background-color: #1b1d22;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+}
+
+.overlay {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.dot-on {
+  background-color: #3ad07a;
+  box-shadow: 0 0 6px #3ad07a88;
+}
+
+.dot-off {
+  background-color: #6b6f76;
+}
+
+.status-text {
+  font-weight: 500;
+}
+
+.clock {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.players {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.players li {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background-color: #24272e;
+  border-radius: 6px;
+}
+
+.player-race {
+  color: #9aa0a8;
+}
+
+.build {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 10px;
+  background-color: #2a2f38;
+  border-radius: 6px;
+}
+
+.build-label {
+  font-size: 0.75rem;
+  color: #9aa0a8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex: none;
+}
+
+.build-say {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.build-time {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: #c8cdd4;
+  flex: none;
+}
+
+.build-countdown {
+  color: #f0b132;
+}
+
+.build-done {
+  color: #9aa0a8;
+}

@@ -1,0 +1,17 @@
+{
+  "_note": "REPLACEABLE EXAMPLE — edit this with your own build. A rough standard Terran opening translated to in-game-clock seconds; NOT a pro/optimal build. Times are approximate displayTime seconds for each action.",
+  "matchup": "TvX",
+  "race": "Terran",
+  "leadTimeSec": 4,
+  "steps": [
+    { "time": 17, "say": "14 补给站" },
+    { "time": 30, "say": "16 兵营" },
+    { "time": 40, "say": "16 精炼厂" },
+    { "time": 75, "say": "兵营升轨道指挥中心" },
+    { "time": 80, "say": "造第二补给站" },
+    { "time": 110, "say": "出第一个死神，开始骚扰" },
+    { "time": 135, "say": "造第二指挥中心，开分矿" },
+    { "time": 160, "say": "补第二第三兵营" },
+    { "time": 200, "say": "造第二精炼厂，转兵营加反应堆和挂件" }
+  ]
+}
