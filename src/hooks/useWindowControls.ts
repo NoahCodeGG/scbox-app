@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import {
   getCurrentWindow,
-  LogicalPosition,
   availableMonitors,
 } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 import type { Settings } from "./useSettings";
 
 interface UseWindowControlsOptions {
@@ -22,24 +22,10 @@ export function useWindowControls({
   saveSettings,
 }: UseWindowControlsOptions): void {
   const window = getCurrentWindow();
-  const positionAppliedRef = useRef(false);
 
-  // Apply saved position once on mount (using logical coordinates, which work
-  // better on macOS Retina multi-monitor setups).
-  useEffect(() => {
-    if (
-      !positionAppliedRef.current &&
-      settings.windowX !== null &&
-      settings.windowY !== null
-    ) {
-      void window
-        .setPosition(new LogicalPosition(settings.windowX, settings.windowY))
-        .catch((e: unknown) => {
-          console.error("Failed to restore window position:", e);
-        });
-      positionAppliedRef.current = true;
-    }
-  }, [settings.windowX, settings.windowY, window]);
+  // Window position is now restored in Rust setup (src-tauri/src/lib.rs) to
+  // avoid visible jump from default position. Frontend no longer needs to call
+  // setPosition on mount.
 
   // Apply click-through whenever it changes.
   useEffect(() => {
@@ -81,19 +67,22 @@ export function useWindowControls({
     saveSettingsRefForPosition.current = saveSettings;
   });
 
-  // Persist window position on unmount (when the app closes). Uses logical
-  // coordinates (better for macOS Retina multi-monitor). Validates the position
-  // is within any monitor's bounds before saving.
+  // Persist window position on window close. Uses logical coordinates (better
+  // for macOS Retina multi-monitor). Listens for the close-requested event
+  // instead of relying on React unmount (which doesn't fire when Tauri window
+  // is closed). Prevents default close to ensure async save completes.
   useEffect(() => {
-    return () => {
-      void (async () => {
+    let unlisten: (() => void) | undefined;
+
+    void (async () => {
+      unlisten = await window.onCloseRequested(async (event) => {
+        // Prevent default close to allow async save to complete.
+        event.preventDefault();
+
         try {
           const pos = await window.outerPosition();
           const monitors = await availableMonitors();
 
-          // Convert physical position to logical by dividing by scale factor.
-          // On macOS Retina, outerPosition() returns physical pixels but we need
-          // logical coordinates for setPosition(LogicalPosition).
           const currentMonitor = monitors.find((m) => {
             const { x: mx, y: my } = m.position;
             const { width, height } = m.size;
@@ -105,26 +94,29 @@ export function useWindowControls({
             );
           });
 
-          if (!currentMonitor) {
-            // Position is outside all monitors, don't save.
-            return;
+          if (currentMonitor) {
+            const scaleFactor = currentMonitor.scaleFactor;
+            const logicalX = pos.x / scaleFactor;
+            const logicalY = pos.y / scaleFactor;
+
+            await saveSettingsRefForPosition.current({
+              ...settingsRef.current,
+              windowX: logicalX,
+              windowY: logicalY,
+            });
           }
-
-          const scaleFactor = currentMonitor.scaleFactor;
-          const logicalX = pos.x / scaleFactor;
-          const logicalY = pos.y / scaleFactor;
-
-          await saveSettingsRefForPosition.current({
-            ...settingsRef.current,
-            windowX: logicalX,
-            windowY: logicalY,
-          });
         } catch (e: unknown) {
           console.error("Failed to persist window position:", e);
         }
-      })();
+
+        // Exit the app after save completes (or fails).
+        await invoke('exit_app');
+      });
+    })();
+
+    return () => {
+      if (unlisten) unlisten();
     };
-    // Empty deps: the cleanup runs once on unmount, but uses refs for latest values.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }

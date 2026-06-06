@@ -1,0 +1,7 @@
+{"file": ".trellis/tasks/06-06-cross-platform-voice-reliability-webview2-native-tts-fallback/prd.md", "reason": "Locked decision + acceptance criteria + the !Send/sync-command hard constraint to verify against"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Review gate: build/tests pass, forbidden patterns, error surfaced not swallowed, pure tier fn tested"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify typed invoke<VoiceInfo[]>, tier types, no any, TS VoiceInfo matches Rust serde"}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "Verify speak_tts/stop_tts/list_voices contract synced, Result<T,E>, registered, and commands are SYNCHRONOUS (Tts is !Send)"}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "Verify no unnecessary capability/plugin added; tts crate needs none"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Run after-command checklist; catch VoiceInfo serde/TS drift"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "Verify async voice loading + tiering hook are StrictMode-safe, invoke wrapped in try/catch"}

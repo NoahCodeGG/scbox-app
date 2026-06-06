@@ -1,0 +1,2 @@
+{"file": ".trellis/tasks/06-06-ci-build-windows-installer-via-github-actions-tauri-action/prd.md", "reason": "Verify the workflow matches the locked decisions (triggers, artifact-not-release, pnpm, windows-latest, unsigned) and acceptance criteria"}
+{"file": ".trellis/spec/tauri/index.md", "reason": "Verify the workflow's build command + dist path match the project's Tauri config"}

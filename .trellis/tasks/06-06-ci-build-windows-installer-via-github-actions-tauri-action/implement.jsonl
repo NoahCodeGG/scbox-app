@@ -1,0 +1,2 @@
+{"file": ".trellis/tasks/06-06-ci-build-windows-installer-via-github-actions-tauri-action/prd.md", "reason": "Locked CI decisions: windows-latest + tauri-action + pnpm, artifact (not Release), workflow_dispatch+push triggers, unsigned"}
+{"file": ".trellis/spec/tauri/index.md", "reason": "Tauri build config context (beforeBuildCommand pnpm build, frontendDist, identifier, bundle targets) the workflow must match"}

@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Review gate: build/tests pass, forbidden patterns (any, untyped invoke, swallowed errors, mutated state), checklist"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify invoke<BuildOrder[]> typed, TS type matches Rust serde shape, on-disk data validated at boundary, no any/unchecked casts"}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "Verify load_build_orders contract synced (name/args/return/registration), returns Result<T,E>, frontend wraps in try/catch"}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "Verify any added plugin has a matching minimal capability; std::fs path needs none"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Run the after-command checklist; catch serde/TS BuildOrder field drift across the boundary"}

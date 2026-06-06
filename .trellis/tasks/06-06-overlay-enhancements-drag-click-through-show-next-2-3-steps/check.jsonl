@@ -1,0 +1,7 @@
+{"file": ".trellis/tasks/06-06-overlay-enhancements-drag-click-through-show-next-2-3-steps/prd.md", "reason": "Verify against locked design: drag, click-through + shortcut escape hatch, position persistence, next-3 steps"}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "Verify global-shortcut + window permissions added to capability with least privilege; no over-grant"}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "Verify any new command contract synced, Result<T,E>, registered"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Catch Settings (clickThrough/windowX/windowY) serde/TS drift"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Review gate: build/tests pass, forbidden patterns, pure upcomingStepIndices tested"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "Verify shortcut/listener cleanup, StrictMode-safe, no lock-out logic correct"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify typed window APIs/invoke, extended Settings matches Rust, no any"}

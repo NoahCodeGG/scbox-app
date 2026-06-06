@@ -1,0 +1,11 @@
+{"file": ".trellis/tasks/06-06-cross-platform-voice-reliability-webview2-native-tts-fallback/research/native-tts-rust-options.md", "reason": "Authoritative design source: tts crate backends, the !Send constraint (sync command), API sketch, layered-fallback recommendation"}
+{"file": ".trellis/tasks/06-06-cross-platform-voice-reliability-webview2-native-tts-fallback/research/webview2-web-speech-zh.md", "reason": "Why Web-Speech-only is unsafe on Windows; the voiceschanged-await + zh-CN presence-check pattern that R1 must implement"}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "speak_tts/stop_tts/list_voices command contract, Result<T,E>, generate_handler registration; sync command requirement"}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "tts crate needs no plugin/capability, but confirm nothing extra is granted; guidance if a plugin is added"}
+{"file": ".trellis/spec/tauri/index.md", "reason": "Keep lib.rs thin; put TTS in its own src-tauri module"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "VoiceInfo Rust serde shape must match the TS type; command/invoke sync checklist"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "speech tiering + useVoiceCapability hook; invoke wrapping, async voice loading, StrictMode-safe"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Type invoke<VoiceInfo[]>, tier-selection types, no any, import type"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "One-time dismissible hint state, immutable updates"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "The install-hint UI follows function-component/props conventions"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Build/test gate, forbidden patterns, errors surfaced not swallowed, pure tier fn separated + tested"}

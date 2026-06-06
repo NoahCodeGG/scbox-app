@@ -1,0 +1,9 @@
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "Core: defines the #[tauri::command] + invoke contract and Result<T,E> error pattern for the new load_build_orders command; name/arg/return must stay synced with the frontend"}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "Reading app_data_dir via std::fs needs no plugin, but if a fs/path plugin is added it needs a minimal capability in default.json — guidance on narrowest grant"}
+{"file": ".trellis/spec/tauri/index.md", "reason": "Keep lib.rs thin; put the build-order file IO in its own Rust module; where backend code lives"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "The Rust BuildOrder struct and the TS BuildOrder type are a cross-layer contract; checklist to keep serde shape and TS type in sync"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "The invoke-backed loader should be a hook (useBuildOrders) with typed invoke, try/catch, and StrictMode-safe behavior; reload triggers"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Type the invoke<BuildOrder[]> result, mirror the Rust serde shape, validate on-disk data at the boundary, no any"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Immutable state for the loaded builds + error; reload semantics"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "The manual Reload button + error display follow function-component/props conventions"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Where the new hook/lib and the bundled default JSON live; app-data vs bundle distinction"}

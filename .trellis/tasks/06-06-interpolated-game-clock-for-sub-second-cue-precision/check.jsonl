@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Review gate: build/tests pass, forbidden patterns, pure-function separation, review checklist"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify typed interpolate()/hook, no any, no unchecked casts"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "Verify interval cleanup, StrictMode safety, ref vs state usage, no double-speak regression in the voice hook"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Verify immutable updates and that the stall-freeze logic doesn't re-anchor a frozen clock"}

@@ -1,0 +1,7 @@
+{"file": ".trellis/tasks/06-06-auto-select-build-order-by-matchup-identify-me-opponent-race/prd.md", "reason": "Verify against the locked selection rule, fallbacks, and acceptance criteria"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Review gate: build/tests pass, forbidden patterns, pure selectBuild/identifyMatchup separated + tested"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify typed invoke<Settings>, no any, TS Settings matches Rust serde, race-letter union types"}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "Verify load_settings/save_settings contract synced, Result<T,E>, registered"}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "Verify no needless capability added for settings IO"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Catch Settings serde/TS drift; after-command checklist"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "Verify settings/selection hooks: invoke try/catch, StrictMode-safe, re-select at game start"}

@@ -75,6 +75,12 @@ fn save_settings(
     Ok(())
 }
 
+/// Exit the application immediately. Used after saving window position on close.
+#[tauri::command]
+fn exit_app() {
+    std::process::exit(0);
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -86,21 +92,55 @@ pub fn run() {
             save_settings,
             tts::speak_tts,
             tts::stop_tts,
-            tts::list_voices
+            tts::list_voices,
+            exit_app
         ])
         .setup(|app| {
-            // Seed the shared SC2 port from persisted settings (default 6119 if
-            // the file is missing or unreadable), then manage it so both the
-            // poll loop and `save_settings` share one source of truth.
-            let seed_port = app
+            // Load settings early to seed shared state and restore window position.
+            let settings = app
                 .path()
                 .app_data_dir()
                 .ok()
-                .and_then(|dir| settings::load_from_dir(&dir).ok())
+                .and_then(|dir| settings::load_from_dir(&dir).ok());
+
+            // Seed the shared SC2 port from persisted settings (default 6119 if
+            // the file is missing or unreadable), then manage it so both the
+            // poll loop and `save_settings` share one source of truth.
+            let seed_port = settings
+                .as_ref()
                 .map(|s| s.client_api_port)
                 .unwrap_or(settings::DEFAULT_CLIENT_API_PORT);
             let shared_port: SharedPort = Arc::new(Mutex::new(seed_port));
             app.manage(shared_port.clone());
+
+            // Restore window position from saved settings (if available) to avoid
+            // visible jump from default position on startup. Window starts hidden
+            // (tauri.conf.json visible: false), so we show it after positioning.
+            let window_opt = app.webview_windows().values().next().cloned();
+
+            if let Some(s) = settings {
+                if let (Some(x), Some(y)) = (s.window_x, s.window_y) {
+                    if let Some(window) = &window_opt {
+                        let logical_pos = tauri::LogicalPosition::new(x, y);
+                        if let Err(e) = window.set_position(logical_pos) {
+                            eprintln!("Failed to restore window position: {e}");
+                        }
+                    }
+                }
+            }
+
+            // Show the window after positioning (or immediately if no saved position).
+            // Use a small delay to allow the window manager to process the position
+            // change before showing, reducing visible flicker.
+            let window_for_show = window_opt.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(50));
+                if let Some(window) = window_for_show {
+                    if let Err(e) = window.show() {
+                        eprintln!("Failed to show window: {e}");
+                    }
+                }
+            });
 
             // Register global shortcut to disable click-through from outside the window.
             // The shortcut emits an event that the frontend listens for.

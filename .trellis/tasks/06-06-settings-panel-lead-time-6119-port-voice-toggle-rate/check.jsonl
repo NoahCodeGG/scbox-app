@@ -1,0 +1,7 @@
+{"file": ".trellis/tasks/06-06-settings-panel-lead-time-6119-port-voice-toggle-rate/prd.md", "reason": "Verify against locked schema, port shared-state behavior, validation, and pickActiveBuild removal"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Review gate: build/tests pass, forbidden patterns, dead code removed, pure validation tested"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify extended TS Settings matches Rust serde, no any, nullable override typed"}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "Verify save_settings updates shared port, contract synced, Result<T,E>"}
+{"file": ".trellis/spec/tauri/index.md", "reason": "Verify managed-State port wiring; lib.rs thin; poll loop reads port"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Catch Settings serde/TS drift; CRITICAL: no std Mutex guard held across .await in the poll loop"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "Verify voice gating + settings hook StrictMode-safe, invoke try/catch, no double-speak regression"}

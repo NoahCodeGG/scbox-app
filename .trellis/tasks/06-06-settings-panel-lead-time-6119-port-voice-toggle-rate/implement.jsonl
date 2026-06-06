@@ -1,0 +1,10 @@
+{"file": ".trellis/tasks/06-06-settings-panel-lead-time-6119-port-voice-toggle-rate/prd.md", "reason": "Locked settings schema, runtime-port shared-state design, validation rules, and dead-code cleanup scope"}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "save_settings now also updates shared port state; command contract + Result<T,E> + registration"}
+{"file": ".trellis/spec/tauri/index.md", "reason": "Managed-State pattern for the shared port (Arc<Mutex<u16>>), keep lib.rs thin; poll loop reads it"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Extended Settings serde ⇄ TS must stay aligned; never hold std Mutex guard across await"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Extend TS Settings to match Rust; type invoke; no any; nullable leadTimeSecOverride"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Settings panel open/close + form state, immutable updates, persist via saveSettings"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Settings panel component: function component, named props, per-component CSS, accessible inputs"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "useSettings extension + voice gating wiring; invoke try/catch; StrictMode-safe"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Build/test gate, pure validation separated + tested, remove dead pickActiveBuild cleanly"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Where the settings panel component + validation helper live"}

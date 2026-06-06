@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "useInterpolatedClock is a custom hook with an interval + refs; StrictMode-safe setup/cleanup, naming conventions"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Interpolated value + anchor refs; immutable state, when to use refs vs state, effect cleanup of the interval"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Type the pure interpolate() args/return and the hook; no any; strict-mode constraints"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Build/test gate, forbidden patterns, keep the pure function separate and tested"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Where lib/clock.ts and hooks/useInterpolatedClock.ts live"}

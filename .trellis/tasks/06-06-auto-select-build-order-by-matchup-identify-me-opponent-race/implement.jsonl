@@ -1,0 +1,11 @@
+{"file": ".trellis/tasks/06-06-auto-select-build-order-by-matchup-identify-me-opponent-race/prd.md", "reason": "Locked selection rule, matchup convention, identify-me fallbacks, and acceptance criteria"}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "load_settings/save_settings command contract, Result<T,E>, generate_handler registration; Settings serde shape"}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "app_data_dir is core (no plugin); confirm no needless capability for settings IO"}
+{"file": ".trellis/spec/tauri/index.md", "reason": "Keep lib.rs thin; settings IO in its own module mirroring builds.rs"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Settings Rust serde shape must match the TS type; after-command checklist"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Type invoke<Settings>, matchup/race-letter helpers, no any, import type"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "Settings load/save + matchup selection wiring in hooks; invoke try/catch, StrictMode-safe"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "playerName + active-build state, immutable updates, re-select at game start"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Minimal player-name input + active-matchup display follow function-component/props conventions"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Build/test gate, forbidden patterns, pure selection logic separated + tested"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Where lib/matchup.ts, settings hook, and types live"}
