@@ -12,10 +12,21 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "scbox-app",
         "width": 320,
         "height": 200,
         "alwaysOnTop": true,
+        "resizable": true,
+        "visible": false
+      },
+      {
+        "label": "editor",
+        "title": "建造顺序编辑器",
+        "width": 900,
+        "height": 700,
+        "minWidth": 600,
+        "minHeight": 400,
         "resizable": true,
         "visible": false
       }

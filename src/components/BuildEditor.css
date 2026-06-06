@@ -1,0 +1,222 @@
+.editor {
+  font-family: system-ui, -apple-system, sans-serif;
+  padding: 16px 20px;
+  color: #1a1a1a;
+  background: #fafafa;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.editor-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.editor-btn {
+  font-size: 13px;
+  padding: 4px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.editor-btn:hover {
+  background: #f0f0f0;
+}
+
+.editor-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.editor-error,
+.editor-parse-errors {
+  background: #fde8e8;
+  color: #9b1c1c;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.editor-parse-errors {
+  list-style: none;
+  margin: 0 0 12px;
+}
+
+.editor-empty {
+  color: #777;
+  font-size: 14px;
+}
+
+/* Two-pane body: build list on the left, form on the right. */
+.editor-body {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.editor-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editor-new {
+  width: 100%;
+}
+
+.editor-build-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editor-build-item {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.editor-build-item:hover {
+  background: #f3f4f6;
+}
+
+.editor-build-item.is-selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.editor-build-matchup {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.editor-build-race {
+  font-size: 12px;
+  color: #555;
+}
+
+.editor-build-meta {
+  margin-left: auto;
+  font-size: 12px;
+  color: #999;
+}
+
+/* Form */
+.editor-form {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.editor-meta-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.editor-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #555;
+}
+
+.editor-input {
+  font-size: 13px;
+  padding: 5px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.editor-steps-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.editor-steps {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editor-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.editor-step-supply {
+  width: 64px;
+}
+
+.editor-step-time {
+  width: 64px;
+}
+
+.editor-step-say {
+  flex: 1;
+}
+
+.editor-est {
+  padding: 4px 6px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.editor-del-step {
+  padding: 2px 8px;
+  font-size: 14px;
+  line-height: 1;
+  color: #9b1c1c;
+}
+
+.editor-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.editor-save {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.editor-save:hover {
+  background: #1d4ed8;
+}
+
+.editor-delete {
+  color: #9b1c1c;
+}

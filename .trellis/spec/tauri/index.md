@@ -18,8 +18,9 @@ src-tauri/
 │   ├── main.rs        # thin binary — calls scbox_app_lib::run()
 │   └── lib.rs         # Builder setup + #[tauri::command] handlers
 ├── capabilities/
-│   └── default.json   # permission ACL for the main window
-├── tauri.conf.json    # app config (window, bundle, dev URL)
+│   ├── default.json   # permission ACL for the main window
+│   └── editor.json    # permission ACL for the editor window
+├── tauri.conf.json    # app config (windows, bundle, dev URL)
 ├── Cargo.toml
 └── build.rs
 ```
@@ -32,6 +33,7 @@ src-tauri/
 |-------|-------------|
 | [IPC Commands](./ipc-commands.md) | Defining `#[tauri::command]` handlers and the `invoke` contract |
 | [Permissions & Capabilities](./permissions.md) | The capabilities ACL and adding plugins |
+| [Multi-Window & Cross-Window Events](./multi-window.md) | Adding windows, label routing, close=hide, cross-window reload |
 
 Related: [Frontend spec layer](../frontend/index.md) ·
 [Cross-Layer Thinking Guide](../guides/cross-layer-thinking-guide.md).

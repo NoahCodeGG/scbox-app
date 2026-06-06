@@ -8,7 +8,7 @@ use std::time::Duration;
 use tauri::{Emitter, Manager};
 use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
-use builds::LoadResult;
+use builds::{BuildOrder, LoadResult};
 use settings::Settings;
 
 const POLL_INTERVAL: Duration = Duration::from_millis(1000);
@@ -22,21 +22,50 @@ const BUILDS_SUBDIR: &str = "builds";
 /// next tick without a restart.
 type SharedPort = Arc<Mutex<u16>>;
 
+/// Resolve the app-data `builds/` dir for the given app handle.
+fn builds_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+    Ok(app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("cannot resolve app data dir: {e}"))?
+        .join(BUILDS_SUBDIR))
+}
+
 /// Load every build order from the app-data `builds/` dir, seeding the bundled
 /// default on first run. Returns the valid builds plus a per-file error list so
 /// the frontend can surface partial failures without crashing.
 #[tauri::command]
 fn load_build_orders(app: tauri::AppHandle) -> Result<LoadResult, String> {
-    let dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| format!("cannot resolve app data dir: {e}"))?
-        .join(BUILDS_SUBDIR);
+    let dir = builds_dir(&app)?;
 
     builds::seed_if_empty(&dir)
         .map_err(|e| format!("cannot seed builds dir: {e}"))?;
 
     Ok(builds::load_from_dir(&dir))
+}
+
+/// Save a single build order to `builds/<filename>` in the app-data dir. The
+/// filename is validated against path traversal before use. Overwrites an
+/// existing file of the same name (that is how an edit persists).
+#[tauri::command]
+fn save_build_order(
+    app: tauri::AppHandle,
+    filename: String,
+    build: BuildOrder,
+) -> Result<(), String> {
+    let dir = builds_dir(&app)?;
+    builds::save_to_dir(&dir, &filename, &build)
+}
+
+/// Delete `builds/<filename>` from the app-data dir. The filename is validated
+/// against path traversal first; a missing file is treated as success.
+#[tauri::command]
+fn delete_build_order(
+    app: tauri::AppHandle,
+    filename: String,
+) -> Result<(), String> {
+    let dir = builds_dir(&app)?;
+    builds::delete_from_dir(&dir, &filename)
 }
 
 /// Read the user settings JSON from the app-data dir. A missing file (first
@@ -81,6 +110,21 @@ fn exit_app() {
     std::process::exit(0);
 }
 
+/// Show and focus the build-order editor window (declared hidden in
+/// `tauri.conf.json`). Opening it lazily keeps the editor out of the way until
+/// the user asks for it.
+#[tauri::command]
+fn open_editor(app: tauri::AppHandle) -> Result<(), String> {
+    let window = app
+        .get_webview_window("editor")
+        .ok_or_else(|| "editor window not found".to_string())?;
+    window.show().map_err(|e| format!("cannot show editor: {e}"))?;
+    window
+        .set_focus()
+        .map_err(|e| format!("cannot focus editor: {e}"))?;
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -88,12 +132,15 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             load_build_orders,
+            save_build_order,
+            delete_build_order,
             load_settings,
             save_settings,
             tts::speak_tts,
             tts::stop_tts,
             tts::list_voices,
-            exit_app
+            exit_app,
+            open_editor
         ])
         .setup(|app| {
             // Load settings early to seed shared state and restore window position.
@@ -113,10 +160,26 @@ pub fn run() {
             let shared_port: SharedPort = Arc::new(Mutex::new(seed_port));
             app.manage(shared_port.clone());
 
+            // Keep the editor window reusable: closing it should hide it (so a
+            // later `open_editor` can show it again) rather than destroy it,
+            // which would make `get_webview_window("editor")` return None.
+            if let Some(editor) = app.get_webview_window("editor") {
+                let editor_for_event = editor.clone();
+                editor.on_window_event(move |event| {
+                    if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                        api.prevent_close();
+                        let _ = editor_for_event.hide();
+                    }
+                });
+            }
+
             // Restore window position from saved settings (if available) to avoid
             // visible jump from default position on startup. Window starts hidden
             // (tauri.conf.json visible: false), so we show it after positioning.
-            let window_opt = app.webview_windows().values().next().cloned();
+            // Target the main overlay explicitly by label — the editor window
+            // also exists (hidden) so a generic "first window" lookup would be
+            // nondeterministic.
+            let window_opt = app.get_webview_window("main");
 
             if let Some(s) = settings {
                 if let (Some(x), Some(y)) = (s.window_x, s.window_y) {

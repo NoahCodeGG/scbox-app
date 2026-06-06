@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Review gate for the frontend editor/lib changes (quality bar, tests)."}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Verify the supply? + LoadResult filename contract stays consistent across TS and Rust."}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "Verify new commands follow IPC conventions and return Result<_, String> error handling."}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "Verify the editor capability grants only the needed permissions (least privilege) and path-traversal guard on filenames."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify no any, unknown narrowed, types explicit on the new public helpers."}

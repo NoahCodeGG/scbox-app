@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "editor",
+  "description": "Capability for the build-order editor window",
+  "windows": ["editor"],
+  "permissions": ["core:default"]
+}

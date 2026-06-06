@@ -1,0 +1,8 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Adding supply? to BuildStep and filename to LoadResult changes the TS↔Rust on-disk contract — keep both layers in sync per this guide."}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "New save_build_order / delete_build_order / open_editor commands must follow the IPC command + error-handling conventions."}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "The second editor window needs its own capability file with the right window + invoke permissions."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "BuildStep/BuildOrder/StoredBuild type changes and validation must follow type-safety rules (no any, narrow unknown)."}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "New <BuildEditor> component and step form must follow component conventions."}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "useBuildOrders is extended to expose filename mapping + reload-after-save; hook conventions apply."}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Editor form state must use immutable updates (new objects, never mutate steps)."}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Decides placement of lib/supplyTime.ts, lib/buildValidation.ts, components/BuildEditor."}

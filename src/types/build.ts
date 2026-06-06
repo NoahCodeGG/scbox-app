@@ -8,6 +8,12 @@ export interface BuildStep {
   time: number;
   /** Text spoken via Web Speech when the step is due. */
   say: string;
+  /**
+   * Optional SC2 supply count this step is authored at (how builds are normally
+   * remembered). Used by the editor's supply→time helper and shown on re-edit;
+   * not consumed by scheduling. Omitted on disk when unset.
+   */
+  supply?: number;
 }
 
 /** A full build order for one matchup. */
@@ -25,10 +31,22 @@ export interface BuildOrder {
 /**
  * Result of the Rust `load_build_orders` command. Mirrors the serde
  * `LoadResult` struct in `src-tauri/src/builds.rs` (camelCase keys). `builds`
- * holds every successfully parsed file; `errors` holds one `"<file>: <reason>"`
- * string per file that failed to parse.
+ * holds every successfully parsed file paired with its source filename;
+ * `errors` holds one `"<file>: <reason>"` string per file that failed to parse.
  */
 export interface LoadResult {
-  builds: BuildOrder[];
+  builds: StoredBuild[];
   errors: string[];
+}
+
+/**
+ * A loaded build paired with the name of the file it came from. The filename is
+ * loader metadata (not part of the on-disk JSON) so the editor can save/delete
+ * the right file. Mirrors `StoredBuild` in `src-tauri/src/builds.rs`.
+ */
+export interface StoredBuild {
+  /** Source filename within the app-data `builds/` dir, e.g. `"tvp.json"`. */
+  filename: string;
+  /** The parsed build order. */
+  build: BuildOrder;
 }

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { useGameSnapshot } from "./hooks/useGameSnapshot";
 import { useBuildOrders } from "./hooks/useBuildOrders";
 import { useBuildOrderVoice } from "./hooks/useBuildOrderVoice";
@@ -13,6 +15,7 @@ import { FALLBACK_BUILD } from "./lib/builds";
 import { identifyMatchup, selectBuild } from "./lib/matchup";
 import { formatGameTime, raceLabel } from "./lib/format";
 import { upcomingStepIndices } from "./lib/schedule";
+import { BUILDS_CHANGED_EVENT } from "./lib/events";
 import type { Settings } from "./hooks/useSettings";
 import type { BuildOrder } from "./types/build";
 import type { GameSnapshot } from "./types/sc2";
@@ -120,6 +123,15 @@ function App() {
     wasInGameRef.current = snapshot.in_game;
   }, [snapshot.in_game, reload]);
 
+  // Reload immediately when the editor window saves/deletes a build, so the
+  // overlay reflects edits without waiting for the next game or a manual reload.
+  useEffect(() => {
+    const unlisten = listen(BUILDS_CHANGED_EVENT, () => reload());
+    return () => {
+      void unlisten.then((off) => off());
+    };
+  }, [reload]);
+
   // Re-pick the active build for the detected matchup. When live with a known
   // matchup, select by my/opponent race; otherwise guide with the first loaded
   // build. Either path falls back to the bundled build when nothing loaded.
@@ -157,6 +169,17 @@ function App() {
         )}
         <button type="button" className="reload-btn" onClick={reload}>
           重载
+        </button>
+        <button
+          type="button"
+          className="reload-btn"
+          onClick={() => {
+            void invoke("open_editor").catch(() => {
+              // Editor window failed to open; nothing actionable in the overlay.
+            });
+          }}
+        >
+          编辑
         </button>
         <button
           type="button"
