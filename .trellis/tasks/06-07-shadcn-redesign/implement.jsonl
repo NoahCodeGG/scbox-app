@@ -1,0 +1,7 @@
+{"file": ".trellis/tasks/06-07-shadcn-redesign/research/shadcn-setup.md", "reason": "The Tailwind+shadcn+alias+fonts setup plan for Phase 0; verify Tailwind v3/v4 + shadcn CLI against current docs before installing."}
+{"file": ".trellis/tasks/06-07-shadcn-redesign/research/design-system.md", "reason": "Design tokens → shadcn new-york/neutral CSS-variable theme to implement in Phase 0."}
+{"file": ".trellis/tasks/06-07-shadcn-redesign/research/code-mapping.md", "reason": "Which components/hooks/IPC/events each in-app screen uses and must preserve during re-skin."}
+{"file": ".trellis/tasks/06-07-shadcn-redesign/research/mockups-catalog.md", "reason": "Per-mockup sections/states to reproduce for overlay/editor/settings."}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Where shadcn components/ui, lib/utils, and the @/ alias fit in the project layout."}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Re-skinned components must follow component conventions (typed props, no React.FC, etc.)."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Re-skin must keep types strict; cross-layer field names/casing unchanged."}

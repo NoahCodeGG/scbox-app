@@ -1,9 +1,15 @@
 /// <reference types="vitest" />
+import path from "node:path";
 import { defineConfig } from "vitest/config";
 
 // Default env is node: pure scheduling/lib logic stays DOM-free. Hook tests
 // opt into jsdom per-file via a `// @vitest-environment jsdom` docblock.
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],

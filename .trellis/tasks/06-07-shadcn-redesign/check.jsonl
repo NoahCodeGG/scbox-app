@@ -1,0 +1,4 @@
+{"file": ".trellis/tasks/06-07-shadcn-redesign/research/code-mapping.md", "reason": "Verify no wired behavior/IPC/event/type contract was dropped in the re-skin."}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Verify re-skinned components follow conventions."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify types stayed strict and cross-layer contracts unchanged."}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Build gate / forbidden patterns / review checklist for the UI overhaul."}
