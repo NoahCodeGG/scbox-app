@@ -173,3 +173,36 @@ Established a hook-testing harness and real tests for all custom hooks (replacin
 ### Next Steps
 
 - None - task complete
+
+
+## Session 6: 6119 connection lifecycle hardening
+
+**Date**: 2026-06-06
+**Task**: 6119 connection lifecycle hardening
+**Branch**: `main`
+
+### Summary
+
+Hardened SC2 Client API polling: 800ms request timeout (<1s base) so stalled sockets can't back up ticks; classify outcomes into a typed ConnectionStatus enum (ok/unreachable/timeout/bad_http/bad_body) with only-parse-on-2xx so a foreign service on the port no longer reads as connected; connected derived = status==ok; exponential backoff x2 capped 5s while disconnected, resets to 1s on reconnect (pure next_poll_interval_ms); DiagnosticPanel shows a status-specific reason line; GameSnapshot/ConnectionStatus mirrored in types/sc2.ts + fixtures. cargo 41, vitest 146, coverage held, tsc clean.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `2f3c61f` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

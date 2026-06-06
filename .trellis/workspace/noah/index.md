@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 5
+- **Total Sessions**: 6
 - **Last Active**: 2026-06-06
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~175 | Active |
+| `journal-1.md` | ~208 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 6 | 2026-06-06 | 6119 connection lifecycle hardening | `2f3c61f` | `main` |
 | 5 | 2026-06-06 | Hook-layer unit tests with jsdom + coverage gate | `8a67a49` | `main` |
 | 4 | 2026-06-06 | Build order import/export via clipboard JSON | `058897b` | `main` |
 | 3 | 2026-06-06 | In-app build order editor (+ supply→time helper) | `5192d01`, `9edde0d` | `main` |
