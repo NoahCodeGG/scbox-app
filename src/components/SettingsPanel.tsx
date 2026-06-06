@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { useAppVersion } from "../hooks/useAppVersion";
 import type { Settings } from "../hooks/useSettings";
-import "./SettingsPanel.css";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 
 interface SettingsPanelProps {
   /** Current persisted settings (the source of truth for field values). */
@@ -47,6 +53,15 @@ function updateStatusText(props: {
   return "";
 }
 
+/** Mono uppercase eyebrow label heading a settings group (mockup `.ghead`). */
+function GroupHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="border-b bg-secondary px-3 py-2 font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+      {children}
+    </div>
+  );
+}
+
 /**
  * The settings view, toggled from the overlay. Holds local draft state so edits
  * are batched and only persisted on Save; closing without saving discards the
@@ -77,131 +92,183 @@ function SettingsPanel({
     onClose();
   };
 
+  const statusText = updateStatusText({
+    busy: updateBusy,
+    available: updateAvailable,
+    version: updateVersion,
+    upToDate: updateUpToDate,
+    error: updateError,
+  });
+
   return (
-    <section className="settings-panel" aria-label="设置">
-      <header className="settings-panel-head">
-        <span className="settings-panel-title">设置</span>
-        <button
+    <section
+      className="flex flex-col gap-3 rounded-lg border bg-card p-3 text-card-foreground"
+      aria-label="设置"
+    >
+      <header className="flex items-start justify-between">
+        <div>
+          <h2 className="text-sm font-semibold tracking-tight">设置</h2>
+          <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
+            改动持久化后即时生效
+          </p>
+        </div>
+        <Button
           type="button"
-          className="settings-panel-close"
+          variant="ghost"
+          size="icon-sm"
           onClick={onClose}
           aria-label="关闭设置"
         >
           ×
-        </button>
+        </Button>
       </header>
 
-      <label className="settings-field">
-        <span className="settings-field-label">客户端端口</span>
-        <input
-          className="settings-field-input"
-          type="number"
-          min={1}
-          max={65535}
-          value={draft.clientApiPort}
-          onChange={(e) =>
-            setDraft((prev) => ({
-              ...prev,
-              clientApiPort: Number(e.currentTarget.value),
-            }))
-          }
-        />
-      </label>
+      <Card className="gap-0 overflow-hidden py-0">
+        <GroupHeading>对局识别</GroupHeading>
+        <CardContent className="px-3 py-3">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="settings-port" className="text-[13px]">
+              Client API 端口
+            </Label>
+            <Input
+              id="settings-port"
+              type="number"
+              min={1}
+              max={65535}
+              className="h-8 font-mono text-[13px]"
+              value={draft.clientApiPort}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  clientApiPort: Number(e.currentTarget.value),
+                }))
+              }
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-      <label className="settings-field">
-        <span className="settings-field-label">提前播报（秒，留空用建造默认）</span>
-        <input
-          className="settings-field-input"
-          type="number"
-          min={0}
-          step={0.5}
-          value={draft.leadTimeSecOverride ?? ""}
-          placeholder="默认"
-          onChange={(e) =>
-            setDraft((prev) => ({
-              ...prev,
-              leadTimeSecOverride: parseOptionalNumber(e.currentTarget.value),
-            }))
-          }
-        />
-      </label>
+      <Card className="gap-0 overflow-hidden py-0">
+        <GroupHeading>播报</GroupHeading>
+        <CardContent className="flex flex-col px-3 py-0">
+          <div className="flex flex-col gap-1.5 py-3">
+            <Label htmlFor="settings-lead" className="text-[13px]">
+              提前播报时间
+            </Label>
+            <p className="text-[11px] leading-tight text-muted-foreground">
+              覆盖 build order 自带的 leadTimeSec，留空用 build 设定。
+            </p>
+            <div className="flex items-center gap-2">
+              <Input
+                id="settings-lead"
+                type="number"
+                min={0}
+                step={0.5}
+                placeholder="默认"
+                className="h-8 w-24 font-mono text-[13px]"
+                value={draft.leadTimeSecOverride ?? ""}
+                onChange={(e) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    leadTimeSecOverride: parseOptionalNumber(
+                      e.currentTarget.value,
+                    ),
+                  }))
+                }
+              />
+              <span className="font-mono text-[11px] text-muted-foreground">
+                秒
+              </span>
+            </div>
+          </div>
 
-      <label className="settings-field settings-field-inline">
-        <span className="settings-field-label">语音播报</span>
-        <input
-          type="checkbox"
-          checked={draft.voiceEnabled}
-          onChange={(e) =>
-            setDraft((prev) => ({
-              ...prev,
-              voiceEnabled: e.currentTarget.checked,
-            }))
-          }
-        />
-      </label>
+          <Separator />
 
-      <label className="settings-field">
-        <span className="settings-field-label">
-          语速 ({draft.voiceRate.toFixed(1)}x)
-        </span>
-        <input
-          type="range"
-          min={0.5}
-          max={2}
-          step={0.1}
-          value={draft.voiceRate}
-          onChange={(e) =>
-            setDraft((prev) => ({
-              ...prev,
-              voiceRate: Number(e.currentTarget.value),
-            }))
-          }
-        />
-      </label>
+          <div className="flex items-center justify-between gap-3 py-3">
+            <Label htmlFor="settings-voice" className="text-[13px]">
+              语音播报
+            </Label>
+            <Switch
+              id="settings-voice"
+              checked={draft.voiceEnabled}
+              onCheckedChange={(checked) =>
+                setDraft((prev) => ({ ...prev, voiceEnabled: checked }))
+              }
+            />
+          </div>
 
-      <label className="settings-field settings-field-inline">
-        <span className="settings-field-label">穿透（CmdOrCtrl+Shift+S 关闭）</span>
-        <input
-          type="checkbox"
-          checked={draft.clickThrough}
-          onChange={(e) =>
-            setDraft((prev) => ({
-              ...prev,
-              clickThrough: e.currentTarget.checked,
-            }))
-          }
-        />
-      </label>
+          <Separator />
 
-      <div className="settings-panel-actions">
-        <button type="button" className="settings-save-btn" onClick={submit}>
-          保存
-        </button>
+          <div className="flex flex-col gap-2 py-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="settings-rate" className="text-[13px]">
+                语音速度
+              </Label>
+              <span className="font-mono text-[13px] tabular-nums">
+                {draft.voiceRate.toFixed(1)}×
+              </span>
+            </div>
+            <Slider
+              id="settings-rate"
+              min={0.5}
+              max={2}
+              step={0.1}
+              value={[draft.voiceRate]}
+              onValueChange={(value) =>
+                setDraft((prev) => ({ ...prev, voiceRate: value[0] }))
+              }
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="gap-0 overflow-hidden py-0">
+        <GroupHeading>悬浮窗</GroupHeading>
+        <CardContent className="px-3 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="settings-clickthrough" className="text-[13px]">
+                穿透模式
+              </Label>
+              <span className="font-mono text-[11px] text-warning">
+                ⚠ 开启后按 Ctrl+Shift+S 解除
+              </span>
+            </div>
+            <Switch
+              id="settings-clickthrough"
+              checked={draft.clickThrough}
+              onCheckedChange={(checked) =>
+                setDraft((prev) => ({ ...prev, clickThrough: checked }))
+              }
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex items-center justify-end">
+        <Button type="button" size="sm" onClick={submit}>
+          保存设置
+        </Button>
       </div>
 
-      <div className="settings-update-row">
-        <button
+      <Separator />
+
+      <div className="flex items-center gap-2">
+        <Button
           type="button"
-          className="settings-update-btn"
+          variant="secondary"
+          size="sm"
           onClick={() => {
             void onCheckUpdate();
           }}
           disabled={updateBusy}
         >
           检查更新
-        </button>
-        <span className="settings-update-status">
-          {updateStatusText({
-            busy: updateBusy,
-            available: updateAvailable,
-            version: updateVersion,
-            upToDate: updateUpToDate,
-            error: updateError,
-          })}
-        </span>
+        </Button>
+        <span className="text-[12px] text-muted-foreground">{statusText}</span>
       </div>
 
-      <footer className="settings-panel-footer">
+      <footer className="text-center text-[11px] text-muted-foreground">
         SCBox Assistant{version ? ` v${version}` : ""}
       </footer>
     </section>
