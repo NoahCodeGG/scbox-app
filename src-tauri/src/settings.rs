@@ -10,17 +10,59 @@ use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 
+/// Default SC2 Client API port (localhost `-clientapi <port>`).
+pub const DEFAULT_CLIENT_API_PORT: u16 = 6119;
+/// Default Web Speech utterance rate.
+const DEFAULT_VOICE_RATE: f64 = 1.0;
+
+fn default_client_api_port() -> u16 {
+    DEFAULT_CLIENT_API_PORT
+}
+
+fn default_voice_enabled() -> bool {
+    true
+}
+
+fn default_voice_rate() -> f64 {
+    DEFAULT_VOICE_RATE
+}
+
 /// User-editable application settings.
 ///
-/// Mirrors the TS `Settings` interface (camelCase `playerName`). The MVP holds
-/// only the player name used to identify "me" in a live game. Unknown keys are
-/// intentionally ignored so older/newer files round-trip without failing.
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+/// Mirrors the TS `Settings` interface (camelCase keys). Every field carries a
+/// serde default so an older `settings.json` (e.g. only `playerName`) still
+/// loads, with the missing knobs falling back to their defaults. Unknown keys
+/// are intentionally ignored so older/newer files round-trip without failing.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     /// Exact in-game name used to identify the local player. Empty when unset.
     #[serde(default)]
     pub player_name: String,
+    /// SC2 Client API port the poll loop hits (`-clientapi <port>`).
+    #[serde(default = "default_client_api_port")]
+    pub client_api_port: u16,
+    /// When set, overrides each build's `leadTimeSec`; `None` uses the build's.
+    #[serde(default)]
+    pub lead_time_sec_override: Option<f64>,
+    /// Whether build-order voice cues are spoken at all.
+    #[serde(default = "default_voice_enabled")]
+    pub voice_enabled: bool,
+    /// Web Speech utterance rate (clamped 0.5–2.0 by the frontend).
+    #[serde(default = "default_voice_rate")]
+    pub voice_rate: f64,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            player_name: String::new(),
+            client_api_port: DEFAULT_CLIENT_API_PORT,
+            lead_time_sec_override: None,
+            voice_enabled: true,
+            voice_rate: DEFAULT_VOICE_RATE,
+        }
+    }
 }
 
 /// Filename used for the settings JSON under the app-data dir.
@@ -96,6 +138,43 @@ mod tests {
     }
 
     #[test]
+    fn old_file_with_only_player_name_gets_new_defaults() {
+        // Back-compat: a settings.json written before the new knobs existed
+        // must load, with each missing field taking its default.
+        let s = parse_settings(r#"{ "playerName": "Maru" }"#).unwrap();
+        assert_eq!(s.player_name, "Maru");
+        assert_eq!(s.client_api_port, DEFAULT_CLIENT_API_PORT);
+        assert_eq!(s.lead_time_sec_override, None);
+        assert!(s.voice_enabled);
+        assert_eq!(s.voice_rate, 1.0);
+    }
+
+    #[test]
+    fn default_has_non_zero_port_and_rate() {
+        let s = Settings::default();
+        assert_eq!(s.client_api_port, 6119);
+        assert!(s.voice_enabled);
+        assert_eq!(s.voice_rate, 1.0);
+        assert_eq!(s.lead_time_sec_override, None);
+    }
+
+    #[test]
+    fn parses_all_new_fields() {
+        let json = r#"{
+            "playerName": "Sn",
+            "clientApiPort": 5000,
+            "leadTimeSecOverride": 2.5,
+            "voiceEnabled": false,
+            "voiceRate": 1.5
+        }"#;
+        let s = parse_settings(json).unwrap();
+        assert_eq!(s.client_api_port, 5000);
+        assert_eq!(s.lead_time_sec_override, Some(2.5));
+        assert!(!s.voice_enabled);
+        assert_eq!(s.voice_rate, 1.5);
+    }
+
+    #[test]
     fn empty_object_yields_default() {
         let s = parse_settings("{}").unwrap();
         assert_eq!(s, Settings::default());
@@ -117,6 +196,10 @@ mod tests {
     fn round_trip_serialize_then_parse() {
         let original = Settings {
             player_name: "Serral".to_string(),
+            client_api_port: 6120,
+            lead_time_sec_override: Some(3.0),
+            voice_enabled: false,
+            voice_rate: 1.25,
         };
         let json = serialize_settings(&original).unwrap();
         let parsed = parse_settings(&json).unwrap();
@@ -137,6 +220,7 @@ mod tests {
         let dir = tmp.path().join("data");
         let settings = Settings {
             player_name: "Clem".to_string(),
+            ..Settings::default()
         };
         save_to_dir(&dir, &settings).expect("save");
         let loaded = load_from_dir(&dir).expect("load");

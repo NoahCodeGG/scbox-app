@@ -5,9 +5,11 @@ import { useBuildOrderVoice } from "./hooks/useBuildOrderVoice";
 import { useInterpolatedClock } from "./hooks/useInterpolatedClock";
 import { useVoiceCapability } from "./hooks/useVoiceCapability";
 import { useSettings } from "./hooks/useSettings";
+import SettingsPanel from "./components/SettingsPanel";
 import { FALLBACK_BUILD } from "./lib/builds";
 import { identifyMatchup, selectBuild } from "./lib/matchup";
 import { formatGameTime, raceLabel } from "./lib/format";
+import type { Settings } from "./hooks/useSettings";
 import type { BuildOrder } from "./types/build";
 import type { GameSnapshot } from "./types/sc2";
 import "./App.css";
@@ -23,20 +25,31 @@ interface BuildPanelProps {
   build: BuildOrder;
   snapshot: GameSnapshot;
   currentTime: number;
+  settings: Settings;
 }
 
 /**
  * The next-step coach panel. Extracted so the voice hook only runs (and only
  * needs a non-null build) when there is actually a build to coach with.
  * `currentTime` is the interpolated in-game clock, driving both the cue
- * scheduling and the smooth per-second countdown.
+ * scheduling and the smooth per-second countdown. `settings` supplies the
+ * voice gate/rate and the lead-time override.
  */
-function BuildPanel({ build, snapshot, currentTime }: BuildPanelProps) {
+function BuildPanel({ build, snapshot, currentTime, settings }: BuildPanelProps) {
   const { nextStep, spokenCount } = useBuildOrderVoice(
     snapshot,
     build,
     currentTime,
+    {
+      voiceEnabled: settings.voiceEnabled,
+      voiceRate: settings.voiceRate,
+      leadTimeSecOverride: settings.leadTimeSecOverride,
+    },
   );
+
+  // Effective lead time mirrors the scheduler: the override when set, else the
+  // build's own value. Keeps the countdown in lockstep with when cues fire.
+  const effectiveLeadTime = settings.leadTimeSecOverride ?? build.leadTimeSec;
 
   if (nextStep) {
     return (
@@ -49,7 +62,7 @@ function BuildPanel({ build, snapshot, currentTime }: BuildPanelProps) {
             {" "}
             ({Math.max(
               0,
-              Math.ceil(nextStep.time - build.leadTimeSec - currentTime),
+              Math.ceil(nextStep.time - effectiveLeadTime - currentTime),
             )}
             s)
           </span>
@@ -72,12 +85,7 @@ function App() {
   const { needsInstallHint } = useVoiceCapability();
   const { settings, saveSettings, error: settingsError } = useSettings();
   const [hintDismissed, setHintDismissed] = useState(false);
-  const [nameDraft, setNameDraft] = useState("");
-
-  // Keep the editable draft in sync once settings load (or change externally).
-  useEffect(() => {
-    setNameDraft(settings.playerName);
-  }, [settings.playerName]);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Reload build orders on the transition INTO a live game, so an edit made
   // between games is picked up without restarting the app.
@@ -103,13 +111,6 @@ function App() {
   const activeBuild: BuildOrder = selected ?? FALLBACK_BUILD;
   const showBuild = snapshot.in_game && !snapshot.is_replay;
 
-  const persistName = (): void => {
-    const trimmed = nameDraft.trim();
-    if (trimmed !== settings.playerName) {
-      void saveSettings({ ...settings, playerName: trimmed });
-    }
-  };
-
   return (
     <main className="overlay">
       <div className="status-row">
@@ -124,24 +125,24 @@ function App() {
         <button type="button" className="reload-btn" onClick={reload}>
           重载
         </button>
+        <button
+          type="button"
+          className="settings-btn"
+          onClick={() => setSettingsOpen((open) => !open)}
+          aria-label="设置"
+          aria-expanded={settingsOpen}
+        >
+          ⚙
+        </button>
       </div>
 
-      <div className="settings-row">
-        <label className="player-name-label" htmlFor="player-name">
-          我的名字
-        </label>
-        <input
-          id="player-name"
-          className="player-name-input"
-          value={nameDraft}
-          placeholder="输入游戏内名称"
-          onChange={(e) => setNameDraft(e.currentTarget.value)}
-          onBlur={persistName}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") persistName();
-          }}
+      {settingsOpen && (
+        <SettingsPanel
+          settings={settings}
+          onSave={saveSettings}
+          onClose={() => setSettingsOpen(false)}
         />
-      </div>
+      )}
 
       {settingsError && (
         <div className="load-error">无法保存设置：{settingsError}</div>
@@ -199,6 +200,7 @@ function App() {
           build={activeBuild}
           snapshot={snapshot}
           currentTime={currentTime}
+          settings={settings}
         />
       )}
     </main>

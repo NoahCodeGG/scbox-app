@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { BuildOrder, BuildStep } from "../types/build";
 import type { GameSnapshot } from "../types/sc2";
 import { cancelAll, speak } from "../lib/speech";
@@ -16,6 +16,17 @@ export interface BuildOrderVoiceState {
   spokenCount: number;
 }
 
+/**
+ * Voice knobs from user settings. `leadTimeSecOverride` (when not null) replaces
+ * each build's own `leadTimeSec` for scheduling and the countdown; `voiceEnabled`
+ * gates audio; `voiceRate` is passed to the Web Speech utterance.
+ */
+export interface VoiceOptions {
+  voiceEnabled: boolean;
+  voiceRate: number;
+  leadTimeSecOverride: number | null;
+}
+
 /** A live game we should be guiding: in a real (non-replay) match. */
 function isLiveGame(snapshot: GameSnapshot): boolean {
   return snapshot.in_game && !snapshot.is_replay;
@@ -26,6 +37,19 @@ function hasResult(snapshot: GameSnapshot): boolean {
   return snapshot.players.some(
     (p) => p.result !== "" && p.result !== "Undecided",
   );
+}
+
+/**
+ * The build order to schedule against, with the user's lead-time override
+ * applied when set. Returns the original order untouched when the override is
+ * null (use each build's own `leadTimeSec`).
+ */
+export function effectiveOrder(
+  order: BuildOrder,
+  leadTimeSecOverride: number | null,
+): BuildOrder {
+  if (leadTimeSecOverride === null) return order;
+  return { ...order, leadTimeSec: leadTimeSecOverride };
 }
 
 /**
@@ -42,7 +66,17 @@ export function useBuildOrderVoice(
   snapshot: GameSnapshot,
   order: BuildOrder,
   currentTime: number,
+  options: VoiceOptions,
 ): BuildOrderVoiceState {
+  const { voiceEnabled, voiceRate, leadTimeSecOverride } = options;
+  // The order whose `leadTimeSec` reflects the user's override (or the build's
+  // own value when null). Memoized so the effect's dependency is stable across
+  // renders that don't change the order or the override.
+  const scheduledOrder = useMemo(
+    () => effectiveOrder(order, leadTimeSecOverride),
+    [order, leadTimeSecOverride],
+  );
+
   const [spoken, setSpoken] = useState<Set<number>>(() => new Set());
   // Tracks whether we are mid-game so we only seed the spoken set once per game.
   const activeRef = useRef(false);
@@ -67,33 +101,35 @@ export function useBuildOrderVoice(
     if (!activeRef.current) {
       // First live snapshot: suppress steps whose trigger time already passed.
       activeRef.current = true;
-      const seeded = initialSpokenSet(order, currentTime);
+      const seeded = initialSpokenSet(scheduledOrder, currentTime);
       spokenGuardRef.current = new Set(seeded);
       setSpoken(seeded);
       return;
     }
 
-    const due = dueStepIndices(order, currentTime, spoken);
+    const due = dueStepIndices(scheduledOrder, currentTime, spoken);
     const toSpeak = due.filter((i) => !spokenGuardRef.current.has(i));
     if (toSpeak.length === 0) return;
 
     for (const i of toSpeak) {
       spokenGuardRef.current.add(i);
-      speak(order.steps[i].say);
+      // Voice off: still advance the spoken set (so the next-step display and
+      // countdown progress), just skip the audio.
+      if (voiceEnabled) speak(scheduledOrder.steps[i].say, voiceRate);
     }
     setSpoken((prev) => {
       const next = new Set(prev);
       for (const i of toSpeak) next.add(i);
       return next;
     });
-  }, [snapshot, order, spoken, currentTime]);
+  }, [snapshot, scheduledOrder, spoken, currentTime, voiceEnabled, voiceRate]);
 
   // Cancel any in-flight speech if the component unmounts entirely.
   useEffect(() => () => cancelAll(), []);
 
-  const nextIndex = nextStepIndex(order, spoken);
+  const nextIndex = nextStepIndex(scheduledOrder, spoken);
   return {
-    nextStep: nextIndex === null ? null : order.steps[nextIndex],
+    nextStep: nextIndex === null ? null : scheduledOrder.steps[nextIndex],
     spokenCount: spoken.size,
   };
 }

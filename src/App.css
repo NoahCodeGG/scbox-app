@@ -47,34 +47,6 @@ body {
   font-weight: 500;
 }
 
-.settings-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.player-name-label {
-  font-size: 0.8rem;
-  color: #c8cdd4;
-  flex: none;
-}
-
-.player-name-input {
-  flex: 1;
-  min-width: 0;
-  padding: 3px 8px;
-  font-size: 0.85rem;
-  color: #f2f2f2;
-  background-color: #2a2f38;
-  border: 1px solid #3a3f48;
-  border-radius: 6px;
-}
-
-.player-name-input:focus {
-  outline: none;
-  border-color: #4a87d8;
-}
-
 .active-build {
   display: flex;
   align-items: baseline;
@@ -111,6 +83,22 @@ body {
 }
 
 .reload-btn:hover {
+  background-color: #343a44;
+}
+
+.settings-btn {
+  margin-left: 6px;
+  padding: 2px 8px;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: #c8cdd4;
+  background-color: #2a2f38;
+  border: 1px solid #3a3f48;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.settings-btn:hover {
   background-color: #343a44;
 }
 

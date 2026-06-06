@@ -63,13 +63,18 @@ impl GameSnapshot {
 /// Tauri event name for game snapshots.
 pub const GAME_EVENT: &str = "sc2://game";
 
-/// Default SC2 Client API endpoint (localhost-only by default).
-pub const GAME_URL: &str = "http://127.0.0.1:6119/game";
+/// Build the SC2 Client API `/game` endpoint URL for the given port. The host
+/// is fixed to localhost; only the port is user-configurable (some users launch
+/// SC2 with `-clientapi <port>`).
+fn game_url(port: u16) -> String {
+    format!("http://127.0.0.1:{port}/game")
+}
 
-/// Fetch one snapshot. A connection error (SC2 closed) maps to a disconnected
-/// snapshot rather than an error, so the poll loop can keep running quietly.
-pub async fn fetch_snapshot(client: &reqwest::Client) -> GameSnapshot {
-    match client.get(GAME_URL).send().await {
+/// Fetch one snapshot from the SC2 Client API on `port`. A connection error
+/// (SC2 closed) maps to a disconnected snapshot rather than an error, so the
+/// poll loop can keep running quietly.
+pub async fn fetch_snapshot(client: &reqwest::Client, port: u16) -> GameSnapshot {
+    match client.get(game_url(port)).send().await {
         Ok(resp) => match resp.json::<RawGame>().await {
             Ok(raw) => GameSnapshot::from_raw(raw),
             // Reachable but unparseable (e.g. not in a game yet) -> connected, idle.
@@ -123,6 +128,12 @@ mod tests {
         let snap = GameSnapshot::from_raw(raw);
         assert!(snap.is_replay);
         assert!(snap.in_game);
+    }
+
+    #[test]
+    fn game_url_uses_the_given_port() {
+        assert_eq!(game_url(6119), "http://127.0.0.1:6119/game");
+        assert_eq!(game_url(5000), "http://127.0.0.1:5000/game");
     }
 }
 

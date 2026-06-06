@@ -20,6 +20,17 @@ const ZH_PRIMARY = "zh";
 /** Max time to wait for the async `voiceschanged` population (ms). */
 const VOICES_TIMEOUT_MS = 1500;
 
+/** Usable Web Speech utterance rate bounds (per the Web Speech spec). */
+const MIN_RATE = 0.5;
+const MAX_RATE = 2.0;
+const DEFAULT_RATE = 1.0;
+
+/** Clamp an utterance rate into the usable range; non-finite falls back to 1.0. */
+function clampRate(rate: number): number {
+  if (!Number.isFinite(rate)) return DEFAULT_RATE;
+  return Math.min(MAX_RATE, Math.max(MIN_RATE, rate));
+}
+
 /** Which output path `speak` will use. Resolved once by `initVoice`. */
 export type VoiceTier = "web" | "native" | "none";
 
@@ -151,11 +162,12 @@ export function resetVoiceForTests(): void {
   zhWebVoice = null;
 }
 
-function speakWeb(text: string): void {
+function speakWeb(text: string, rate: number): void {
   const synth = getSynth();
   if (!synth || typeof SpeechSynthesisUtterance === "undefined") return;
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = SPEECH_LANG;
+  utterance.rate = clampRate(rate);
   if (zhWebVoice) utterance.voice = zhWebVoice;
   synth.speak(utterance);
 }
@@ -171,10 +183,14 @@ function speakNative(text: string): void {
  * Speak `text` in Chinese via the resolved tier. Returns the tier actually used
  * so callers can react to "none" (show the install hint). Safe before
  * `initVoice` resolves: falls back to the web tier opportunistically.
+ *
+ * `rate` sets the Web Speech utterance rate (clamped 0.5–2.0); the native tier
+ * does not currently take a rate (the `tts` crate's rate API is best-effort and
+ * left web-only for now).
  */
-export function speak(text: string): VoiceTier {
+export function speak(text: string, rate: number = DEFAULT_RATE): VoiceTier {
   const tier = resolvedTier ?? "web";
-  if (tier === "web") speakWeb(text);
+  if (tier === "web") speakWeb(text, rate);
   else if (tier === "native") speakNative(text);
   return tier;
 }
