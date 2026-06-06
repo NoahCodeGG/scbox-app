@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
+import { Plus, RotateCw, Save, Trash2 } from "lucide-react";
 import { useBuildOrders } from "../hooks/useBuildOrders";
 import { raceLabel } from "../lib/format";
 import { supplyToTime } from "../lib/supplyTime";
 import { generateBuildFilename } from "../lib/buildFilename";
+import { exportBuildJson } from "../lib/buildTransfer";
 import {
   validateBuild,
   type DraftBuild,
@@ -13,8 +15,19 @@ import {
 import { parseMatchup, raceNameToLetter, type RaceLetter } from "../lib/matchup";
 import type { BuildOrder } from "../types/build";
 import { BUILDS_CHANGED_EVENT } from "../lib/events";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import BuildJsonPreview from "./BuildJsonPreview";
 import BuildTransferPanel from "./BuildTransferPanel";
-import "./BuildEditor.css";
 
 /** Authoring races (Random is not a valid build race). */
 const AUTHOR_RACES = ["Terran", "Protoss", "Zerg"] as const;
@@ -91,12 +104,30 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/** Mono uppercase eyebrow label (mockup `.field label` / `.sect-label`). */
+function FieldLabel({
+  htmlFor,
+  children,
+}: {
+  htmlFor?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Label
+      htmlFor={htmlFor}
+      className="font-mono text-[12px] uppercase tracking-[0.05em] text-muted-foreground"
+    >
+      {children}
+    </Label>
+  );
+}
+
 /**
  * Build-order editor, rendered in its own `editor` window (see `main.tsx` label
- * routing). Provides CRUD over builds and steps, a supply→time helper, and
- * persists via the `save_build_order` / `delete_build_order` Rust commands.
- * After a successful write it emits `BUILDS_CHANGED_EVENT` so the overlay
- * reloads without a restart.
+ * routing). Provides CRUD over builds and steps, a supply→time helper, a live
+ * JSON preview, and persists via the `save_build_order` / `delete_build_order`
+ * Rust commands. After a successful write it emits `BUILDS_CHANGED_EVENT` so the
+ * overlay reloads without a restart.
  */
 export default function BuildEditor() {
   const { stored, errors, loadError, reload } = useBuildOrders();
@@ -120,6 +151,14 @@ export default function BuildEditor() {
         : stored.find((s) => s.filename === selectedFilename)?.build ?? null,
     [stored, selectedFilename],
   );
+
+  // Validate once per render to drive both the live preview and its filename.
+  const result = useMemo(() => validateBuild(toDraft(form)), [form]);
+  const previewFilename = useMemo(() => {
+    if (selectedFilename !== null) return selectedFilename;
+    const derived = `${raceNameToLetter(form.race)}v${form.opponent}`;
+    return generateBuildFilename(derived, existingFilenames);
+  }, [selectedFilename, form.race, form.opponent, existingFilenames]);
 
   function selectBuild(filename: string, build: BuildOrder): void {
     setSelectedFilename(filename);
@@ -185,7 +224,6 @@ export default function BuildEditor() {
   }
 
   async function handleSave(): Promise<void> {
-    const result = validateBuild(toDraft(form));
     if (!result.ok) {
       setStatus({ kind: "error", message: result.error });
       return;
@@ -228,230 +266,316 @@ export default function BuildEditor() {
   }
 
   return (
-    <main className="editor">
-      <header className="editor-header">
-        <h1 className="editor-title">建造顺序编辑器</h1>
-        <button type="button" className="editor-btn" onClick={reload}>
-          重载
-        </button>
-      </header>
-
-      {loadError && (
-        <div className="editor-error">无法加载建造顺序：{loadError}</div>
-      )}
-      {errors.length > 0 && (
-        <ul className="editor-parse-errors">
-          {errors.map((message) => (
-            <li key={message}>{message}</li>
-          ))}
-        </ul>
-      )}
-
-      <div className="editor-body">
-        <aside className="editor-sidebar">
-          <button type="button" className="editor-btn editor-new" onClick={startNew}>
-            + 新建
-          </button>
-          {stored.length === 0 ? (
-            <p className="editor-empty">暂无建造顺序</p>
-          ) : (
-            <ul className="editor-build-list">
-              {stored.map(({ filename, build }) => (
-                <li key={filename}>
-                  <button
-                    type="button"
-                    className={`editor-build-item ${
-                      filename === selectedFilename ? "is-selected" : ""
-                    }`}
-                    onClick={() => selectBuild(filename, build)}
-                  >
-                    <span className="editor-build-matchup">{build.matchup}</span>
-                    <span className="editor-build-race">
-                      {raceLabel(build.race)}
-                    </span>
-                    <span className="editor-build-meta">
-                      {build.steps.length} 步
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </aside>
-
-        <section className="editor-form">
-          <div className="editor-meta-row">
-            <label className="editor-label">
-              种族
-              <select
-                className="editor-input"
-                value={form.race}
-                onChange={(e) => updateRace(e.currentTarget.value as AuthorRace)}
-              >
-                {AUTHOR_RACES.map((race) => (
-                  <option key={race} value={race}>
-                    {RACE_LABELS_ZH[race]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="editor-label">
-              对手
-              <select
-                className="editor-input"
-                value={form.opponent}
-                onChange={(e) =>
-                  updateOpponent(e.currentTarget.value as RaceLetter)
-                }
-              >
-                {OPPONENT_OPTIONS.map(({ letter, label }) => (
-                  <option key={letter} value={letter}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="editor-label">
-              对阵
-              <span className="editor-matchup-derived">
-                {raceNameToLetter(form.race)}v{form.opponent}
-              </span>
-            </label>
-            <label className="editor-label">
-              提前播报(秒)
-              <input
-                className="editor-input"
-                value={form.leadTimeSec}
-                inputMode="decimal"
-                onChange={(e) => updateLeadTime(e.currentTarget.value)}
-              />
-            </label>
+    <main className="min-h-screen bg-muted/40 text-foreground">
+      <div className="mx-auto max-w-[1080px] px-6 py-8 sm:px-8">
+        <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Build Order 编辑器
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              可视化编辑步骤 · 自动生成 JSON · 保存到 builds 目录
+            </p>
           </div>
-
-          <div className="editor-steps-head">
-            <span>步骤</span>
-            <button type="button" className="editor-btn" onClick={addStep}>
-              + 添加步骤
-            </button>
-          </div>
-
-          <ul className="editor-steps">
-            {form.steps.map((step, index) => (
-              <li key={index} className="editor-step">
-                <input
-                  className="editor-input editor-step-supply"
-                  value={step.supply}
-                  placeholder="人口"
-                  inputMode="numeric"
-                  onChange={(e) =>
-                    updateStep(index, "supply", e.currentTarget.value)
-                  }
-                />
-                <button
-                  type="button"
-                  className="editor-btn editor-est"
-                  onClick={() => estimateTime(index)}
-                  title="按人口估算时间"
-                >
-                  估算→
-                </button>
-                <input
-                  className="editor-input editor-step-time"
-                  value={step.time}
-                  placeholder="秒"
-                  inputMode="decimal"
-                  onChange={(e) =>
-                    updateStep(index, "time", e.currentTarget.value)
-                  }
-                />
-                <input
-                  className="editor-input editor-step-say"
-                  value={step.say}
-                  placeholder="语音内容，如「14 补给站」"
-                  onChange={(e) =>
-                    updateStep(index, "say", e.currentTarget.value)
-                  }
-                />
-                <button
-                  type="button"
-                  className="editor-btn editor-del-step"
-                  onClick={() => removeStep(index)}
-                  aria-label="删除步骤"
-                >
-                  ×
-                </button>
-              </li>
-            ))}
-          </ul>
-
-          {status && (
-            <div
-              className={
-                status.kind === "success" ? "editor-success" : "editor-error"
-              }
-            >
-              {status.message}
-            </div>
-          )}
-
-          <div className="editor-actions">
-            <button
+          <div className="flex gap-2.5">
+            <Button type="button" variant="outline" onClick={reload}>
+              <RotateCw />
+              重载
+            </Button>
+            <Button
               type="button"
-              className="editor-btn editor-save"
               onClick={() => void handleSave()}
               disabled={busy}
             >
+              <Save />
               保存
-            </button>
-            {selectedFilename === null ? (
-              <button
-                type="button"
-                className="editor-btn editor-delete"
-                onClick={startNew}
-                disabled={busy}
-              >
-                清空
-              </button>
-            ) : confirmingDelete ? (
-              <>
-                <button
-                  type="button"
-                  className="editor-btn editor-delete"
-                  onClick={() => void confirmDelete()}
-                  disabled={busy}
-                >
-                  确认删除
-                </button>
-                <button
-                  type="button"
-                  className="editor-btn"
-                  onClick={() => setConfirmingDelete(false)}
-                  disabled={busy}
-                >
-                  取消
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                className="editor-btn editor-delete"
-                onClick={() => setConfirmingDelete(true)}
-                disabled={busy}
-              >
-                删除
-              </button>
-            )}
+            </Button>
           </div>
+        </header>
 
-          <BuildTransferPanel
-            selectedBuild={selectedBuild}
-            existingFilenames={existingFilenames}
-            busy={busy}
-            setBusy={setBusy}
-            setStatus={setStatus}
-            reload={reload}
-          />
-        </section>
+        {loadError && (
+          <div className="mb-4 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+            无法加载建造顺序：{loadError}
+          </div>
+        )}
+        {errors.length > 0 && (
+          <ul className="mb-4 list-disc space-y-1 rounded-md border border-warning/40 bg-warning/5 py-2 pr-3 pl-7 text-sm text-warning">
+            {errors.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        )}
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[208px_minmax(0,1.25fr)] xl:grid-cols-[208px_minmax(0,1.25fr)_minmax(0,1fr)]">
+          {/* sidebar build list */}
+          <aside className="flex flex-col gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full justify-center"
+              onClick={startNew}
+            >
+              <Plus />
+              新建
+            </Button>
+            {stored.length === 0 ? (
+              <p className="px-1 py-2 text-sm text-muted-foreground">
+                暂无建造顺序
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-1.5">
+                {stored.map(({ filename, build }) => {
+                  const selected = filename === selectedFilename;
+                  return (
+                    <li key={filename}>
+                      <button
+                        type="button"
+                        onClick={() => selectBuild(filename, build)}
+                        className={cn(
+                          "flex w-full flex-col items-start gap-0.5 rounded-md border px-3 py-2 text-left transition-colors",
+                          selected
+                            ? "border-foreground bg-secondary"
+                            : "border-border hover:border-foreground/40",
+                        )}
+                      >
+                        <span className="font-mono text-[13px] tabular-nums">
+                          {build.matchup}
+                        </span>
+                        <span className="text-[12px] text-muted-foreground">
+                          {raceLabel(build.race)} · {build.steps.length} 步
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </aside>
+
+          {/* editor form */}
+          <section className="flex flex-col">
+            <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="flex flex-col gap-1.5">
+                <FieldLabel>race</FieldLabel>
+                <Select value={form.race} onValueChange={(v) => updateRace(v as AuthorRace)}>
+                  <SelectTrigger className="w-full font-mono text-[13px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AUTHOR_RACES.map((race) => (
+                      <SelectItem key={race} value={race}>
+                        {RACE_LABELS_ZH[race]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <FieldLabel>opponent</FieldLabel>
+                <Select
+                  value={form.opponent}
+                  onValueChange={(v) => updateOpponent(v as RaceLetter)}
+                >
+                  <SelectTrigger className="w-full font-mono text-[13px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {OPPONENT_OPTIONS.map(({ letter, label }) => (
+                      <SelectItem key={letter} value={letter}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <FieldLabel htmlFor="editor-lead">leadTimeSec</FieldLabel>
+                <Input
+                  id="editor-lead"
+                  inputMode="decimal"
+                  className="font-mono text-[13px]"
+                  value={form.leadTimeSec}
+                  onChange={(e) => updateLeadTime(e.currentTarget.value)}
+                />
+              </div>
+            </div>
+
+            <div className="mb-3 flex items-center justify-between">
+              <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">
+                步骤 · steps
+              </span>
+              <span className="font-mono text-[12px] tabular-nums text-muted-foreground">
+                对阵 {raceNameToLetter(form.race)}v{form.opponent} ·{" "}
+                {form.steps.length} 步
+              </span>
+            </div>
+
+            <ul className="flex flex-col gap-2">
+              {form.steps.map((step, index) => (
+                <li
+                  key={index}
+                  className="grid grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border bg-card p-2"
+                >
+                  <div className="flex items-center gap-1">
+                    <Input
+                      className="h-8 w-16 font-mono text-[13px]"
+                      value={step.supply}
+                      placeholder="人口"
+                      inputMode="numeric"
+                      onChange={(e) =>
+                        updateStep(index, "supply", e.currentTarget.value)
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="px-2 font-mono text-[12px]"
+                      onClick={() => estimateTime(index)}
+                      title="按人口估算时间"
+                    >
+                      估算→
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      className="h-8 w-16 font-mono text-[13px]"
+                      value={step.time}
+                      placeholder="秒"
+                      inputMode="decimal"
+                      onChange={(e) =>
+                        updateStep(index, "time", e.currentTarget.value)
+                      }
+                    />
+                    <span className="font-mono text-[11px] text-muted-foreground">
+                      s
+                    </span>
+                  </div>
+                  <Input
+                    className="h-8 text-[14px]"
+                    value={step.say}
+                    placeholder="语音内容，如「14 补给站」"
+                    onChange={(e) =>
+                      updateStep(index, "say", e.currentTarget.value)
+                    }
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="text-muted-foreground hover:text-destructive"
+                    onClick={() => removeStep(index)}
+                    aria-label="删除步骤"
+                  >
+                    <Trash2 />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+
+            <Button
+              type="button"
+              variant="ghost"
+              className="mt-2.5 w-full justify-center border border-dashed border-border text-muted-foreground hover:border-foreground hover:text-foreground"
+              onClick={addStep}
+            >
+              <Plus />
+              添加步骤
+            </Button>
+
+            <div className="mt-6 flex items-center justify-between border-t pt-5">
+              <span className="font-mono text-[12px] text-muted-foreground">
+                builds/{previewFilename}
+              </span>
+              <span className="font-mono text-[12px] text-muted-foreground">
+                按时间自动排序
+              </span>
+            </div>
+
+            {status && (
+              <div
+                className={cn(
+                  "mt-4 rounded-md border px-3 py-2 text-sm",
+                  status.kind === "success"
+                    ? "border-success/40 bg-success/5 text-success"
+                    : "border-destructive/40 bg-destructive/5 text-destructive",
+                )}
+              >
+                {status.message}
+              </div>
+            )}
+
+            <div className="mt-4 flex items-center gap-2">
+              <Button
+                type="button"
+                onClick={() => void handleSave()}
+                disabled={busy}
+              >
+                <Save />
+                保存
+              </Button>
+              {selectedFilename === null ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={startNew}
+                  disabled={busy}
+                >
+                  清空
+                </Button>
+              ) : confirmingDelete ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => void confirmDelete()}
+                    disabled={busy}
+                  >
+                    确认删除
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setConfirmingDelete(false)}
+                    disabled={busy}
+                  >
+                    取消
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => setConfirmingDelete(true)}
+                  disabled={busy}
+                >
+                  删除
+                </Button>
+              )}
+            </div>
+
+            <div className="mt-6 border-t pt-6">
+              <BuildTransferPanel
+                selectedBuild={selectedBuild}
+                existingFilenames={existingFilenames}
+                busy={busy}
+                setBusy={setBusy}
+                setStatus={setStatus}
+                reload={reload}
+              />
+            </div>
+          </section>
+
+          {/* live JSON preview */}
+          <div className="lg:col-span-2 xl:col-span-1">
+            <BuildJsonPreview
+              filename={previewFilename}
+              json={result.ok ? exportBuildJson(result.build) : null}
+              error={result.ok ? null : result.error}
+            />
+          </div>
+        </div>
       </div>
     </main>
   );
