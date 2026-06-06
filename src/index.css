@@ -67,6 +67,16 @@
 
   /* Motion easing from the design system */
   --ease-overlay: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Overlay-local dark-glass tokens (cyan accent over a game). The overlay's
+     dark variant is overlay-SCOPED via `.theme-dark` on the overlay root, not
+     the global app dark mode. */
+  --ov-dark-surface: #0b0d10;
+  --ov-dark-raise: #15181d;
+  --ov-dark-fg: #f4f5f7;
+  --ov-dark-muted: #8a8f99;
+  --ov-dark-border: #262b33;
+  --ov-accent-cyan: #22d3ee;
 }
 
 @theme inline {
@@ -113,4 +123,75 @@
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+}
+
+/* ── Overlay window ──────────────────────────────────────────────────────
+   The overlay re-skin (Phase 3) uses overlay-LOCAL tokens (`--o-*`) so the
+   light look (default shadcn palette) and the dark-glass look (`.theme-dark`,
+   cyan accent + backdrop blur) can be switched by a single class on the
+   overlay root, independent of any app-wide theme. Tailwind utilities read
+   these via arbitrary values (e.g. `text-[color:var(--o-fg)]`). */
+.overlay-card {
+  --o-surface: var(--color-card);
+  --o-raise: #f4f4f5;
+  --o-fg: #111827;
+  --o-muted: #64748b;
+  --o-border: #e5e7eb;
+  --o-accent: #000000;
+  --o-accent-on: #ffffff;
+}
+
+.overlay-card.theme-dark {
+  --o-surface: color-mix(in oklab, var(--ov-dark-surface), transparent 8%);
+  --o-raise: var(--ov-dark-raise);
+  --o-fg: var(--ov-dark-fg);
+  --o-muted: var(--ov-dark-muted);
+  --o-border: var(--ov-dark-border);
+  --o-accent: var(--ov-accent-cyan);
+  --o-accent-on: #06222a;
+  backdrop-filter: blur(14px);
+}
+
+/* Connection dot: pulsing green when live, gray when idle, amber when paused. */
+.ov-dot {
+  background: var(--success);
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--success), transparent 40%);
+  animation: ov-pulse 1.8s var(--ease-overlay) infinite;
+}
+.ov-dot.ov-dot-gray {
+  background: var(--o-muted);
+  animation: none;
+  box-shadow: none;
+}
+.ov-dot.ov-dot-warn {
+  background: var(--warning);
+  animation: none;
+  box-shadow: none;
+}
+@keyframes ov-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--success), transparent 30%);
+  }
+  70% {
+    box-shadow: 0 0 0 7px color-mix(in oklab, var(--success), transparent 100%);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/* Step "firing" pulse when a cue announces. */
+.ov-step-firing {
+  animation: ov-fire 0.9s var(--ease-overlay);
+}
+@keyframes ov-fire {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.025);
+  }
+  100% {
+    transform: scale(1);
+  }
 }

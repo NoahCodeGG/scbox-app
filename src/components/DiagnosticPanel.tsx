@@ -1,6 +1,14 @@
-import type { MouseEvent } from "react";
 import type { ConnectionStatus } from "../types/sc2";
-import "./DiagnosticPanel.css";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface DiagnosticPanelProps {
   isOpen: boolean;
@@ -43,16 +51,7 @@ export default function DiagnosticPanel({
   onOpenSettings,
   onRetry,
 }: DiagnosticPanelProps) {
-  if (!isOpen) return null;
-
   const reason = reasonText(status, currentPort);
-
-  const handleBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
-    // Close when clicking the backdrop (not the card)
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
 
   const handleOpenSettings = () => {
     onOpenSettings();
@@ -60,51 +59,41 @@ export default function DiagnosticPanel({
   };
 
   return (
-    <div
-      className="diagnostic-backdrop"
-      onClick={handleBackdropClick}
-      role="dialog"
-      aria-labelledby="diagnostic-title"
-      aria-modal="true"
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
     >
-      <div className="diagnostic-card">
-        <div className="diagnostic-header">
-          <h2 id="diagnostic-title" className="diagnostic-title">
-            无法连接到星际争霸 2
-          </h2>
-          <button
-            type="button"
-            className="diagnostic-close"
-            onClick={onClose}
-            aria-label="关闭"
-          >
-            ×
-          </button>
-        </div>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>无法连接到星际争霸 2</DialogTitle>
+          {reason && <DialogDescription>{reason}</DialogDescription>}
+        </DialogHeader>
 
-        <div className="diagnostic-body">
-          {reason && <p className="diagnostic-reason">{reason}</p>}
-          <p className="diagnostic-intro">请检查以下事项：</p>
-          <ol className="diagnostic-checklist">
+        <div className="flex flex-col gap-3 text-[13px]">
+          <p className="text-muted-foreground">请检查以下事项：</p>
+          <ol className="ml-4 list-decimal space-y-1">
             <li>星际争霸 2 是否正在运行？</li>
             <li>是否启用了 Client API？</li>
             <li>
               启动参数中是否包含{" "}
-              <code className="diagnostic-code">-clientapi {currentPort}</code>
+              <code className="rounded bg-muted px-1 py-0.5 font-mono text-[12px]">
+                -clientapi {currentPort}
+              </code>
               ？
             </li>
           </ol>
 
-          <div className="diagnostic-howto">
-            <p className="diagnostic-howto-title">如何启用 Client API：</p>
-            <p className="diagnostic-howto-text">
-              在 Battle.net 启动器中，点击星际争霸 2 →{" "}
-              <strong>选项</strong> → <strong>游戏设置</strong> →{" "}
-              <strong>附加命令行参数</strong>，添加：
+          <div className="flex flex-col gap-2 rounded-md border bg-secondary p-3">
+            <p className="font-medium">如何启用 Client API：</p>
+            <p className="text-muted-foreground">
+              在 Battle.net 启动器中，点击星际争霸 2 → <strong>选项</strong> →{" "}
+              <strong>游戏设置</strong> → <strong>附加命令行参数</strong>，添加：
             </p>
-            <input
+            <Input
               type="text"
-              className="diagnostic-command"
+              className="font-mono text-[13px]"
               value={`-clientapi ${currentPort}`}
               readOnly
               aria-label="Client API 启动参数"
@@ -112,30 +101,18 @@ export default function DiagnosticPanel({
           </div>
         </div>
 
-        <div className="diagnostic-actions">
-          <button
-            type="button"
-            className="diagnostic-btn diagnostic-btn-secondary"
-            onClick={onRetry}
-          >
+        <DialogFooter>
+          <Button type="button" variant="secondary" onClick={onRetry}>
             重试连接
-          </button>
-          <button
-            type="button"
-            className="diagnostic-btn diagnostic-btn-secondary"
-            onClick={handleOpenSettings}
-          >
+          </Button>
+          <Button type="button" variant="secondary" onClick={handleOpenSettings}>
             修改端口
-          </button>
-          <button
-            type="button"
-            className="diagnostic-btn diagnostic-btn-primary"
-            onClick={onClose}
-          >
+          </Button>
+          <Button type="button" onClick={onClose}>
             关闭
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

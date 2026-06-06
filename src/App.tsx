@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { Moon, Pencil, RotateCw, Settings as SettingsIcon, Volume2 } from "lucide-react";
 import { useGameSnapshot } from "./hooks/useGameSnapshot";
 import { useBuildOrders } from "./hooks/useBuildOrders";
 import { useBuildOrderVoice } from "./hooks/useBuildOrderVoice";
@@ -12,21 +13,58 @@ import { useConnectionDiagnostic } from "./hooks/useConnectionDiagnostic";
 import { useUpdateCheck } from "./hooks/useUpdateCheck";
 import SettingsPanel from "./components/SettingsPanel";
 import DiagnosticPanel from "./components/DiagnosticPanel";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { FALLBACK_BUILD } from "./lib/builds";
-import { identifyMatchup, selectBuild } from "./lib/matchup";
+import { identifyMatchup, parseMatchup, selectBuild } from "./lib/matchup";
 import { formatGameTime, raceLabel } from "./lib/format";
 import { upcomingStepIndices } from "./lib/schedule";
 import { BUILDS_CHANGED_EVENT } from "./lib/events";
 import type { Settings } from "./hooks/useSettings";
 import type { BuildOrder } from "./types/build";
 import type { GameSnapshot } from "./types/sc2";
-import "./App.css";
 
-function statusText(snapshot: GameSnapshot): string {
-  if (!snapshot.connected) return "SC2 未连接";
-  if (snapshot.is_replay) return "回放中（不引导）";
-  if (!snapshot.in_game) return "已连接 · 等待对局";
-  return "对局进行中";
+/** The current connection/coaching state derived from the live snapshot. */
+type OverlayState = "live" | "waiting" | "replay" | "disconnected";
+
+function overlayState(snapshot: GameSnapshot): OverlayState {
+  if (!snapshot.connected) return "disconnected";
+  if (snapshot.is_replay) return "replay";
+  if (snapshot.in_game) return "live";
+  return "waiting";
+}
+
+/** Short connection line shown next to the clock (mockup `.conn`). */
+function connText(state: OverlayState, port: number): string {
+  switch (state) {
+    case "live":
+      return `已连接 ${port}`;
+    case "waiting":
+      return "等待对局";
+    case "replay":
+      return "回放中";
+    case "disconnected":
+      return "未连接";
+  }
+}
+
+/** Render a matchup like `TvP` with the middle `v` in the accent color. */
+function MatchupLabel({ matchup }: { matchup: string }) {
+  const parsed = parseMatchup(matchup);
+  if (!parsed) {
+    return (
+      <span className="font-mono text-[12px] font-semibold text-[color:var(--o-fg)]">
+        {matchup}
+      </span>
+    );
+  }
+  return (
+    <span className="font-mono text-[12px] font-semibold text-[color:var(--o-fg)]">
+      {parsed.mine}
+      <span className="text-[color:var(--o-accent)]">v</span>
+      {parsed.opp}
+    </span>
+  );
 }
 
 interface BuildPanelProps {
@@ -34,6 +72,8 @@ interface BuildPanelProps {
   snapshot: GameSnapshot;
   currentTime: number;
   settings: Settings;
+  /** Reports whether a cue is actively firing, to drive the footer's speaking state. */
+  onSpeakingChange: (speaking: boolean) => void;
 }
 
 /**
@@ -43,10 +83,17 @@ interface BuildPanelProps {
  * scheduling and the smooth per-second countdown. `settings` supplies the
  * voice gate/rate and the lead-time override.
  *
- * Now shows up to 3 upcoming steps: the imminent one with countdown (highlighted),
- * and the next two dimmed.
+ * Shows up to 3 upcoming steps: the imminent one (highlighted, with countdown)
+ * and the next two dimmed. A brief `firing` pulse plays on the imminent row
+ * when the spoken set just grew (a cue announced).
  */
-function BuildPanel({ build, snapshot, currentTime, settings }: BuildPanelProps) {
+function BuildPanel({
+  build,
+  snapshot,
+  currentTime,
+  settings,
+  onSpeakingChange,
+}: BuildPanelProps) {
   const { spokenCount, spoken } = useBuildOrderVoice(
     snapshot,
     build,
@@ -62,18 +109,45 @@ function BuildPanel({ build, snapshot, currentTime, settings }: BuildPanelProps)
   // build's own value. Keeps the countdown in lockstep with when cues fire.
   const effectiveLeadTime = settings.leadTimeSecOverride ?? build.leadTimeSec;
 
+  // Pulse the imminent row + flag "speaking" briefly whenever a new cue fires.
+  const prevSpokenCountRef = useRef(spokenCount);
+  const [firing, setFiring] = useState(false);
+  useEffect(() => {
+    if (spokenCount > prevSpokenCountRef.current) {
+      setFiring(true);
+      onSpeakingChange(true);
+      const timer = setTimeout(() => {
+        setFiring(false);
+        onSpeakingChange(false);
+      }, 1200);
+      prevSpokenCountRef.current = spokenCount;
+      return () => clearTimeout(timer);
+    }
+    prevSpokenCountRef.current = spokenCount;
+  }, [spokenCount, onSpeakingChange]);
+
   const upcomingIndices = upcomingStepIndices(build, spoken, 3);
 
   if (upcomingIndices.length === 0) {
     return (
-      <div className="build">
-        <span className="build-done">建造顺序已播完 ({spokenCount})</span>
+      <div className="px-2.5 pt-1.5 pb-3">
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2.5 rounded-[10px] border border-[color:color-mix(in_oklab,var(--o-accent),transparent_75%)] bg-[color:color-mix(in_oklab,var(--o-accent),transparent_90%)] px-3 py-2.5">
+          <span className="font-mono text-[13px] tabular-nums text-[color:var(--o-accent)]">
+            —
+          </span>
+          <span className="text-[14px] font-medium text-[color:var(--o-fg)]">
+            建造顺序已播完
+          </span>
+          <span className="font-mono text-[13px] tabular-nums text-[color:var(--o-accent)]">
+            ✓
+          </span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="build-steps">
+    <div className="flex flex-col gap-1.5 px-2.5 pt-1.5 pb-3">
       {upcomingIndices.map((idx, position) => {
         const step = build.steps[idx];
         const isImminent = position === 0;
@@ -84,18 +158,93 @@ function BuildPanel({ build, snapshot, currentTime, settings }: BuildPanelProps)
         return (
           <div
             key={idx}
-            className={`build-step ${isImminent ? "build-step-imminent" : "build-step-upcoming"}`}
+            className={cn(
+              "grid grid-cols-[auto_1fr_auto] items-center gap-2.5 rounded-[10px] border border-transparent px-3 py-2.5 transition-all",
+              isImminent &&
+                "border-[color:color-mix(in_oklab,var(--o-accent),transparent_75%)] bg-[color:color-mix(in_oklab,var(--o-accent),transparent_90%)]",
+              isImminent && firing && "ov-step-firing",
+              !isImminent && "opacity-55",
+              position === 2 && "opacity-30",
+            )}
           >
-            <span className="build-say">{step.say}</span>
-            <span className="build-time">
-              {formatGameTime(step.time)}
-              {countdown !== null && (
-                <span className="build-countdown"> ({countdown}s)</span>
+            <span
+              className={cn(
+                "font-mono text-[13px] tabular-nums",
+                isImminent
+                  ? "text-[color:var(--o-accent)]"
+                  : "text-[color:var(--o-muted)]",
               )}
+            >
+              {formatGameTime(step.time)}
+            </span>
+            <span
+              className={cn(
+                "truncate text-[color:var(--o-fg)]",
+                isImminent ? "text-[17px] font-semibold" : "text-[14px] font-medium",
+              )}
+            >
+              {step.say}
+            </span>
+            <span
+              className={cn(
+                "font-mono tabular-nums",
+                isImminent
+                  ? "text-[17px] font-bold text-[color:var(--o-accent)]"
+                  : "text-[13px] text-[color:var(--o-muted)]",
+              )}
+            >
+              {countdown !== null ? (countdown > 0 ? `-${countdown}s` : "现在") : ""}
             </span>
           </div>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * Banner shown in non-live states, replacing the steps/clock/footer. Waiting
+ * uses a spinner; replay/disconnected show a static reason.
+ */
+function OverlayBanner({ state, port }: { state: OverlayState; port: number }) {
+  const content: Record<
+    OverlayState,
+    { title: string; sub: string; spinner: boolean }
+  > = {
+    live: {
+      title: "对局进行中",
+      sub: "",
+      spinner: false,
+    },
+    waiting: {
+      title: "等待对局开始…",
+      sub: `已连接 SC2 Client API（127.0.0.1:${port}）·进入对战后自动播报`,
+      spinner: true,
+    },
+    replay: {
+      title: "回放中（不引导）",
+      sub: "回放模式下不进行建造顺序播报",
+      spinner: false,
+    },
+    disconnected: {
+      title: "SC2 未连接",
+      sub: "请启动星际争霸 2 并启用 Client API",
+      spinner: false,
+    },
+  };
+  const banner = content[state];
+
+  return (
+    <div className="px-4 pt-5 pb-6 text-center">
+      {banner.spinner && (
+        <div className="mx-auto mb-3.5 size-[22px] animate-spin rounded-full border-2 border-[color:var(--o-border)] border-t-[color:var(--o-accent)]" />
+      )}
+      <div className="mb-1.5 text-[16px] font-semibold text-[color:var(--o-fg)]">
+        {banner.title}
+      </div>
+      <div className="text-[12px] leading-relaxed text-[color:var(--o-muted)]">
+        {banner.sub}
+      </div>
     </div>
   );
 }
@@ -108,6 +257,8 @@ function App() {
   const { settings, saveSettings, error: settingsError } = useSettings();
   const [hintDismissed, setHintDismissed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [darkTheme, setDarkTheme] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
   const { showDiagnostic, openDiagnostic, closeDiagnostic } =
     useConnectionDiagnostic(snapshot.connected);
   const update = useUpdateCheck();
@@ -137,91 +288,177 @@ function App() {
   // Re-pick the active build for the detected matchup. When live with a known
   // matchup, select by my/opponent race; otherwise guide with the first loaded
   // build. Either path falls back to the bundled build when nothing loaded.
-  const matchup = snapshot.in_game
-    ? identifyMatchup(snapshot.players)
-    : null;
+  const matchup = snapshot.in_game ? identifyMatchup(snapshot.players) : null;
   const selected = matchup
     ? selectBuild(builds, matchup.myRace, matchup.oppRace)
     : builds.length > 0
       ? builds[0]
       : null;
   const activeBuild: BuildOrder = selected ?? FALLBACK_BUILD;
-  const showBuild = snapshot.in_game && !snapshot.is_replay;
+
+  const state = overlayState(snapshot);
+  const showBuild = state === "live";
+  const passthrough = settings.clickThrough;
+  const leadTime = settings.leadTimeSecOverride ?? activeBuild.leadTimeSec;
+
+  const iconBtn =
+    "grid size-[26px] place-items-center rounded-md border-0 bg-transparent text-[color:var(--o-muted)] transition-colors hover:bg-[color:color-mix(in_oklab,var(--o-fg),transparent_90%)] hover:text-[color:var(--o-fg)] [&_svg]:size-[15px]";
 
   return (
-    <main className="overlay">
-      <div className="drag-handle" data-tauri-drag-region />
-      <div className="status-row">
-        <span
-          className={`dot ${snapshot.connected ? "dot-on" : "dot-off"}`}
-          aria-hidden
-        />
-        <span className="status-text">{statusText(snapshot)}</span>
-        {snapshot.in_game && (
-          <span className="clock">{formatGameTime(snapshot.display_time)}</span>
+    <main className="p-2">
+      <div
+        className={cn(
+          "overlay-card overflow-hidden rounded-[14px] border border-[color:var(--o-border)] bg-[color:var(--o-surface)] text-[color:var(--o-fg)] shadow-[0_18px_50px_-12px_rgba(0,0,0,0.55)] transition-opacity",
+          darkTheme && "theme-dark",
+          passthrough && "opacity-45",
         )}
-        {!snapshot.connected && (
-          <button
-            type="button"
-            className="reload-btn"
-            onClick={openDiagnostic}
-          >
-            诊断
-          </button>
+      >
+        {/* Title bar = drag region. Icon buttons opt out of dragging so they
+            stay clickable (children without the attr are interactive). */}
+        <div
+          data-tauri-drag-region
+          className="flex cursor-grab items-center justify-between border-b border-[color:var(--o-border)] bg-[color:var(--o-raise)] px-3 py-2 active:cursor-grabbing"
+        >
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="font-mono text-[12px] tracking-[1px] text-[color:var(--o-muted)]">
+              ⠿
+            </span>
+            <MatchupLabel matchup={activeBuild.matchup} />
+            <span className="truncate text-[11px] text-[color:var(--o-muted)]">
+              {raceLabel(activeBuild.race)}
+            </span>
+          </div>
+          <div className="flex shrink-0 items-center gap-0.5">
+            {!snapshot.connected && (
+              <button
+                type="button"
+                className={cn(iconBtn, "w-auto px-1.5 font-mono text-[11px]")}
+                onClick={openDiagnostic}
+                aria-label="连接诊断"
+              >
+                诊断
+              </button>
+            )}
+            <button
+              type="button"
+              className={iconBtn}
+              onClick={reload}
+              aria-label="重载建造顺序"
+            >
+              <RotateCw />
+            </button>
+            <button
+              type="button"
+              className={iconBtn}
+              onClick={() => {
+                void invoke("open_editor").catch(() => {
+                  // Editor window failed to open; nothing actionable here.
+                });
+              }}
+              aria-label="编辑建造顺序"
+            >
+              <Pencil />
+            </button>
+            <button
+              type="button"
+              className={cn(iconBtn, darkTheme && "text-[color:var(--o-accent)]")}
+              onClick={() => setDarkTheme((on) => !on)}
+              aria-label="切换暗色主题"
+              aria-pressed={darkTheme}
+            >
+              <Moon />
+            </button>
+            <button
+              type="button"
+              className={iconBtn}
+              onClick={() => setSettingsOpen((open) => !open)}
+              aria-label="设置"
+              aria-expanded={settingsOpen}
+            >
+              <SettingsIcon />
+            </button>
+          </div>
+        </div>
+
+        {showBuild ? (
+          <>
+            {/* Clock + connection */}
+            <div className="flex items-center justify-between px-3.5 pt-2.5 pb-1">
+              <span className="font-mono text-[26px] font-semibold tabular-nums tracking-[0.02em] text-[color:var(--o-fg)]">
+                {formatGameTime(snapshot.display_time)}
+              </span>
+              <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-[color:var(--o-muted)]">
+                <span className="ov-dot size-[7px] rounded-full" aria-hidden />
+                {connText(state, settings.clientApiPort)}
+              </span>
+            </div>
+
+            <BuildPanel
+              build={activeBuild}
+              snapshot={snapshot}
+              currentTime={currentTime}
+              settings={settings}
+              onSpeakingChange={setSpeaking}
+            />
+
+            {/* Footer: voice + lead time */}
+            <div className="flex items-center justify-between border-t border-[color:var(--o-border)] px-3.5 pt-2 pb-3">
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5 font-mono text-[11px] [&_svg]:size-[13px]",
+                  speaking
+                    ? "text-[color:var(--o-accent)]"
+                    : "text-[color:var(--o-muted)]",
+                )}
+              >
+                <Volume2 />
+                {settings.voiceEnabled
+                  ? `语音 开 · ${settings.voiceRate.toFixed(1)}×`
+                  : "语音 关"}
+              </span>
+              <span className="font-mono text-[11px] text-[color:var(--o-muted)]">
+                提前 {leadTime}s 播报
+              </span>
+            </div>
+          </>
+        ) : (
+          <OverlayBanner state={state} port={settings.clientApiPort} />
         )}
-        <button type="button" className="reload-btn" onClick={reload}>
-          重载
-        </button>
-        <button
-          type="button"
-          className="reload-btn"
-          onClick={() => {
-            void invoke("open_editor").catch(() => {
-              // Editor window failed to open; nothing actionable in the overlay.
-            });
-          }}
-        >
-          编辑
-        </button>
-        <button
-          type="button"
-          className="settings-btn"
-          onClick={() => setSettingsOpen((open) => !open)}
-          aria-label="设置"
-          aria-expanded={settingsOpen}
-        >
-          ⚙
-        </button>
       </div>
 
+      {/* Auxiliary surfaces — outside the overlay card so they don't disturb
+          the live coaching layout, but preserved from the prior behavior. */}
       {update.available && update.version && (
-        <div className="update-banner">
+        <div className="mt-2 flex items-center gap-2 rounded-md bg-success/10 px-2.5 py-1.5 text-[12px] text-success">
           <span>新版本 v{update.version} 可用</span>
-          <button
+          <Button
             type="button"
-            className="update-btn"
+            size="xs"
+            className="ml-auto"
             onClick={() => {
               void update.install();
             }}
             disabled={update.busy}
           >
             {update.busy ? "更新中…" : "更新"}
-          </button>
+          </Button>
         </div>
       )}
 
       {settingsOpen && (
-        <SettingsPanel
-          settings={settings}
-          onSave={saveSettings}
-          onClose={() => setSettingsOpen(false)}
-          onCheckUpdate={update.check}
-          updateBusy={update.busy}
-          updateAvailable={update.available}
-          updateVersion={update.version}
-          updateUpToDate={update.upToDate}
-          updateError={update.error}
-        />
+        <div className="mt-2">
+          <SettingsPanel
+            settings={settings}
+            onSave={saveSettings}
+            onClose={() => setSettingsOpen(false)}
+            onCheckUpdate={update.check}
+            updateBusy={update.busy}
+            updateAvailable={update.available}
+            updateVersion={update.version}
+            updateUpToDate={update.upToDate}
+            updateError={update.error}
+          />
+        </div>
       )}
 
       <DiagnosticPanel
@@ -234,17 +471,17 @@ function App() {
       />
 
       {settingsError && (
-        <div className="load-error">无法保存设置：{settingsError}</div>
+        <div className="mt-2 rounded-md bg-destructive/10 px-2.5 py-1.5 text-[13px] text-destructive">
+          无法保存设置：{settingsError}
+        </div>
       )}
 
       {needsInstallHint && !hintDismissed && (
-        <div className="voice-hint">
-          <span>
-            未检测到中文语音，请在系统中安装中文语音包以启用语音播报
-          </span>
+        <div className="mt-2 flex items-center gap-2 rounded-md bg-warning/10 px-2.5 py-1.5 text-[12px] text-warning">
+          <span>未检测到中文语音，请在系统中安装中文语音包以启用语音播报</span>
           <button
             type="button"
-            className="voice-hint-dismiss"
+            className="ml-auto shrink-0 text-[15px] leading-none text-muted-foreground hover:text-foreground"
             onClick={() => setHintDismissed(true)}
             aria-label="关闭提示"
           >
@@ -254,46 +491,26 @@ function App() {
       )}
 
       {loadError && (
-        <div className="load-error">无法加载建造顺序：{loadError}</div>
+        <div className="mt-2 rounded-md bg-destructive/10 px-2.5 py-1.5 text-[13px] text-destructive">
+          无法加载建造顺序：{loadError}
+        </div>
       )}
       {errors.length > 0 && (
-        <ul className="build-errors">
+        <ul className="mt-2 list-none rounded-md bg-warning/10 px-2.5 py-1.5 text-[12px] text-warning">
           {errors.map((message) => (
             <li key={message}>{message}</li>
           ))}
         </ul>
       )}
 
-      {showBuild && (
-        <div className="active-build">
-          <span className="active-build-matchup">{activeBuild.matchup}</span>
-          <span className="active-build-name">
-            {raceLabel(activeBuild.race)}
-          </span>
+      {passthrough && (
+        <div className="mt-2 text-center font-mono text-[11px] text-muted-foreground">
+          穿透模式开启 · 按 Ctrl+Shift+S 解除
         </div>
-      )}
-
-      {snapshot.in_game && snapshot.players.length > 0 && (
-        <ul className="players">
-          {snapshot.players.map((player) => (
-            <li key={player.id}>
-              <span className="player-name">{player.name}</span>
-              <span className="player-race">{raceLabel(player.race)}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {showBuild && (
-        <BuildPanel
-          build={activeBuild}
-          snapshot={snapshot}
-          currentTime={currentTime}
-          settings={settings}
-        />
       )}
     </main>
   );
 }
 
 export default App;
+

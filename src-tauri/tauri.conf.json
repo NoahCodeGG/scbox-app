@@ -14,8 +14,8 @@
       {
         "label": "main",
         "title": "SCBox Assistant",
-        "width": 320,
-        "height": 200,
+        "width": 360,
+        "height": 340,
         "alwaysOnTop": true,
         "resizable": true,
         "visible": false

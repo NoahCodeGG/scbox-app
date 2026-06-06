@@ -1,7 +1,6 @@
 import ReactDOM from "react-dom/client";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-// Tailwind base + design-system theme tokens. Imported first so per-component
-// CSS (e.g. App.css) still overrides it until each surface is re-skinned.
+// Tailwind base + design-system theme tokens.
 import "./index.css";
 // Self-hosted fonts (no runtime CDN — packaged app must not depend on network).
 import "@fontsource/geist-sans/400.css";
