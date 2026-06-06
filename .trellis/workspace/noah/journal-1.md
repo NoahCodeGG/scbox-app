@@ -239,3 +239,36 @@ Fixed bunched build-order TTS overlap/clobber/stale. Frontend: a single FIFO spe
 ### Next Steps
 
 - None - task complete
+
+
+## Session 8: Branding metadata + in-app version
+
+**Date**: 2026-06-06
+**Task**: Branding metadata + in-app version
+**Branch**: `main`
+
+### Summary
+
+Branded the app off scaffold defaults (S1+S2 of the packaging item). productName + main window title -> 'SCBox Assistant'; Cargo description/authors set; identifier (com.scbox-app.app) and version (0.1.0) left unchanged to preserve the app-data dir. New useAppVersion hook reads getVersion() at runtime (null on failure, unmount-safe) + test; SettingsPanel shows a 'SCBox Assistant v{version}' footer. getVersion permission already covered by core:default. Documented deferred S4 auto-update (needs signer keypair + GitHub secrets + Releases/latest.json) and S5 Windows code signing (needs paid cert) in the CI workflow note; gitignored coverage/. 156 vitest, cargo 41, coverage held, build OK. Deferred per repeated AskUserQuestion timeouts: icon (needs source asset), auto-update, signing.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `2b82586` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
