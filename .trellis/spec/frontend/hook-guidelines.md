@@ -61,6 +61,82 @@ Rules:
 
 ---
 
+## Timer-Based State Tracking
+
+For hooks that track duration or trigger actions after a timeout (e.g., "show warning after 30s of disconnection"):
+
+```tsx
+import { useEffect, useRef, useState } from "react";
+
+interface ConnectionDiagnostic {
+  shouldShowPanel: boolean;
+  openDiagnostic: () => void;
+  closeDiagnostic: () => void;
+}
+
+export function useConnectionDiagnostic(
+  isConnected: boolean,
+  thresholdMs: number = 30000
+): ConnectionDiagnostic {
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [shouldShow, setShouldShow] = useState(false);
+  const timerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    // Clear any existing timer
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    if (!isConnected && !isDismissed) {
+      // Start countdown to show panel
+      timerRef.current = window.setTimeout(() => {
+        setShouldShow(true);
+      }, thresholdMs);
+    } else {
+      // Connected or dismissed — hide panel and reset
+      setShouldShow(false);
+      if (isConnected) {
+        setIsDismissed(false); // Reset dismissal on reconnect
+      }
+    }
+
+    return () => {
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [isConnected, isDismissed, thresholdMs]);
+
+  return {
+    shouldShowPanel: shouldShow,
+    openDiagnostic: () => setShouldShow(true),
+    closeDiagnostic: () => {
+      setShouldShow(false);
+      setIsDismissed(true);
+    },
+  };
+}
+```
+
+**Key points:**
+- Use `useRef` to store timer ID (persists across renders, doesn't trigger re-renders)
+- Always clear timer in cleanup to prevent memory leaks and stale timeouts
+- Reset dismissal state on reconnect so panel can reappear on future disconnections
+- `window.setTimeout` returns `number` (not `NodeJS.Timeout`) in browser/Tauri context
+- StrictMode-safe: cleanup function clears timer even on double-mount
+
+**Common pattern:** "Do X after Y seconds of condition Z being true"
+1. Start timer when condition becomes true
+2. Clear timer when condition becomes false or component unmounts
+3. Store timer ID in ref (not state)
+4. Always cleanup in `useEffect` return
+
+**Reference implementation:** `useConnectionDiagnostic.ts`
+
+---
+
 ## Common Mistakes
 
 - Calling `invoke` directly in a component and copy-pasting the same try/catch

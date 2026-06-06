@@ -76,6 +76,68 @@ pair it with its own `.css` file and import it from the component.
 
 ---
 
+## Modal Overlays
+
+For modal dialogs or overlays that appear on top of the main UI:
+
+```tsx
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}
+
+function Modal({ isOpen, onClose, children }: ModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div 
+        className="modal-content" 
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+```
+
+**Key points:**
+- Conditional render (`if (!isOpen) return null`) rather than CSS `display: none`
+- `role="dialog"` + `aria-modal="true"` for accessibility
+- `aria-labelledby` references the modal's title element
+- Click on overlay closes modal; `stopPropagation` on content prevents that
+- CSS: `.modal-overlay` has `position: fixed; inset: 0; z-index: 1000;` with semi-transparent background
+
+**Example CSS:**
+```css
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: var(--bg-color);
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 500px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+```
+
+**Reference implementation:** `DiagnosticPanel.tsx` + `DiagnosticPanel.css`
+
+---
+
 ## Common Mistakes
 
 - Adding `import React from "react"` unnecessarily (the JSX transform handles
