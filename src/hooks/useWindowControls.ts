@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import {
   getCurrentWindow,
-  PhysicalPosition,
+  LogicalPosition,
   availableMonitors,
 } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
@@ -24,8 +24,8 @@ export function useWindowControls({
   const window = getCurrentWindow();
   const positionAppliedRef = useRef(false);
 
-  // Apply saved position once on mount (using physical coordinates for
-  // multi-monitor accuracy).
+  // Apply saved position once on mount (using logical coordinates, which work
+  // better on macOS Retina multi-monitor setups).
   useEffect(() => {
     if (
       !positionAppliedRef.current &&
@@ -33,7 +33,7 @@ export function useWindowControls({
       settings.windowY !== null
     ) {
       void window
-        .setPosition(new PhysicalPosition(settings.windowX, settings.windowY))
+        .setPosition(new LogicalPosition(settings.windowX, settings.windowY))
         .catch((e: unknown) => {
           console.error("Failed to restore window position:", e);
         });
@@ -81,9 +81,9 @@ export function useWindowControls({
     saveSettingsRefForPosition.current = saveSettings;
   });
 
-  // Persist window position on unmount (when the app closes). Uses physical
-  // coordinates for multi-monitor accuracy. Validates the position is within
-  // any monitor's bounds before saving.
+  // Persist window position on unmount (when the app closes). Uses logical
+  // coordinates (better for macOS Retina multi-monitor). Validates the position
+  // is within any monitor's bounds before saving.
   useEffect(() => {
     return () => {
       void (async () => {
@@ -91,32 +91,34 @@ export function useWindowControls({
           const pos = await window.outerPosition();
           const monitors = await availableMonitors();
 
-          // Check if position is within any monitor's bounds (multi-screen safe).
-          // outerPosition() returns physical coordinates; monitor.position/size
-          // are also physical. We check the window's top-left corner is within
-          // a monitor's area (with a small margin for safety).
-          const isWithinBounds = monitors.some((monitor) => {
-            const { x: mx, y: my } = monitor.position;
-            const { width, height } = monitor.size;
-            // Allow a bit outside (e.g., title bar can be offscreen) but ensure
-            // it's mostly on-screen.
-            const margin = 50;
+          // Convert physical position to logical by dividing by scale factor.
+          // On macOS Retina, outerPosition() returns physical pixels but we need
+          // logical coordinates for setPosition(LogicalPosition).
+          const currentMonitor = monitors.find((m) => {
+            const { x: mx, y: my } = m.position;
+            const { width, height } = m.size;
             return (
-              pos.x >= mx - margin &&
+              pos.x >= mx &&
               pos.x < mx + width &&
-              pos.y >= my - margin &&
+              pos.y >= my &&
               pos.y < my + height
             );
           });
 
-          // Only persist if within bounds (avoid saving invalid positions).
-          if (isWithinBounds) {
-            await saveSettingsRefForPosition.current({
-              ...settingsRef.current,
-              windowX: pos.x,
-              windowY: pos.y,
-            });
+          if (!currentMonitor) {
+            // Position is outside all monitors, don't save.
+            return;
           }
+
+          const scaleFactor = currentMonitor.scaleFactor;
+          const logicalX = pos.x / scaleFactor;
+          const logicalY = pos.y / scaleFactor;
+
+          await saveSettingsRefForPosition.current({
+            ...settingsRef.current,
+            windowX: logicalX,
+            windowY: logicalY,
+          });
         } catch (e: unknown) {
           console.error("Failed to persist window position:", e);
         }
