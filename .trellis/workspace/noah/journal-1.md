@@ -140,3 +140,36 @@ Added clipboard/text-based build import/export from the editor with no new plugi
 ### Next Steps
 
 - None - task complete
+
+
+## Session 5: Hook-layer unit tests with jsdom + coverage gate
+
+**Date**: 2026-06-06
+**Task**: Hook-layer unit tests with jsdom + coverage gate
+**Branch**: `main`
+
+### Summary
+
+Established a hook-testing harness and real tests for all custom hooks (replacing placeholder useConnectionDiagnostic tests). Added @testing-library/react + jsdom + coverage-v8; per-file '// @vitest-environment jsdom' docblock so pure libs stay node; src/test/tauriMocks.ts typed invoke/listen/window mocks mirroring the real IPC contract; tests for the 6 PRD hooks + useConnectionDiagnostic + useBuildOrders; coverage gate scoped to src/hooks/** = 80% via test:coverage. Captured frontend/hook-testing.md spec. 146 vitest (33 new), hooks ≥80% all metrics, tsc clean, cargo 34. No hook behavior changed.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8a67a49` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
