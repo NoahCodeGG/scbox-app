@@ -107,3 +107,36 @@ Built a dedicated editor window for CRUD over build orders with a supply→time 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: Build order import/export via clipboard JSON
+
+**Date**: 2026-06-06
+**Task**: Build order import/export via clipboard JSON
+**Branch**: `main`
+
+### Summary
+
+Added clipboard/text-based build import/export from the editor with no new plugin. New buildTransfer.ts (exportBuildJson filename-free, omits unset supply; parseImportedBuild guards JSON.parse then reuses validateBuild). New BuildTransferPanel (textarea + 导出/复制/导入; best-effort navigator.clipboard with manual fallback; import always writes a new auto-suffixed file via save_build_order then reload + builds-changed event). Reuses existing validation/persistence, no backend change. tsc clean, 113 vitest, 34 cargo.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `058897b` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
