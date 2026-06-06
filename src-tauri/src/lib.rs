@@ -1,11 +1,13 @@
 mod builds;
 mod sc2;
+mod settings;
 mod tts;
 
 use std::time::Duration;
 use tauri::{Emitter, Manager};
 
 use builds::LoadResult;
+use settings::Settings;
 
 const POLL_INTERVAL: Duration = Duration::from_millis(1000);
 
@@ -29,12 +31,37 @@ fn load_build_orders(app: tauri::AppHandle) -> Result<LoadResult, String> {
     Ok(builds::load_from_dir(&dir))
 }
 
+/// Read the user settings JSON from the app-data dir. A missing file (first
+/// run) yields the default settings rather than an error.
+#[tauri::command]
+fn load_settings(app: tauri::AppHandle) -> Result<Settings, String> {
+    let dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("cannot resolve app data dir: {e}"))?;
+
+    settings::load_from_dir(&dir)
+}
+
+/// Persist the user settings JSON to the app-data dir, creating it if needed.
+#[tauri::command]
+fn save_settings(app: tauri::AppHandle, settings: Settings) -> Result<(), String> {
+    let dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("cannot resolve app data dir: {e}"))?;
+
+    settings::save_to_dir(&dir, &settings)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             load_build_orders,
+            load_settings,
+            save_settings,
             tts::speak_tts,
             tts::stop_tts,
             tts::list_voices

@@ -4,7 +4,9 @@ import { useBuildOrders } from "./hooks/useBuildOrders";
 import { useBuildOrderVoice } from "./hooks/useBuildOrderVoice";
 import { useInterpolatedClock } from "./hooks/useInterpolatedClock";
 import { useVoiceCapability } from "./hooks/useVoiceCapability";
-import { pickActiveBuild } from "./lib/builds";
+import { useSettings } from "./hooks/useSettings";
+import { FALLBACK_BUILD } from "./lib/builds";
+import { identifyMatchup, selectBuild } from "./lib/matchup";
 import { formatGameTime, raceLabel } from "./lib/format";
 import type { BuildOrder } from "./types/build";
 import type { GameSnapshot } from "./types/sc2";
@@ -68,7 +70,14 @@ function App() {
   const currentTime = useInterpolatedClock(snapshot);
   const { builds, errors, loadError, reload } = useBuildOrders();
   const { needsInstallHint } = useVoiceCapability();
+  const { settings, saveSettings, error: settingsError } = useSettings();
   const [hintDismissed, setHintDismissed] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+
+  // Keep the editable draft in sync once settings load (or change externally).
+  useEffect(() => {
+    setNameDraft(settings.playerName);
+  }, [settings.playerName]);
 
   // Reload build orders on the transition INTO a live game, so an edit made
   // between games is picked up without restarting the app.
@@ -80,8 +89,26 @@ function App() {
     wasInGameRef.current = snapshot.in_game;
   }, [snapshot.in_game, reload]);
 
-  const activeBuild = pickActiveBuild(builds);
+  // Re-pick the active build for the detected matchup. When live with a known
+  // matchup, select by my/opponent race; otherwise guide with the first loaded
+  // build. Either path falls back to the bundled build when nothing loaded.
+  const matchup = snapshot.in_game
+    ? identifyMatchup(snapshot.players, settings.playerName)
+    : null;
+  const selected = matchup
+    ? selectBuild(builds, matchup.myRace, matchup.oppRace)
+    : builds.length > 0
+      ? builds[0]
+      : null;
+  const activeBuild: BuildOrder = selected ?? FALLBACK_BUILD;
   const showBuild = snapshot.in_game && !snapshot.is_replay;
+
+  const persistName = (): void => {
+    const trimmed = nameDraft.trim();
+    if (trimmed !== settings.playerName) {
+      void saveSettings({ ...settings, playerName: trimmed });
+    }
+  };
 
   return (
     <main className="overlay">
@@ -98,6 +125,27 @@ function App() {
           重载
         </button>
       </div>
+
+      <div className="settings-row">
+        <label className="player-name-label" htmlFor="player-name">
+          我的名字
+        </label>
+        <input
+          id="player-name"
+          className="player-name-input"
+          value={nameDraft}
+          placeholder="输入游戏内名称"
+          onChange={(e) => setNameDraft(e.currentTarget.value)}
+          onBlur={persistName}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") persistName();
+          }}
+        />
+      </div>
+
+      {settingsError && (
+        <div className="load-error">无法保存设置：{settingsError}</div>
+      )}
 
       {needsInstallHint && !hintDismissed && (
         <div className="voice-hint">
@@ -125,8 +173,14 @@ function App() {
           ))}
         </ul>
       )}
-      {!activeBuild && !loadError && (
-        <div className="load-error">没有可用的建造顺序</div>
+
+      {showBuild && (
+        <div className="active-build">
+          <span className="active-build-matchup">{activeBuild.matchup}</span>
+          <span className="active-build-name">
+            {raceLabel(activeBuild.race)}
+          </span>
+        </div>
       )}
 
       {snapshot.in_game && snapshot.players.length > 0 && (
@@ -140,7 +194,7 @@ function App() {
         </ul>
       )}
 
-      {showBuild && activeBuild && (
+      {showBuild && (
         <BuildPanel
           build={activeBuild}
           snapshot={snapshot}
