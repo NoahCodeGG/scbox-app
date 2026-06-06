@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "Verify speak_tts/stop_tts keep the same invoke contract and Result error handling after moving to channel sends."}
+{"file": ".trellis/spec/tauri/index.md", "reason": "Verify the !Send Tts stays on the worker thread (never managed/awaited) and lib.rs stays thin."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify queue/cue types are strict, no any, injected deps typed."}
+{"file": ".trellis/spec/frontend/hook-testing.md", "reason": "Verify queue tests assert ordering/drop-stale/clear with fake timers and stay DOM-free in the core."}

@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "speak_tts/stop_tts move to channel sends via State<TtsHandle>; the invoke contract must stay unchanged and follow IPC + Result error conventions."}
+{"file": ".trellis/spec/tauri/index.md", "reason": "The persistent TTS worker thread + managed Sender state is a backend structure change; keep lib.rs thin and follow Tauri state/threading conventions (Tts is !Send)."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "The speech queue core + cue types must be strictly typed (no any); injected clock/speaker deps typed."}
+{"file": ".trellis/spec/frontend/hook-testing.md", "reason": "Queue is unit-tested with fake timers + a mock speaker (DOM-free core); follow the testing conventions and keep coverage."}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Verify the speak_tts/stop_tts invoke args stay aligned even though the Rust side gains a State param."}

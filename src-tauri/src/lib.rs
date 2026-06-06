@@ -162,6 +162,12 @@ pub fn run() {
             let shared_port: SharedPort = Arc::new(Mutex::new(seed_port));
             app.manage(shared_port.clone());
 
+            // Spawn the persistent TTS worker (one long-lived `!Send` `Tts` on
+            // its own thread) and manage only the `Sender` so `speak_tts` /
+            // `stop_tts` can queue cues without clobbering one another.
+            let tts_tx = tts::spawn_tts_worker();
+            app.manage(tts::TtsHandle(tts_tx));
+
             // Keep the editor window reusable: closing it should hide it (so a
             // later `open_editor` can show it again) rather than destroy it,
             // which would make `get_webview_window("editor")` return None.

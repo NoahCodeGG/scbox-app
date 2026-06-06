@@ -162,16 +162,6 @@ export function resetVoiceForTests(): void {
   zhWebVoice = null;
 }
 
-function speakWeb(text: string, rate: number): void {
-  const synth = getSynth();
-  if (!synth || typeof SpeechSynthesisUtterance === "undefined") return;
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = SPEECH_LANG;
-  utterance.rate = clampRate(rate);
-  if (zhWebVoice) utterance.voice = zhWebVoice;
-  synth.speak(utterance);
-}
-
 function speakNative(text: string): void {
   // Fire-and-forget; surface failures without throwing into the render path.
   invoke("speak_tts", { text, lang: SPEECH_LANG }).catch((e: unknown) => {
@@ -179,10 +169,144 @@ function speakNative(text: string): void {
   });
 }
 
+// --- Serialized cue queue ---------------------------------------------------
+//
+// Cues from `useBuildOrderVoice` can bunch up (lag spike, tab-away, tightly
+// spaced steps). We serialize them through one FIFO that plays a single cue at
+// a time and drops cues that have waited longer than the freshness window
+// before they get to start — stale build instructions are skipped, timely ones
+// still play in order.
+
+/** Max age (ms) a queued cue may reach before it is dropped instead of played. */
+export const FRESHNESS_MS = 3000;
+
+/** Native-tier pacing bounds: a length-based estimate, clamped. */
+const ESTIMATE_BASE_MS = 600;
+const ESTIMATE_PER_CHAR_MS = 90;
+const ESTIMATE_MIN_MS = 400;
+const ESTIMATE_MAX_MS = 6000;
+
+/** One queued utterance. `enqueuedAt` is a clock reading from the queue's `now`. */
+export interface Cue {
+  text: string;
+  rate: number;
+  enqueuedAt: number;
+}
+
+/** Injected dependencies so the queue core is pure and unit-testable. */
+export interface SpeechQueueDeps {
+  now: () => number;
+  speakOne: (cue: Cue) => Promise<void>;
+}
+
+/** A serialized, drop-stale cue queue. */
+export interface SpeechQueue {
+  enqueue: (cue: Cue) => void;
+  clear: () => void;
+}
+
+/**
+ * Build a serialized cue queue. One cue plays at a time (via `deps.speakOne`);
+ * a cue older than `FRESHNESS_MS` when it reaches the front is dropped rather
+ * than played late. `clear()` empties pending cues — the in-flight `speakOne`
+ * resolves naturally and the pump then stops.
+ *
+ * The internal array is mutated in place but never leaked, so callers see only
+ * the immutable `enqueue`/`clear` contract.
+ */
+export function createSpeechQueue(deps: SpeechQueueDeps): SpeechQueue {
+  const queue: Cue[] = [];
+  let isPumping = false;
+
+  async function pump(): Promise<void> {
+    if (isPumping) return;
+    isPumping = true;
+    try {
+      while (queue.length > 0) {
+        const cue = queue.shift();
+        if (cue === undefined) break;
+        if (deps.now() - cue.enqueuedAt > FRESHNESS_MS) continue; // drop stale
+        await deps.speakOne(cue);
+      }
+    } finally {
+      isPumping = false;
+    }
+  }
+
+  return {
+    enqueue(cue: Cue): void {
+      queue.push(cue);
+      void pump();
+    },
+    clear(): void {
+      queue.length = 0;
+    },
+  };
+}
+
+/**
+ * Estimate how long an utterance takes to speak, so the native tier can pace
+ * cues even without per-utterance completion events. Length-based: a base cost
+ * plus a per-character cost, clamped to a sane range.
+ */
+export function estimateDurationMs(text: string): number {
+  const raw = ESTIMATE_BASE_MS + text.length * ESTIMATE_PER_CHAR_MS;
+  return Math.min(ESTIMATE_MAX_MS, Math.max(ESTIMATE_MIN_MS, raw));
+}
+
+/**
+ * Speak a single cue on the resolved tier and resolve when it is (estimated to
+ * be) done, so the queue can advance:
+ *   - web: resolve on the utterance's `onend`/`onerror` (never hangs; resolves
+ *     immediately if there is no synth).
+ *   - native: fire the `speak_tts` invoke, then resolve after an estimated
+ *     duration (the Rust worker also queues with `interrupt = false`, so a loose
+ *     estimate only affects pacing, never correctness).
+ */
+function speakOne(cue: Cue): Promise<void> {
+  const tier = resolvedTier ?? "web";
+  if (tier === "native") {
+    speakNative(cue.text);
+    return new Promise((resolve) => {
+      setTimeout(resolve, estimateDurationMs(cue.text));
+    });
+  }
+  if (tier !== "web") return Promise.resolve();
+
+  const synth = getSynth();
+  if (!synth || typeof SpeechSynthesisUtterance === "undefined") {
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (): void => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    const utterance = new SpeechSynthesisUtterance(cue.text);
+    utterance.lang = SPEECH_LANG;
+    utterance.rate = clampRate(cue.rate);
+    if (zhWebVoice) utterance.voice = zhWebVoice;
+    utterance.onend = finish;
+    utterance.onerror = finish;
+    synth.speak(utterance);
+  });
+}
+
+// Module-level singleton queue wired to real deps.
+const queue: SpeechQueue = createSpeechQueue({
+  now: () => Date.now(),
+  speakOne,
+});
+
 /**
  * Speak `text` in Chinese via the resolved tier. Returns the tier actually used
  * so callers can react to "none" (show the install hint). Safe before
  * `initVoice` resolves: falls back to the web tier opportunistically.
+ *
+ * The cue is enqueued, not played directly: bunched cues are serialized so they
+ * play one at a time in order, and a cue delayed past `FRESHNESS_MS` is dropped.
  *
  * `rate` sets the Web Speech utterance rate (clamped 0.5–2.0); the native tier
  * does not currently take a rate (the `tts` crate's rate API is best-effort and
@@ -190,13 +314,15 @@ function speakNative(text: string): void {
  */
 export function speak(text: string, rate: number = DEFAULT_RATE): VoiceTier {
   const tier = resolvedTier ?? "web";
-  if (tier === "web") speakWeb(text, rate);
-  else if (tier === "native") speakNative(text);
+  if (tier === "web" || tier === "native") {
+    queue.enqueue({ text, rate, enqueuedAt: Date.now() });
+  }
   return tier;
 }
 
 /** Cancel any queued/active speech across whichever tier is active. */
 export function cancelAll(): void {
+  queue.clear();
   const synth = getSynth();
   if (synth) synth.cancel();
   if (resolvedTier === "native") {

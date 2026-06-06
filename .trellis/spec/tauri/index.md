@@ -48,5 +48,10 @@ Related: [Frontend spec layer](../frontend/index.md) ·
   command bodies into their own modules as they grow (200–400 lines per file).
 - Every new command must be added to `generate_handler!` **and** granted by a
   capability before the frontend can call it.
+- A `!Send`/`!Sync` resource (e.g. `tts::Tts`, which holds an `Rc`) must NOT be
+  `app.manage()`d or held across `.await`. To keep one long-lived instance, own
+  it on a dedicated worker thread and share only an `mpsc::Sender<Command>`
+  (which is `Send + Sync`) via `manage()`; commands send messages to the worker.
+  See `src/tts.rs` for the pattern.
 
 **Language**: All documentation is written in **English**.

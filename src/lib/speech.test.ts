@@ -8,6 +8,9 @@ vi.mock("@tauri-apps/api/core", () => ({
 
 import {
   cancelAll,
+  createSpeechQueue,
+  estimateDurationMs,
+  FRESHNESS_MS,
   hasZhVoice,
   initVoice,
   loadVoices,
@@ -15,6 +18,7 @@ import {
   selectTier,
   speak,
 } from "./speech";
+import type { Cue } from "./speech";
 
 type Listener = () => void;
 
@@ -188,6 +192,9 @@ describe("speak / cancelAll routing", () => {
     invokeMock.mockResolvedValue(undefined);
 
     const tier = speak("补农民");
+    // The cue is enqueued and the pump runs on a microtask; let it drain.
+    await Promise.resolve();
+    await Promise.resolve();
 
     expect(tier).toBe("native");
     expect(invokeMock).toHaveBeenCalledWith("speak_tts", {
@@ -203,6 +210,7 @@ describe("speak / cancelAll routing", () => {
     invokeMock.mockClear();
 
     expect(speak("补农民")).toBe("none");
+    await Promise.resolve();
     expect(invokeMock).not.toHaveBeenCalled();
   });
 
@@ -234,5 +242,102 @@ describe("speak / cancelAll routing", () => {
 
     expect(cancelled).toBe(true);
     expect(invokeMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("createSpeechQueue", () => {
+  /** A speakOne that records cues and resolves when the test releases each one. */
+  function deferredSpeaker() {
+    const spoken: Cue[] = [];
+    const releases: Array<() => void> = [];
+    const speakOne = (cue: Cue): Promise<void> => {
+      spoken.push(cue);
+      return new Promise<void>((resolve) => releases.push(resolve));
+    };
+    return {
+      spoken,
+      speakOne,
+      releaseNext: () => {
+        const r = releases.shift();
+        if (r) r();
+      },
+    };
+  }
+
+  it("plays cues sequentially in FIFO order, one at a time", async () => {
+    const { spoken, speakOne, releaseNext } = deferredSpeaker();
+    const queue = createSpeechQueue({ now: () => 0, speakOne });
+
+    queue.enqueue({ text: "a", rate: 1, enqueuedAt: 0 });
+    queue.enqueue({ text: "b", rate: 1, enqueuedAt: 0 });
+    queue.enqueue({ text: "c", rate: 1, enqueuedAt: 0 });
+
+    await Promise.resolve();
+    // Only the first cue is in flight until it resolves.
+    expect(spoken.map((c) => c.text)).toEqual(["a"]);
+
+    releaseNext();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(spoken.map((c) => c.text)).toEqual(["a", "b"]);
+
+    releaseNext();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(spoken.map((c) => c.text)).toEqual(["a", "b", "c"]);
+  });
+
+  it("drops a cue older than the freshness window before it starts", async () => {
+    const { spoken, speakOne, releaseNext } = deferredSpeaker();
+    // The clock already reads past the freshness window relative to the stale
+    // cue's enqueue time, so it is dropped the moment the pump reaches it.
+    const nowValue = FRESHNESS_MS + 1;
+    const queue = createSpeechQueue({ now: () => nowValue, speakOne });
+
+    queue.enqueue({ text: "stale", rate: 1, enqueuedAt: 0 });
+    queue.enqueue({ text: "fresh", rate: 1, enqueuedAt: FRESHNESS_MS + 1 });
+
+    await Promise.resolve();
+    // "stale" is skipped; the pump moves on to "fresh".
+    expect(spoken.map((c) => c.text)).toEqual(["fresh"]);
+
+    releaseNext();
+    await Promise.resolve();
+    expect(spoken.map((c) => c.text)).toEqual(["fresh"]);
+  });
+
+  it("clear() empties pending cues so they never play", async () => {
+    const { spoken, speakOne, releaseNext } = deferredSpeaker();
+    const queue = createSpeechQueue({ now: () => 0, speakOne });
+
+    queue.enqueue({ text: "a", rate: 1, enqueuedAt: 0 });
+    queue.enqueue({ text: "b", rate: 1, enqueuedAt: 0 });
+
+    await Promise.resolve();
+    expect(spoken.map((c) => c.text)).toEqual(["a"]); // "a" in flight
+
+    queue.clear(); // drop pending "b"
+    releaseNext(); // resolve the in-flight "a"
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(spoken.map((c) => c.text)).toEqual(["a"]); // "b" never played
+  });
+});
+
+describe("estimateDurationMs", () => {
+  it("uses the base cost for empty text (above the floor)", () => {
+    // base 600 alone is already above the 400 floor; the floor is the lower
+    // clamp boundary, never exceeded by a positive-length contribution.
+    expect(estimateDurationMs("")).toBe(600);
+  });
+
+  it("clamps a very long text down to the maximum", () => {
+    expect(estimateDurationMs("x".repeat(1000))).toBe(6000);
+  });
+
+  it("scales between the bounds for mid-length text", () => {
+    // base 600 + 10 chars * 90 = 1500, within [400, 6000].
+    expect(estimateDurationMs("x".repeat(10))).toBe(1500);
   });
 });
