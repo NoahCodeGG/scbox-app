@@ -37,7 +37,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDM2N0QzQjExN0QzMTA1RjkKUldUNUJURjlFVHQ5Tm9WcXBTMHphSzBIcUMxOXRkcjhyN0FxbzFEYzNTWXZwdjBFVzdsWXNMbncK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlCNjMxN0I3Nzg4MjhDRkYKUldUL2pJSjR0eGRqbThnbWZjaGZINnY0UDJGbm9nNWZhQnU2QVQ1SnpiZzZpTzNrK3ZoaXBtL0wK",
       "endpoints": [
         "https://github.com/NoahCodeGG/scbox-app/releases/latest/download/latest.json"
       ]
