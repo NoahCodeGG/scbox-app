@@ -305,3 +305,39 @@ Added the real app icon (regenerated icons/* from the user's logo at src-tauri/i
 ### Next Steps
 
 - None - task complete
+
+
+## Session 10: Redesign UI with shadcn/ui (overlay/editor/settings)
+
+**Date**: 2026-06-07
+**Task**: Redesign UI with shadcn/ui (overlay/editor/settings)
+**Branch**: `main`
+
+### Summary
+
+Re-skinned the 3 in-app surfaces to the user's mockups with Tailwind v4 + shadcn/ui (new-york/neutral), no behavior change. PR0 foundation (0ff7efa): @tailwindcss/vite, components.json, @/ alias in tsconfig+vite+vitest, theme tokens in src/index.css (black accent, Geist+Fira Code), self-hosted fonts via @fontsource, 11 ui primitives, overlay-scoped dark variant wired (no global .dark). PR1 settings (c1118b8): SettingsPanel → shadcn Card/Switch/Slider/Input, css removed. PR2 editor (8ce35d8): BuildEditor → 3-region layout (list|form|sticky JSON preview) + new BuildJsonPreview with live valid/invalid indicator; all features kept (selects/derived matchup/supply→time/delete-confirm/transfer). PR3 overlay (62b6841): App.tsx → .overlay card (drag bar, interpolated clock, pulsing dot, 3-step current/upcoming + firing anim, voice/lead footer, waiting/replay/disconnected banners, dark-glass theme); DiagnosticPanel → shadcn Dialog; App.css+DiagnosticPanel.css removed; main window 320x200→360x340. Scope: only in-app screens (overlay/editor/settings); dashboard+onboarding (net-new) and marketing pages deferred. Mockups were 8 static HTML files in ~/Downloads/scbox-app. Decisions made via research because AskUserQuestion kept timing out. trellis-check passed each phase; drag-region/clock/voice/IPC all preserved. Spec: frontend/ui-system.md. 165 vitest, cargo 41, coverage held, build ok. KEY MANUAL TODO: macOS run-through of overlay drag/click-through/live coaching/dark theme not yet done.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0ff7efa` | (see git log) |
+| `c1118b8` | (see git log) |
+| `8ce35d8` | (see git log) |
+| `62b6841` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
