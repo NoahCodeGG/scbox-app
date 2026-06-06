@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import {
   getCurrentWindow,
-  LogicalPosition,
+  PhysicalPosition,
   availableMonitors,
 } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
@@ -24,7 +24,8 @@ export function useWindowControls({
   const window = getCurrentWindow();
   const positionAppliedRef = useRef(false);
 
-  // Apply saved position once on mount.
+  // Apply saved position once on mount (using physical coordinates for
+  // multi-monitor accuracy).
   useEffect(() => {
     if (
       !positionAppliedRef.current &&
@@ -32,7 +33,7 @@ export function useWindowControls({
       settings.windowY !== null
     ) {
       void window
-        .setPosition(new LogicalPosition(settings.windowX, settings.windowY))
+        .setPosition(new PhysicalPosition(settings.windowX, settings.windowY))
         .catch((e: unknown) => {
           console.error("Failed to restore window position:", e);
         });
@@ -80,6 +81,9 @@ export function useWindowControls({
     saveSettingsRefForPosition.current = saveSettings;
   });
 
+  // Persist window position on unmount (when the app closes). Uses physical
+  // coordinates for multi-monitor accuracy. Validates the position is within
+  // any monitor's bounds before saving.
   useEffect(() => {
     return () => {
       void (async () => {
@@ -88,13 +92,19 @@ export function useWindowControls({
           const monitors = await availableMonitors();
 
           // Check if position is within any monitor's bounds (multi-screen safe).
+          // outerPosition() returns physical coordinates; monitor.position/size
+          // are also physical. We check the window's top-left corner is within
+          // a monitor's area (with a small margin for safety).
           const isWithinBounds = monitors.some((monitor) => {
             const { x: mx, y: my } = monitor.position;
             const { width, height } = monitor.size;
+            // Allow a bit outside (e.g., title bar can be offscreen) but ensure
+            // it's mostly on-screen.
+            const margin = 50;
             return (
-              pos.x >= mx &&
+              pos.x >= mx - margin &&
               pos.x < mx + width &&
-              pos.y >= my &&
+              pos.y >= my - margin &&
               pos.y < my + height
             );
           });
