@@ -13,6 +13,7 @@ import {
 import { parseMatchup, raceNameToLetter, type RaceLetter } from "../lib/matchup";
 import type { BuildOrder } from "../types/build";
 import { BUILDS_CHANGED_EVENT } from "../lib/events";
+import BuildTransferPanel from "./BuildTransferPanel";
 import "./BuildEditor.css";
 
 /** Authoring races (Random is not a valid build race). */
@@ -110,6 +111,14 @@ export default function BuildEditor() {
   const existingFilenames = useMemo(
     () => stored.map((s) => s.filename),
     [stored],
+  );
+
+  const selectedBuild = useMemo(
+    () =>
+      selectedFilename === null
+        ? null
+        : stored.find((s) => s.filename === selectedFilename)?.build ?? null,
+    [stored, selectedFilename],
   );
 
   function selectBuild(filename: string, build: BuildOrder): void {
@@ -433,6 +442,15 @@ export default function BuildEditor() {
               </button>
             )}
           </div>
+
+          <BuildTransferPanel
+            selectedBuild={selectedBuild}
+            existingFilenames={existingFilenames}
+            busy={busy}
+            setBusy={setBusy}
+            setStatus={setStatus}
+            reload={reload}
+          />
         </section>
       </div>
     </main>

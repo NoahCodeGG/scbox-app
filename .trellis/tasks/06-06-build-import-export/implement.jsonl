@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "parseImportedBuild narrows unknown from JSON.parse; exported helper types must be explicit (no any)."}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Import must reuse the existing validateBuild boundary and save_build_order command rather than re-implementing validation/persistence."}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "The import/export panel is added to BuildEditor.tsx and must follow component conventions."}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Panel state (textarea, status banner reuse) must use immutable updates."}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Decides placement of the new lib/buildTransfer.ts pure helper."}
