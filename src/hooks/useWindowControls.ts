@@ -1,5 +1,9 @@
 import { useEffect, useRef } from "react";
-import { getCurrentWindow, LogicalPosition } from "@tauri-apps/api/window";
+import {
+  getCurrentWindow,
+  LogicalPosition,
+  availableMonitors,
+} from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import type { Settings } from "./useSettings";
 
@@ -81,11 +85,28 @@ export function useWindowControls({
       void (async () => {
         try {
           const pos = await window.outerPosition();
-          await saveSettingsRefForPosition.current({
-            ...settingsRef.current,
-            windowX: pos.x,
-            windowY: pos.y,
+          const monitors = await availableMonitors();
+
+          // Check if position is within any monitor's bounds (multi-screen safe).
+          const isWithinBounds = monitors.some((monitor) => {
+            const { x: mx, y: my } = monitor.position;
+            const { width, height } = monitor.size;
+            return (
+              pos.x >= mx &&
+              pos.x < mx + width &&
+              pos.y >= my &&
+              pos.y < my + height
+            );
           });
+
+          // Only persist if within bounds (avoid saving invalid positions).
+          if (isWithinBounds) {
+            await saveSettingsRefForPosition.current({
+              ...settingsRef.current,
+              windowX: pos.x,
+              windowY: pos.y,
+            });
+          }
         } catch (e: unknown) {
           console.error("Failed to persist window position:", e);
         }
