@@ -53,6 +53,22 @@
   margin: 0 0 12px;
 }
 
+.editor-success {
+  background: #e6f4ea;
+  color: #1e7e34;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.editor-matchup-derived {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 8px;
+  color: #1a1a1a;
+}
+
 .editor-empty {
   color: #777;
   font-size: 14px;

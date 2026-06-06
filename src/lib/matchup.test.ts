@@ -5,6 +5,7 @@ import {
   identifyMatchup,
   parseMatchup,
   raceCodeToLetter,
+  raceNameToLetter,
   selectBuild,
 } from "./matchup";
 
@@ -33,6 +34,24 @@ describe("raceCodeToLetter", () => {
   it("maps random and unknown codes to X", () => {
     expect(raceCodeToLetter("random")).toBe("X");
     expect(raceCodeToLetter("weird")).toBe("X");
+  });
+});
+
+describe("raceNameToLetter", () => {
+  it("maps known race names", () => {
+    expect(raceNameToLetter("Terran")).toBe("T");
+    expect(raceNameToLetter("Protoss")).toBe("P");
+    expect(raceNameToLetter("Zerg")).toBe("Z");
+  });
+
+  it("trims surrounding whitespace", () => {
+    expect(raceNameToLetter(" Terran ")).toBe("T");
+  });
+
+  it("maps Random and unknown names to X", () => {
+    expect(raceNameToLetter("Random")).toBe("X");
+    expect(raceNameToLetter("Any")).toBe("X");
+    expect(raceNameToLetter("")).toBe("X");
   });
 });
 

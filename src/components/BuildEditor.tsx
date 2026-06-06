@@ -10,29 +10,79 @@ import {
   type DraftBuild,
   type DraftStep,
 } from "../lib/buildValidation";
+import { parseMatchup, raceNameToLetter, type RaceLetter } from "../lib/matchup";
 import type { BuildOrder } from "../types/build";
 import { BUILDS_CHANGED_EVENT } from "../lib/events";
 import "./BuildEditor.css";
+
+/** Authoring races (Random is not a valid build race). */
+const AUTHOR_RACES = ["Terran", "Protoss", "Zerg"] as const;
+type AuthorRace = (typeof AUTHOR_RACES)[number];
+
+/** Opponent options including a catch-all "any". */
+const OPPONENT_OPTIONS: ReadonlyArray<{ letter: RaceLetter; label: string }> = [
+  { letter: "T", label: "人族 (Terran)" },
+  { letter: "P", label: "神族 (Protoss)" },
+  { letter: "Z", label: "虫族 (Zerg)" },
+  { letter: "X", label: "任意 (Any)" },
+];
+
+const RACE_LABELS_ZH: Record<AuthorRace, string> = {
+  Terran: "人族 (Terran)",
+  Protoss: "神族 (Protoss)",
+  Zerg: "虫族 (Zerg)",
+};
+
+/** Status banner shown after a save/delete attempt. */
+type Status = { kind: "success" | "error"; message: string } | null;
+
+function isAuthorRace(value: string): value is AuthorRace {
+  return (AUTHOR_RACES as readonly string[]).includes(value);
+}
+
+/** Coerce a stored `race` into one of the three author races (default Terran). */
+function normalizeRace(race: string): AuthorRace {
+  return isAuthorRace(race) ? race : "Terran";
+}
 
 function emptyStep(): DraftStep {
   return { time: "", say: "", supply: "" };
 }
 
-function emptyDraft(): DraftBuild {
-  return { matchup: "", race: "Terran", leadTimeSec: "4", steps: [emptyStep()] };
+/** Editor form fields, excluding the derived `matchup`. */
+interface EditorForm {
+  race: AuthorRace;
+  opponent: RaceLetter;
+  leadTimeSec: string;
+  steps: DraftStep[];
+}
+
+function emptyForm(): EditorForm {
+  return { race: "Terran", opponent: "X", leadTimeSec: "4", steps: [emptyStep()] };
 }
 
 /** Convert a persisted build into editable form fields (numbers → strings). */
-function toDraft(build: BuildOrder): DraftBuild {
+function toForm(build: BuildOrder): EditorForm {
   return {
-    matchup: build.matchup,
-    race: build.race,
+    race: normalizeRace(build.race),
+    opponent: parseMatchup(build.matchup)?.opp ?? "X",
     leadTimeSec: String(build.leadTimeSec),
     steps: build.steps.map((step) => ({
       time: String(step.time),
       say: step.say,
       supply: step.supply === undefined ? "" : String(step.supply),
     })),
+  };
+}
+
+/** Compose the validation draft from the form (matchup is derived here). */
+function toDraft(form: EditorForm): DraftBuild {
+  const matchup = `${raceNameToLetter(form.race)}v${form.opponent}`;
+  return {
+    matchup,
+    race: form.race,
+    leadTimeSec: form.leadTimeSec,
+    steps: form.steps,
   };
 }
 
@@ -52,8 +102,9 @@ export default function BuildEditor() {
 
   // null selection = composing a new (not-yet-saved) build.
   const [selectedFilename, setSelectedFilename] = useState<string | null>(null);
-  const [draft, setDraft] = useState<DraftBuild>(emptyDraft);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [form, setForm] = useState<EditorForm>(emptyForm);
+  const [status, setStatus] = useState<Status>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const existingFilenames = useMemo(
@@ -63,22 +114,32 @@ export default function BuildEditor() {
 
   function selectBuild(filename: string, build: BuildOrder): void {
     setSelectedFilename(filename);
-    setDraft(toDraft(build));
-    setSaveError(null);
+    setForm(toForm(build));
+    setStatus(null);
+    setConfirmingDelete(false);
   }
 
   function startNew(): void {
     setSelectedFilename(null);
-    setDraft(emptyDraft());
-    setSaveError(null);
+    setForm(emptyForm());
+    setStatus(null);
+    setConfirmingDelete(false);
   }
 
-  function updateField(field: "matchup" | "race" | "leadTimeSec", value: string): void {
-    setDraft((prev) => ({ ...prev, [field]: value }));
+  function updateRace(value: AuthorRace): void {
+    setForm((prev) => ({ ...prev, race: value }));
+  }
+
+  function updateOpponent(value: RaceLetter): void {
+    setForm((prev) => ({ ...prev, opponent: value }));
+  }
+
+  function updateLeadTime(value: string): void {
+    setForm((prev) => ({ ...prev, leadTimeSec: value }));
   }
 
   function updateStep(index: number, field: keyof DraftStep, value: string): void {
-    setDraft((prev) => ({
+    setForm((prev) => ({
       ...prev,
       steps: prev.steps.map((step, i) =>
         i === index ? { ...step, [field]: value } : step,
@@ -87,18 +148,18 @@ export default function BuildEditor() {
   }
 
   function addStep(): void {
-    setDraft((prev) => ({ ...prev, steps: [...prev.steps, emptyStep()] }));
+    setForm((prev) => ({ ...prev, steps: [...prev.steps, emptyStep()] }));
   }
 
   function removeStep(index: number): void {
-    setDraft((prev) => ({
+    setForm((prev) => ({
       ...prev,
       steps: prev.steps.filter((_, i) => i !== index),
     }));
   }
 
   function estimateTime(index: number): void {
-    setDraft((prev) => ({
+    setForm((prev) => ({
       ...prev,
       steps: prev.steps.map((step, i) => {
         if (i !== index) return step;
@@ -115,9 +176,9 @@ export default function BuildEditor() {
   }
 
   async function handleSave(): Promise<void> {
-    const result = validateBuild(draft);
+    const result = validateBuild(toDraft(form));
     if (!result.ok) {
-      setSaveError(result.error);
+      setStatus({ kind: "error", message: result.error });
       return;
     }
     const filename =
@@ -125,33 +186,33 @@ export default function BuildEditor() {
       generateBuildFilename(result.build.matchup, existingFilenames);
 
     setBusy(true);
-    setSaveError(null);
+    setStatus(null);
     try {
       await invoke("save_build_order", { filename, build: result.build });
       setSelectedFilename(filename);
       await notifyChanged();
+      setStatus({ kind: "success", message: `已保存：${filename}` });
     } catch (e: unknown) {
-      setSaveError(`保存失败：${errorMessage(e)}`);
+      setStatus({ kind: "error", message: `保存失败：${errorMessage(e)}` });
     } finally {
       setBusy(false);
     }
   }
 
-  async function handleDelete(): Promise<void> {
-    if (selectedFilename === null) {
-      startNew();
-      return;
-    }
-    if (!window.confirm(`删除建造顺序 ${selectedFilename}？`)) return;
+  async function confirmDelete(): Promise<void> {
+    if (selectedFilename === null) return;
+    const filename = selectedFilename;
 
     setBusy(true);
-    setSaveError(null);
+    setStatus(null);
+    setConfirmingDelete(false);
     try {
-      await invoke("delete_build_order", { filename: selectedFilename });
+      await invoke("delete_build_order", { filename });
       startNew();
       await notifyChanged();
+      setStatus({ kind: "success", message: `已删除：${filename}` });
     } catch (e: unknown) {
-      setSaveError(`删除失败：${errorMessage(e)}`);
+      setStatus({ kind: "error", message: `删除失败：${errorMessage(e)}` });
     } finally {
       setBusy(false);
     }
@@ -212,30 +273,48 @@ export default function BuildEditor() {
         <section className="editor-form">
           <div className="editor-meta-row">
             <label className="editor-label">
-              对阵
-              <input
+              种族
+              <select
                 className="editor-input"
-                value={draft.matchup}
-                placeholder="TvP"
-                onChange={(e) => updateField("matchup", e.target.value)}
-              />
+                value={form.race}
+                onChange={(e) => updateRace(e.currentTarget.value as AuthorRace)}
+              >
+                {AUTHOR_RACES.map((race) => (
+                  <option key={race} value={race}>
+                    {RACE_LABELS_ZH[race]}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="editor-label">
-              种族
-              <input
+              对手
+              <select
                 className="editor-input"
-                value={draft.race}
-                placeholder="Terran"
-                onChange={(e) => updateField("race", e.target.value)}
-              />
+                value={form.opponent}
+                onChange={(e) =>
+                  updateOpponent(e.currentTarget.value as RaceLetter)
+                }
+              >
+                {OPPONENT_OPTIONS.map(({ letter, label }) => (
+                  <option key={letter} value={letter}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="editor-label">
+              对阵
+              <span className="editor-matchup-derived">
+                {raceNameToLetter(form.race)}v{form.opponent}
+              </span>
             </label>
             <label className="editor-label">
               提前播报(秒)
               <input
                 className="editor-input"
-                value={draft.leadTimeSec}
+                value={form.leadTimeSec}
                 inputMode="decimal"
-                onChange={(e) => updateField("leadTimeSec", e.target.value)}
+                onChange={(e) => updateLeadTime(e.currentTarget.value)}
               />
             </label>
           </div>
@@ -248,14 +327,16 @@ export default function BuildEditor() {
           </div>
 
           <ul className="editor-steps">
-            {draft.steps.map((step, index) => (
+            {form.steps.map((step, index) => (
               <li key={index} className="editor-step">
                 <input
                   className="editor-input editor-step-supply"
                   value={step.supply}
                   placeholder="人口"
                   inputMode="numeric"
-                  onChange={(e) => updateStep(index, "supply", e.target.value)}
+                  onChange={(e) =>
+                    updateStep(index, "supply", e.currentTarget.value)
+                  }
                 />
                 <button
                   type="button"
@@ -270,13 +351,17 @@ export default function BuildEditor() {
                   value={step.time}
                   placeholder="秒"
                   inputMode="decimal"
-                  onChange={(e) => updateStep(index, "time", e.target.value)}
+                  onChange={(e) =>
+                    updateStep(index, "time", e.currentTarget.value)
+                  }
                 />
                 <input
                   className="editor-input editor-step-say"
                   value={step.say}
                   placeholder="语音内容，如「14 补给站」"
-                  onChange={(e) => updateStep(index, "say", e.target.value)}
+                  onChange={(e) =>
+                    updateStep(index, "say", e.currentTarget.value)
+                  }
                 />
                 <button
                   type="button"
@@ -290,7 +375,15 @@ export default function BuildEditor() {
             ))}
           </ul>
 
-          {saveError && <div className="editor-error">{saveError}</div>}
+          {status && (
+            <div
+              className={
+                status.kind === "success" ? "editor-success" : "editor-error"
+              }
+            >
+              {status.message}
+            </div>
+          )}
 
           <div className="editor-actions">
             <button
@@ -301,14 +394,44 @@ export default function BuildEditor() {
             >
               保存
             </button>
-            <button
-              type="button"
-              className="editor-btn editor-delete"
-              onClick={() => void handleDelete()}
-              disabled={busy}
-            >
-              {selectedFilename === null ? "清空" : "删除"}
-            </button>
+            {selectedFilename === null ? (
+              <button
+                type="button"
+                className="editor-btn editor-delete"
+                onClick={startNew}
+                disabled={busy}
+              >
+                清空
+              </button>
+            ) : confirmingDelete ? (
+              <>
+                <button
+                  type="button"
+                  className="editor-btn editor-delete"
+                  onClick={() => void confirmDelete()}
+                  disabled={busy}
+                >
+                  确认删除
+                </button>
+                <button
+                  type="button"
+                  className="editor-btn"
+                  onClick={() => setConfirmingDelete(false)}
+                  disabled={busy}
+                >
+                  取消
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="editor-btn editor-delete"
+                onClick={() => setConfirmingDelete(true)}
+                disabled={busy}
+              >
+                删除
+              </button>
+            )}
           </div>
         </section>
       </div>

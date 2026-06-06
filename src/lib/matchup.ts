@@ -44,6 +44,21 @@ function isRaceLetter(value: string): value is RaceLetter {
   return value === "T" || value === "P" || value === "Z" || value === "X";
 }
 
+const RACE_NAME_TO_LETTER: Record<string, RaceLetter> = {
+  Terran: "T",
+  Protoss: "P",
+  Zerg: "Z",
+};
+
+/**
+ * Map a readable race name (as stored in `BuildOrder.race`, e.g. `"Terran"`) to
+ * its matchup letter. Anything unrecognized (including "Random"/"Any") becomes
+ * `X`. Used by the editor's race/opponent dropdowns to compose a `matchup`.
+ */
+export function raceNameToLetter(name: string): RaceLetter {
+  return RACE_NAME_TO_LETTER[name.trim()] ?? "X";
+}
+
 /**
  * Parse a build's `matchup` string (`"<mine>v<opp>"`, e.g. `"TvP"`, `"TvX"`)
  * into its two race letters. Tolerates upper/lowercase `v`/`V`. Returns null
