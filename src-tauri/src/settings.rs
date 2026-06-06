@@ -34,15 +34,13 @@ fn default_click_through() -> bool {
 /// User-editable application settings.
 ///
 /// Mirrors the TS `Settings` interface (camelCase keys). Every field carries a
-/// serde default so an older `settings.json` (e.g. only `playerName`) still
-/// loads, with the missing knobs falling back to their defaults. Unknown keys
-/// are intentionally ignored so older/newer files round-trip without failing.
+/// serde default so an older `settings.json` still loads, with the missing
+/// knobs falling back to their defaults. Unknown keys (e.g. a legacy
+/// `playerName`) are intentionally ignored so older/newer files round-trip
+/// without failing.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
-    /// Exact in-game name used to identify the local player. Empty when unset.
-    #[serde(default)]
-    pub player_name: String,
     /// SC2 Client API port the poll loop hits (`-clientapi <port>`).
     #[serde(default = "default_client_api_port")]
     pub client_api_port: u16,
@@ -69,7 +67,6 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            player_name: String::new(),
             client_api_port: DEFAULT_CLIENT_API_PORT,
             lead_time_sec_override: None,
             voice_enabled: true,
@@ -148,17 +145,11 @@ mod tests {
     }
 
     #[test]
-    fn parses_player_name() {
-        let s = parse_settings(r#"{ "playerName": "Maru" }"#).unwrap();
-        assert_eq!(s.player_name, "Maru");
-    }
-
-    #[test]
-    fn old_file_with_only_player_name_gets_new_defaults() {
+    fn old_file_with_legacy_player_name_gets_new_defaults() {
         // Back-compat: a settings.json written before the new knobs existed
-        // must load, with each missing field taking its default.
+        // (and with a now-removed `playerName`) must still load, with each
+        // missing field taking its default and the unknown key ignored.
         let s = parse_settings(r#"{ "playerName": "Maru" }"#).unwrap();
-        assert_eq!(s.player_name, "Maru");
         assert_eq!(s.client_api_port, DEFAULT_CLIENT_API_PORT);
         assert_eq!(s.lead_time_sec_override, None);
         assert!(s.voice_enabled);
@@ -183,7 +174,6 @@ mod tests {
     #[test]
     fn parses_all_new_fields() {
         let json = r#"{
-            "playerName": "Sn",
             "clientApiPort": 5000,
             "leadTimeSecOverride": 2.5,
             "voiceEnabled": false,
@@ -206,7 +196,6 @@ mod tests {
     fn empty_object_yields_default() {
         let s = parse_settings("{}").unwrap();
         assert_eq!(s, Settings::default());
-        assert_eq!(s.player_name, "");
     }
 
     #[test]
@@ -216,14 +205,13 @@ mod tests {
 
     #[test]
     fn unknown_keys_are_ignored() {
-        let s = parse_settings(r#"{ "playerName": "Sn", "extra": 1 }"#).unwrap();
-        assert_eq!(s.player_name, "Sn");
+        let s = parse_settings(r#"{ "clientApiPort": 5000, "extra": 1 }"#).unwrap();
+        assert_eq!(s.client_api_port, 5000);
     }
 
     #[test]
     fn round_trip_serialize_then_parse() {
         let original = Settings {
-            player_name: "Serral".to_string(),
             client_api_port: 6120,
             lead_time_sec_override: Some(3.0),
             voice_enabled: false,
@@ -250,7 +238,7 @@ mod tests {
         let tmp = TempDir::new();
         let dir = tmp.path().join("data");
         let settings = Settings {
-            player_name: "Clem".to_string(),
+            client_api_port: 6120,
             ..Settings::default()
         };
         save_to_dir(&dir, &settings).expect("save");

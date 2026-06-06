@@ -53,18 +53,6 @@ function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps) {
       </header>
 
       <label className="settings-field">
-        <span className="settings-field-label">我的名字</span>
-        <input
-          className="settings-field-input"
-          value={draft.playerName}
-          placeholder="输入游戏内名称"
-          onChange={(e) =>
-            setDraft((prev) => ({ ...prev, playerName: e.currentTarget.value }))
-          }
-        />
-      </label>
-
-      <label className="settings-field">
         <span className="settings-field-label">客户端端口</span>
         <input
           className="settings-field-input"

@@ -63,20 +63,19 @@ export function parseMatchup(matchup: string): ParsedMatchup | null {
 /**
  * Identify "me" and the opponent from a snapshot's players.
  *
- * Resolution order for "me": an exact `playerName` match; else, in a clean 1v1
- * with exactly one `type:"user"` and one `type:"computer"`, the user; else the
- * first player. The opponent is the other player in a 2-player game; with 3+
- * players the specific opponent is undetermined so `oppRace` is `X`.
+ * "Me" is the first `type:"user"` player (the SC2 API lists the local player
+ * first), falling back to the first player when no user is present. The
+ * opponent is the other player in a 2-player game; with 3+ players the specific
+ * opponent is undetermined so `oppRace` is `X`.
  *
  * Returns null when fewer than two players are present (no matchup to detect).
  */
 export function identifyMatchup(
   players: readonly PlayerInfo[],
-  playerName: string,
 ): DetectedMatchup | null {
   if (players.length < 2) return null;
 
-  const me = resolveMe(players, playerName);
+  const me = resolveMe(players);
   const myRace = raceCodeToLetter(me.race);
 
   // Specific opponent only known in a clean 2-player game.
@@ -89,22 +88,9 @@ export function identifyMatchup(
   return { meId: me.id, myRace, oppRace: "X" };
 }
 
-/** Pick the player treated as "me" per the documented resolution order. */
-function resolveMe(
-  players: readonly PlayerInfo[],
-  playerName: string,
-): PlayerInfo {
-  const named =
-    playerName.length > 0
-      ? players.find((p) => p.name === playerName)
-      : undefined;
-  if (named) return named;
-
-  const users = players.filter((p) => p.type === "user");
-  const computers = players.filter((p) => p.type === "computer");
-  if (users.length === 1 && computers.length === 1) return users[0];
-
-  return players[0];
+/** Pick the player treated as "me": the first user, else the first player. */
+function resolveMe(players: readonly PlayerInfo[]): PlayerInfo {
+  return players.find((p) => p.type === "user") ?? players[0];
 }
 
 /**

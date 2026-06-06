@@ -60,7 +60,6 @@ export function normalizeLeadTimeOverride(
  */
 export function normalizeSettings(raw: Settings): Settings {
   return {
-    playerName: raw.playerName,
     clientApiPort: normalizePort(raw.clientApiPort),
     leadTimeSecOverride: normalizeLeadTimeOverride(raw.leadTimeSecOverride),
     voiceEnabled: raw.voiceEnabled,

@@ -62,34 +62,34 @@ describe("parseMatchup", () => {
 
 describe("identifyMatchup", () => {
   it("returns null with fewer than two players", () => {
-    expect(identifyMatchup([], "")).toBeNull();
-    expect(identifyMatchup([player({ id: 1 })], "")).toBeNull();
+    expect(identifyMatchup([])).toBeNull();
+    expect(identifyMatchup([player({ id: 1 })])).toBeNull();
   });
 
-  it("matches me by exact player name", () => {
+  it("picks the first user as me", () => {
     const players = [
       player({ id: 1, name: "Maru", race: "Terr", type: "user" }),
       player({ id: 2, name: "Serral", race: "Zerg", type: "user" }),
     ];
-    const result = identifyMatchup(players, "Serral");
-    expect(result).toEqual({ meId: 2, myRace: "Z", oppRace: "T" });
+    const result = identifyMatchup(players);
+    expect(result).toEqual({ meId: 1, myRace: "T", oppRace: "Z" });
   });
 
-  it("falls back to the user in a user-vs-computer game", () => {
+  it("picks the user in a computer-first game", () => {
     const players = [
       player({ id: 1, name: "AI", race: "Prot", type: "computer" }),
       player({ id: 2, name: "Me", race: "Terr", type: "user" }),
     ];
-    const result = identifyMatchup(players, "");
+    const result = identifyMatchup(players);
     expect(result).toEqual({ meId: 2, myRace: "T", oppRace: "P" });
   });
 
-  it("falls back to players[0] when no name match and no clean 1v1", () => {
+  it("falls back to players[0] when no user is present", () => {
     const players = [
-      player({ id: 1, name: "A", race: "Prot", type: "user" }),
-      player({ id: 2, name: "B", race: "Zerg", type: "user" }),
+      player({ id: 1, name: "A", race: "Prot", type: "computer" }),
+      player({ id: 2, name: "B", race: "Zerg", type: "computer" }),
     ];
-    const result = identifyMatchup(players, "Nobody");
+    const result = identifyMatchup(players);
     expect(result).toEqual({ meId: 1, myRace: "P", oppRace: "Z" });
   });
 
@@ -98,7 +98,7 @@ describe("identifyMatchup", () => {
       player({ id: 1, name: "Me", race: "Terr", type: "user" }),
       player({ id: 2, name: "Rng", race: "random", type: "computer" }),
     ];
-    const result = identifyMatchup(players, "");
+    const result = identifyMatchup(players);
     expect(result).toEqual({ meId: 1, myRace: "T", oppRace: "X" });
   });
 
@@ -108,7 +108,7 @@ describe("identifyMatchup", () => {
       player({ id: 2, name: "B", race: "Zerg" }),
       player({ id: 3, name: "C", race: "Prot" }),
     ];
-    const result = identifyMatchup(players, "Me");
+    const result = identifyMatchup(players);
     expect(result).toEqual({ meId: 1, myRace: "T", oppRace: "X" });
   });
 });

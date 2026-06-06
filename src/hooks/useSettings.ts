@@ -8,8 +8,6 @@ import { normalizeSettings } from "../lib/settings";
  * keys). Keep field names aligned across the boundary.
  */
 export interface Settings {
-  /** Exact in-game name used to identify the local player. Empty when unset. */
-  playerName: string;
   /** SC2 Client API port the poll loop hits (`-clientapi <port>`). */
   clientApiPort: number;
   /**
@@ -30,7 +28,6 @@ export interface Settings {
 }
 
 const DEFAULT_SETTINGS: Settings = {
-  playerName: "",
   clientApiPort: 6119,
   leadTimeSecOverride: null,
   voiceEnabled: true,

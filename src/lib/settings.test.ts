@@ -60,7 +60,6 @@ describe("normalizeLeadTimeOverride", () => {
 
 describe("normalizeSettings", () => {
   const valid: Settings = {
-    playerName: "Maru",
     clientApiPort: 6119,
     leadTimeSecOverride: null,
     voiceEnabled: true,
@@ -76,7 +75,6 @@ describe("normalizeSettings", () => {
 
   it("repairs every out-of-range field at once", () => {
     const repaired = normalizeSettings({
-      playerName: "Sn",
       clientApiPort: 0,
       leadTimeSecOverride: -5,
       voiceEnabled: false,
@@ -86,7 +84,6 @@ describe("normalizeSettings", () => {
       windowY: 200,
     });
     expect(repaired).toEqual({
-      playerName: "Sn",
       clientApiPort: 6119,
       leadTimeSecOverride: null,
       voiceEnabled: false,

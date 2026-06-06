@@ -124,7 +124,7 @@ function App() {
   // matchup, select by my/opponent race; otherwise guide with the first loaded
   // build. Either path falls back to the bundled build when nothing loaded.
   const matchup = snapshot.in_game
-    ? identifyMatchup(snapshot.players, settings.playerName)
+    ? identifyMatchup(snapshot.players)
     : null;
   const selected = matchup
     ? selectBuild(builds, matchup.myRace, matchup.oppRace)
