@@ -6,7 +6,9 @@ import { useInterpolatedClock } from "./hooks/useInterpolatedClock";
 import { useVoiceCapability } from "./hooks/useVoiceCapability";
 import { useSettings } from "./hooks/useSettings";
 import { useWindowControls } from "./hooks/useWindowControls";
+import { useConnectionDiagnostic } from "./hooks/useConnectionDiagnostic";
 import SettingsPanel from "./components/SettingsPanel";
+import DiagnosticPanel from "./components/DiagnosticPanel";
 import { FALLBACK_BUILD } from "./lib/builds";
 import { identifyMatchup, selectBuild } from "./lib/matchup";
 import { formatGameTime, raceLabel } from "./lib/format";
@@ -95,13 +97,15 @@ function BuildPanel({ build, snapshot, currentTime, settings }: BuildPanelProps)
 }
 
 function App() {
-  const snapshot = useGameSnapshot();
+  const { snapshot, refetch } = useGameSnapshot();
   const currentTime = useInterpolatedClock(snapshot);
   const { builds, errors, loadError, reload } = useBuildOrders();
   const { needsInstallHint } = useVoiceCapability();
   const { settings, saveSettings, error: settingsError } = useSettings();
   const [hintDismissed, setHintDismissed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { showDiagnostic, openDiagnostic, closeDiagnostic } =
+    useConnectionDiagnostic(snapshot.connected);
 
   // Apply window position, click-through, and listen for global shortcut.
   useWindowControls({ settings, saveSettings });
@@ -142,6 +146,15 @@ function App() {
         {snapshot.in_game && (
           <span className="clock">{formatGameTime(snapshot.display_time)}</span>
         )}
+        {!snapshot.connected && (
+          <button
+            type="button"
+            className="reload-btn"
+            onClick={openDiagnostic}
+          >
+            诊断
+          </button>
+        )}
         <button type="button" className="reload-btn" onClick={reload}>
           重载
         </button>
@@ -163,6 +176,14 @@ function App() {
           onClose={() => setSettingsOpen(false)}
         />
       )}
+
+      <DiagnosticPanel
+        isOpen={showDiagnostic}
+        currentPort={settings.clientApiPort}
+        onClose={closeDiagnostic}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onRetry={refetch}
+      />
 
       {settingsError && (
         <div className="load-error">无法保存设置：{settingsError}</div>
