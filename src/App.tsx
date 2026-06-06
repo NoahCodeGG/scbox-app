@@ -5,10 +5,12 @@ import { useBuildOrderVoice } from "./hooks/useBuildOrderVoice";
 import { useInterpolatedClock } from "./hooks/useInterpolatedClock";
 import { useVoiceCapability } from "./hooks/useVoiceCapability";
 import { useSettings } from "./hooks/useSettings";
+import { useWindowControls } from "./hooks/useWindowControls";
 import SettingsPanel from "./components/SettingsPanel";
 import { FALLBACK_BUILD } from "./lib/builds";
 import { identifyMatchup, selectBuild } from "./lib/matchup";
 import { formatGameTime, raceLabel } from "./lib/format";
+import { upcomingStepIndices } from "./lib/schedule";
 import type { Settings } from "./hooks/useSettings";
 import type { BuildOrder } from "./types/build";
 import type { GameSnapshot } from "./types/sc2";
@@ -34,9 +36,12 @@ interface BuildPanelProps {
  * `currentTime` is the interpolated in-game clock, driving both the cue
  * scheduling and the smooth per-second countdown. `settings` supplies the
  * voice gate/rate and the lead-time override.
+ *
+ * Now shows up to 3 upcoming steps: the imminent one with countdown (highlighted),
+ * and the next two dimmed.
  */
 function BuildPanel({ build, snapshot, currentTime, settings }: BuildPanelProps) {
-  const { nextStep, spokenCount } = useBuildOrderVoice(
+  const { spokenCount, spoken } = useBuildOrderVoice(
     snapshot,
     build,
     currentTime,
@@ -51,29 +56,40 @@ function BuildPanel({ build, snapshot, currentTime, settings }: BuildPanelProps)
   // build's own value. Keeps the countdown in lockstep with when cues fire.
   const effectiveLeadTime = settings.leadTimeSecOverride ?? build.leadTimeSec;
 
-  if (nextStep) {
+  const upcomingIndices = upcomingStepIndices(build, spoken, 3);
+
+  if (upcomingIndices.length === 0) {
     return (
       <div className="build">
-        <span className="build-label">下一步</span>
-        <span className="build-say">{nextStep.say}</span>
-        <span className="build-time">
-          {formatGameTime(nextStep.time)}
-          <span className="build-countdown">
-            {" "}
-            ({Math.max(
-              0,
-              Math.ceil(nextStep.time - effectiveLeadTime - currentTime),
-            )}
-            s)
-          </span>
-        </span>
+        <span className="build-done">建造顺序已播完 ({spokenCount})</span>
       </div>
     );
   }
 
   return (
-    <div className="build">
-      <span className="build-done">建造顺序已播完 ({spokenCount})</span>
+    <div className="build-steps">
+      {upcomingIndices.map((idx, position) => {
+        const step = build.steps[idx];
+        const isImminent = position === 0;
+        const countdown = isImminent
+          ? Math.max(0, Math.ceil(step.time - effectiveLeadTime - currentTime))
+          : null;
+
+        return (
+          <div
+            key={idx}
+            className={`build-step ${isImminent ? "build-step-imminent" : "build-step-upcoming"}`}
+          >
+            <span className="build-say">{step.say}</span>
+            <span className="build-time">
+              {formatGameTime(step.time)}
+              {countdown !== null && (
+                <span className="build-countdown"> ({countdown}s)</span>
+              )}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -86,6 +102,9 @@ function App() {
   const { settings, saveSettings, error: settingsError } = useSettings();
   const [hintDismissed, setHintDismissed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Apply window position, click-through, and listen for global shortcut.
+  useWindowControls({ settings, saveSettings });
 
   // Reload build orders on the transition INTO a live game, so an edit made
   // between games is picked up without restarting the app.
@@ -113,6 +132,7 @@ function App() {
 
   return (
     <main className="overlay">
+      <div className="drag-handle" data-tauri-drag-region />
       <div className="status-row">
         <span
           className={`dot ${snapshot.connected ? "dot-on" : "dot-off"}`}

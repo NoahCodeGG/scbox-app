@@ -5,6 +5,7 @@ import {
   initialSpokenSet,
   nextStepIndex,
   triggerTime,
+  upcomingStepIndices,
 } from "./schedule";
 
 const order: BuildOrder = {
@@ -73,5 +74,29 @@ describe("nextStepIndex", () => {
 
   it("returns null when all steps are spoken", () => {
     expect(nextStepIndex(order, new Set([0, 1, 2]))).toBeNull();
+  });
+});
+
+describe("upcomingStepIndices", () => {
+  it("returns the next N unspoken indices in ascending order", () => {
+    expect(upcomingStepIndices(order, new Set(), 2)).toEqual([0, 1]);
+    expect(upcomingStepIndices(order, new Set([0]), 2)).toEqual([1, 2]);
+  });
+
+  it("returns fewer than count when not enough steps remain", () => {
+    expect(upcomingStepIndices(order, new Set([0, 1]), 5)).toEqual([2]);
+  });
+
+  it("returns empty when all steps are spoken", () => {
+    expect(upcomingStepIndices(order, new Set([0, 1, 2]), 3)).toEqual([]);
+  });
+
+  it("returns empty when count is non-positive", () => {
+    expect(upcomingStepIndices(order, new Set(), 0)).toEqual([]);
+    expect(upcomingStepIndices(order, new Set(), -1)).toEqual([]);
+  });
+
+  it("respects the spoken set and only returns unspoken indices", () => {
+    expect(upcomingStepIndices(order, new Set([1]), 3)).toEqual([0, 2]);
   });
 });

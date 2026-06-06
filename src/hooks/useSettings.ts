@@ -21,6 +21,12 @@ export interface Settings {
   voiceEnabled: boolean;
   /** Web Speech utterance rate (clamped 0.5–2.0). */
   voiceRate: number;
+  /** Whether the overlay window passes clicks through to the game. */
+  clickThrough: boolean;
+  /** Persisted window X position (logical pixels). `null` uses Tauri's default. */
+  windowX: number | null;
+  /** Persisted window Y position (logical pixels). `null` uses Tauri's default. */
+  windowY: number | null;
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -29,6 +35,9 @@ const DEFAULT_SETTINGS: Settings = {
   leadTimeSecOverride: null,
   voiceEnabled: true,
   voiceRate: 1.0,
+  clickThrough: false,
+  windowX: null,
+  windowY: null,
 };
 
 /** UI state surfaced by the settings hook. */

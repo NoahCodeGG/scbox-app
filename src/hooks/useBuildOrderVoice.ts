@@ -14,6 +14,8 @@ export interface BuildOrderVoiceState {
   nextStep: BuildStep | null;
   /** Count of steps already spoken (or suppressed) this game. */
   spokenCount: number;
+  /** Readonly view of the spoken-step indices. */
+  spoken: ReadonlySet<number>;
 }
 
 /**
@@ -131,5 +133,6 @@ export function useBuildOrderVoice(
   return {
     nextStep: nextIndex === null ? null : scheduledOrder.steps[nextIndex],
     spokenCount: spoken.size,
+    spoken,
   };
 }

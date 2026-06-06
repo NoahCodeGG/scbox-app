@@ -59,3 +59,23 @@ export function nextStepIndex(
   }
   return null;
 }
+
+/**
+ * The next `count` upcoming (not-yet-spoken) step indices, in ascending order.
+ * Returns fewer than `count` if there aren't enough unspoken steps remaining.
+ * Returns an empty array if all steps are spoken or `count` is non-positive.
+ */
+export function upcomingStepIndices(
+  order: BuildOrder,
+  spoken: ReadonlySet<number>,
+  count: number,
+): number[] {
+  if (count <= 0) return [];
+  const upcoming: number[] = [];
+  for (let i = 0; i < order.steps.length && upcoming.length < count; i += 1) {
+    if (!spoken.has(i)) {
+      upcoming.push(i);
+    }
+  }
+  return upcoming;
+}

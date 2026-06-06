@@ -27,6 +27,10 @@ fn default_voice_rate() -> f64 {
     DEFAULT_VOICE_RATE
 }
 
+fn default_click_through() -> bool {
+    false
+}
+
 /// User-editable application settings.
 ///
 /// Mirrors the TS `Settings` interface (camelCase keys). Every field carries a
@@ -51,6 +55,15 @@ pub struct Settings {
     /// Web Speech utterance rate (clamped 0.5–2.0 by the frontend).
     #[serde(default = "default_voice_rate")]
     pub voice_rate: f64,
+    /// Whether the overlay window passes clicks through to the game.
+    #[serde(default = "default_click_through")]
+    pub click_through: bool,
+    /// Persisted window X position (logical pixels). `None` uses Tauri's default.
+    #[serde(default)]
+    pub window_x: Option<f64>,
+    /// Persisted window Y position (logical pixels). `None` uses Tauri's default.
+    #[serde(default)]
+    pub window_y: Option<f64>,
 }
 
 impl Default for Settings {
@@ -61,6 +74,9 @@ impl Default for Settings {
             lead_time_sec_override: None,
             voice_enabled: true,
             voice_rate: DEFAULT_VOICE_RATE,
+            click_through: false,
+            window_x: None,
+            window_y: None,
         }
     }
 }
@@ -147,6 +163,9 @@ mod tests {
         assert_eq!(s.lead_time_sec_override, None);
         assert!(s.voice_enabled);
         assert_eq!(s.voice_rate, 1.0);
+        assert!(!s.click_through);
+        assert_eq!(s.window_x, None);
+        assert_eq!(s.window_y, None);
     }
 
     #[test]
@@ -156,6 +175,9 @@ mod tests {
         assert!(s.voice_enabled);
         assert_eq!(s.voice_rate, 1.0);
         assert_eq!(s.lead_time_sec_override, None);
+        assert!(!s.click_through);
+        assert_eq!(s.window_x, None);
+        assert_eq!(s.window_y, None);
     }
 
     #[test]
@@ -165,13 +187,19 @@ mod tests {
             "clientApiPort": 5000,
             "leadTimeSecOverride": 2.5,
             "voiceEnabled": false,
-            "voiceRate": 1.5
+            "voiceRate": 1.5,
+            "clickThrough": true,
+            "windowX": 100.0,
+            "windowY": 200.0
         }"#;
         let s = parse_settings(json).unwrap();
         assert_eq!(s.client_api_port, 5000);
         assert_eq!(s.lead_time_sec_override, Some(2.5));
         assert!(!s.voice_enabled);
         assert_eq!(s.voice_rate, 1.5);
+        assert!(s.click_through);
+        assert_eq!(s.window_x, Some(100.0));
+        assert_eq!(s.window_y, Some(200.0));
     }
 
     #[test]
@@ -200,6 +228,9 @@ mod tests {
             lead_time_sec_override: Some(3.0),
             voice_enabled: false,
             voice_rate: 1.25,
+            click_through: true,
+            window_x: Some(150.0),
+            window_y: Some(250.0),
         };
         let json = serialize_settings(&original).unwrap();
         let parsed = parse_settings(&json).unwrap();

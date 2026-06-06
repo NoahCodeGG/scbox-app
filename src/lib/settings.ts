@@ -65,5 +65,8 @@ export function normalizeSettings(raw: Settings): Settings {
     leadTimeSecOverride: normalizeLeadTimeOverride(raw.leadTimeSecOverride),
     voiceEnabled: raw.voiceEnabled,
     voiceRate: normalizeVoiceRate(raw.voiceRate),
+    clickThrough: raw.clickThrough,
+    windowX: raw.windowX,
+    windowY: raw.windowY,
   };
 }

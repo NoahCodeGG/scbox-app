@@ -132,6 +132,20 @@ function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps) {
         />
       </label>
 
+      <label className="settings-field settings-field-inline">
+        <span className="settings-field-label">穿透（CmdOrCtrl+Shift+S 关闭）</span>
+        <input
+          type="checkbox"
+          checked={draft.clickThrough}
+          onChange={(e) =>
+            setDraft((prev) => ({
+              ...prev,
+              clickThrough: e.currentTarget.checked,
+            }))
+          }
+        />
+      </label>
+
       <div className="settings-panel-actions">
         <button type="button" className="settings-save-btn" onClick={submit}>
           保存

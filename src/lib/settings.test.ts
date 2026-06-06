@@ -65,6 +65,9 @@ describe("normalizeSettings", () => {
     leadTimeSecOverride: null,
     voiceEnabled: true,
     voiceRate: 1.0,
+    clickThrough: false,
+    windowX: null,
+    windowY: null,
   };
 
   it("passes a valid settings object through unchanged", () => {
@@ -78,6 +81,9 @@ describe("normalizeSettings", () => {
       leadTimeSecOverride: -5,
       voiceEnabled: false,
       voiceRate: 10,
+      clickThrough: true,
+      windowX: 100,
+      windowY: 200,
     });
     expect(repaired).toEqual({
       playerName: "Sn",
@@ -85,6 +91,9 @@ describe("normalizeSettings", () => {
       leadTimeSecOverride: null,
       voiceEnabled: false,
       voiceRate: 2.0,
+      clickThrough: true,
+      windowX: 100,
+      windowY: 200,
     });
   });
 });

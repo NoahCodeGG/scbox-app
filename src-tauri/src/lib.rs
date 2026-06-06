@@ -6,6 +6,7 @@ mod tts;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tauri::{Emitter, Manager};
+use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
 use builds::LoadResult;
 use settings::Settings;
@@ -78,6 +79,7 @@ fn save_settings(
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             load_build_orders,
             load_settings,
@@ -99,6 +101,15 @@ pub fn run() {
                 .unwrap_or(settings::DEFAULT_CLIENT_API_PORT);
             let shared_port: SharedPort = Arc::new(Mutex::new(seed_port));
             app.manage(shared_port.clone());
+
+            // Register global shortcut to disable click-through from outside the window.
+            // The shortcut emits an event that the frontend listens for.
+            let handle = app.handle().clone();
+            if let Err(e) = app.global_shortcut().on_shortcut("CmdOrCtrl+Shift+S", move |_app, _shortcut, _event| {
+                let _ = handle.emit("ui://toggle-clickthrough", ());
+            }) {
+                eprintln!("Failed to register global shortcut: {e}");
+            }
 
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
