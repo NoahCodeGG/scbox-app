@@ -38,3 +38,38 @@ Bootstrapped Trellis spec layers (frontend + tauri) from the create-tauri-app sc
 ### Next Steps
 
 - None - task complete
+
+
+## Session 2: Connection diagnostics + multi-monitor position fix
+
+**Date**: 2026-06-06
+**Task**: Connection diagnostics + multi-monitor position fix
+**Branch**: `main`
+
+### Summary
+
+Implemented connection diagnostics panel (30s threshold, how-to guide, retry/settings/dismiss actions). Fixed multi-monitor window position persistence on macOS Retina (physical/logical coordinate conversion, eliminate startup flicker). Updated frontend spec with modal overlay and timer hook patterns.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `89cf499` | (see git log) |
+| `1129780` | (see git log) |
+| `2f22ed9` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
