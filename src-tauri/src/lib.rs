@@ -1,5 +1,6 @@
 mod builds;
 mod sc2;
+mod tts;
 
 use std::time::Duration;
 use tauri::{Emitter, Manager};
@@ -32,7 +33,12 @@ fn load_build_orders(app: tauri::AppHandle) -> Result<LoadResult, String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![load_build_orders])
+        .invoke_handler(tauri::generate_handler![
+            load_build_orders,
+            tts::speak_tts,
+            tts::stop_tts,
+            tts::list_voices
+        ])
         .setup(|app| {
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {

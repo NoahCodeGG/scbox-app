@@ -1,8 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGameSnapshot } from "./hooks/useGameSnapshot";
 import { useBuildOrders } from "./hooks/useBuildOrders";
 import { useBuildOrderVoice } from "./hooks/useBuildOrderVoice";
 import { useInterpolatedClock } from "./hooks/useInterpolatedClock";
+import { useVoiceCapability } from "./hooks/useVoiceCapability";
 import { pickActiveBuild } from "./lib/builds";
 import { formatGameTime, raceLabel } from "./lib/format";
 import type { BuildOrder } from "./types/build";
@@ -66,6 +67,8 @@ function App() {
   const snapshot = useGameSnapshot();
   const currentTime = useInterpolatedClock(snapshot);
   const { builds, errors, loadError, reload } = useBuildOrders();
+  const { needsInstallHint } = useVoiceCapability();
+  const [hintDismissed, setHintDismissed] = useState(false);
 
   // Reload build orders on the transition INTO a live game, so an edit made
   // between games is picked up without restarting the app.
@@ -95,6 +98,22 @@ function App() {
           重载
         </button>
       </div>
+
+      {needsInstallHint && !hintDismissed && (
+        <div className="voice-hint">
+          <span>
+            未检测到中文语音，请在系统中安装中文语音包以启用语音播报
+          </span>
+          <button
+            type="button"
+            className="voice-hint-dismiss"
+            onClick={() => setHintDismissed(true)}
+            aria-label="关闭提示"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {loadError && (
         <div className="load-error">无法加载建造顺序：{loadError}</div>
