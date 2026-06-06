@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 2
+- **Total Sessions**: 3
 - **Last Active**: 2026-06-06
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~75 | Active |
+| `journal-1.md` | ~109 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 3 | 2026-06-06 | In-app build order editor (+ supply→time helper) | `5192d01`, `9edde0d` | `main` |
 | 2 | 2026-06-06 | Connection diagnostics + multi-monitor position fix | `89cf499`, `1129780`, `2f22ed9` | `main` |
 | 1 | 2026-06-06 | SC2 build-order voice assistant MVP + spec bootstrap | `1e94b67` | `main` |
 <!-- @@@/auto:session-history -->

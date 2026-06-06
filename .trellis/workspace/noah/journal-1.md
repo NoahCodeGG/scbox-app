@@ -73,3 +73,37 @@ Implemented connection diagnostics panel (30s threshold, how-to guide, retry/set
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: In-app build order editor (+ supply→time helper)
+
+**Date**: 2026-06-06
+**Task**: In-app build order editor (+ supply→time helper)
+**Branch**: `main`
+
+### Summary
+
+Built a dedicated editor window for CRUD over build orders with a supply→time helper. Added supply? field + StoredBuild filename mapping (TS+Rust), save/delete/open_editor commands with path-traversal guard, a second 'editor' window + capability + label routing (close=hide), pure supplyTime/buildValidation/buildFilename helpers with tests, BuildEditor UI, overlay reload via builds-changed event, and tauri/multi-window spec. Follow-up fixes: in-app delete confirm (window.confirm is a no-op in WKWebview), save/delete status banner, race+opponent dropdowns deriving matchup. Mac-first; Windows verification deferred. tsc clean, 97 vitest, 34 cargo.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `5192d01` | (see git log) |
+| `9edde0d` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
