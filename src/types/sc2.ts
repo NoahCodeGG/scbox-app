@@ -14,8 +14,20 @@ export interface PlayerInfo {
   result: string;
 }
 
+/**
+ * Why the SC2 Client API poll is (or is not) connected. Mirrors the Rust
+ * `ConnectionStatus` enum (serde snake_case) in src-tauri/src/sc2.rs.
+ */
+export type ConnectionStatus =
+  | "ok"
+  | "unreachable"
+  | "timeout"
+  | "bad_http"
+  | "bad_body";
+
 export interface GameSnapshot {
   connected: boolean;
+  status: ConnectionStatus;
   in_game: boolean;
   is_replay: boolean;
   display_time: number;
@@ -24,6 +36,7 @@ export interface GameSnapshot {
 
 export const DISCONNECTED_SNAPSHOT: GameSnapshot = {
   connected: false,
+  status: "unreachable",
   in_game: false,
   is_replay: false,
   display_time: 0,

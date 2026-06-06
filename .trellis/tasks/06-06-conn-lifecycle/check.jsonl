@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Verify GameSnapshot/ConnectionStatus stay consistent across sc2.rs and types/sc2.ts; connected == (status===ok)."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify the status union is exhaustive/strict and DiagnosticPanel handles all variants; no any."}
+{"file": ".trellis/spec/frontend/hook-testing.md", "reason": "Verify snapshot fixtures updated with status and tests still assert real behavior."}

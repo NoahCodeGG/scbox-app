@@ -27,6 +27,7 @@ const ORDER: BuildOrder = {
 function liveSnapshot(overrides: Partial<GameSnapshot> = {}): GameSnapshot {
   return {
     connected: true,
+    status: "ok",
     in_game: true,
     is_replay: false,
     display_time: 0,

@@ -11,7 +11,9 @@ use tauri_plugin_global_shortcut::GlobalShortcutExt;
 use builds::{BuildOrder, LoadResult};
 use settings::Settings;
 
-const POLL_INTERVAL: Duration = Duration::from_millis(1000);
+/// Per-request timeout for the SC2 Client API poll. Kept below the base poll
+/// cadence so a stalled socket cannot back up ticks.
+const POLL_REQUEST_TIMEOUT: Duration = Duration::from_millis(800);
 
 /// Subdirectory under the app-data dir holding user-editable build orders.
 const BUILDS_SUBDIR: &str = "builds";
@@ -216,7 +218,13 @@ pub fn run() {
 
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
-                let client = reqwest::Client::new();
+                // A per-request timeout keeps a stalled socket from backing up
+                // ticks. `expect` is acceptable for this startup wiring.
+                let client = reqwest::Client::builder()
+                    .timeout(POLL_REQUEST_TIMEOUT)
+                    .build()
+                    .expect("failed to build reqwest client");
+                let mut interval_ms = sc2::BASE_POLL_INTERVAL_MS;
                 loop {
                     // Lock, copy the port, drop the guard BEFORE awaiting — never
                     // hold a std::sync::Mutex guard across `.await`.
@@ -225,8 +233,12 @@ pub fn run() {
                         Err(poisoned) => *poisoned.into_inner(),
                     };
                     let snapshot = sc2::fetch_snapshot(&client, port).await;
+                    let connected = snapshot.connected;
                     let _ = handle.emit(sc2::GAME_EVENT, snapshot);
-                    tokio::time::sleep(POLL_INTERVAL).await;
+                    // Exponential backoff while disconnected; snaps to base on
+                    // reconnect. Pure curve lives in `sc2::next_poll_interval_ms`.
+                    interval_ms = sc2::next_poll_interval_ms(interval_ms, connected);
+                    tokio::time::sleep(Duration::from_millis(interval_ms)).await;
                 }
             });
             Ok(())

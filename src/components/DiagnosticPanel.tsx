@@ -1,12 +1,33 @@
 import type { MouseEvent } from "react";
+import type { ConnectionStatus } from "../types/sc2";
 import "./DiagnosticPanel.css";
 
 interface DiagnosticPanelProps {
   isOpen: boolean;
   currentPort: number;
+  status: ConnectionStatus;
   onClose: () => void;
   onOpenSettings: () => void;
   onRetry: () => void;
+}
+
+/**
+ * A human-readable reason line for the current disconnect `status`. `ok` has no
+ * reason (the panel only shows while disconnected); the switch is exhaustive
+ * over the union so a new status can't be silently dropped.
+ */
+function reasonText(status: ConnectionStatus, port: number): string | null {
+  switch (status) {
+    case "ok":
+      return null;
+    case "unreachable":
+      return "SC2 未运行，或端口不正确";
+    case "timeout":
+      return "连接超时（SC2 无响应）";
+    case "bad_http":
+    case "bad_body":
+      return `端口 ${port} 可能被其他程序占用`;
+  }
 }
 
 /**
@@ -17,11 +38,14 @@ interface DiagnosticPanelProps {
 export default function DiagnosticPanel({
   isOpen,
   currentPort,
+  status,
   onClose,
   onOpenSettings,
   onRetry,
 }: DiagnosticPanelProps) {
   if (!isOpen) return null;
+
+  const reason = reasonText(status, currentPort);
 
   const handleBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
     // Close when clicking the backdrop (not the card)
@@ -59,6 +83,7 @@ export default function DiagnosticPanel({
         </div>
 
         <div className="diagnostic-body">
+          {reason && <p className="diagnostic-reason">{reason}</p>}
           <p className="diagnostic-intro">请检查以下事项：</p>
           <ol className="diagnostic-checklist">
             <li>星际争霸 2 是否正在运行？</li>

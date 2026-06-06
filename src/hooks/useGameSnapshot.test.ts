@@ -16,6 +16,7 @@ vi.mock("@tauri-apps/api/event", () => ({
 
 const LIVE_SNAPSHOT: GameSnapshot = {
   connected: true,
+  status: "ok",
   in_game: true,
   is_replay: false,
   display_time: 42,

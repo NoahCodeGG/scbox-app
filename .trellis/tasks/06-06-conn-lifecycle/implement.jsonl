@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Adding ConnectionStatus + status to GameSnapshot is a cross-layer contract change — Rust serde and TS union must stay in lockstep; connected derived from status."}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "The snapshot is emitted over the sc2://game event; payload shape + serde naming conventions apply."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "ConnectionStatus union + status field must be strictly typed; DiagnosticPanel switches on the enum."}
+{"file": ".trellis/spec/frontend/hook-testing.md", "reason": "Snapshot test fixtures (tauriMocks/hook tests) must add the new status field and keep mocks mirroring the real contract."}

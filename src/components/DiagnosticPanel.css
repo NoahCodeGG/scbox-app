@@ -66,6 +66,15 @@
   font-size: 0.95rem;
 }
 
+.diagnostic-reason {
+  margin: 0 0 12px 0;
+  padding: 8px 12px;
+  border-left: 3px solid #d97a4a;
+  background: rgba(217, 122, 74, 0.12);
+  color: #e8b894;
+  font-size: 0.9rem;
+}
+
 .diagnostic-checklist {
   margin: 0 0 20px 0;
   padding-left: 20px;

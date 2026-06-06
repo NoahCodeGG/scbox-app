@@ -203,6 +203,7 @@ function App() {
       <DiagnosticPanel
         isOpen={showDiagnostic}
         currentPort={settings.clientApiPort}
+        status={snapshot.status}
         onClose={closeDiagnostic}
         onOpenSettings={() => setSettingsOpen(true)}
         onRetry={refetch}
