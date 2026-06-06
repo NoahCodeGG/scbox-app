@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify the version read is typed and the error path is handled (no any, no crash)."}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Review gate for the SettingsPanel change + branding edits."}

@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "The version/about line is added to SettingsPanel; follow component conventions."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "getVersion() read must be typed and handle the async/error path without any."}
+{"file": ".trellis/spec/tauri/index.md", "reason": "Branding metadata lives in tauri.conf.json/Cargo.toml; keep identifier/version consistent and lib.rs untouched for this scope."}

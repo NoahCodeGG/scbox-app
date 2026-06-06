@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "scbox-app",
+  "productName": "SCBox Assistant",
   "version": "0.1.0",
   "identifier": "com.scbox-app.app",
   "build": {
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "scbox-app",
+        "title": "SCBox Assistant",
         "width": 320,
         "height": 200,
         "alwaysOnTop": true,

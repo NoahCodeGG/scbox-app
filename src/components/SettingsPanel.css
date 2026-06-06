@@ -82,3 +82,10 @@
 .settings-save-btn:hover {
   background-color: #5a93de;
 }
+
+.settings-panel-footer {
+  margin-top: 2px;
+  font-size: 0.7rem;
+  text-align: center;
+  color: #7a808a;
+}

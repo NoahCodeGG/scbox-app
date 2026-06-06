@@ -6,6 +6,13 @@
 #
 # Output: the .msi and NSIS .exe installers are uploaded as a workflow artifact
 # ("scbox-app-windows"). No GitHub Release is created.
+#
+# DEFERRED (future tasks):
+# - S4 Auto-update: needs a `tauri signer generate` keypair (public key in
+#   tauri.conf.json; private key + password as GitHub secrets), plus this
+#   workflow creating GitHub Releases with a `latest.json` updater endpoint.
+# - S5 Windows code signing: removes the SmartScreen warning but needs a paid
+#   code-signing certificate; out of practical scope for now.
 
 name: Build Windows Installer
 

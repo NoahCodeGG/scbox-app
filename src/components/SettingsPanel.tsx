@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useAppVersion } from "../hooks/useAppVersion";
 import type { Settings } from "../hooks/useSettings";
 import "./SettingsPanel.css";
 
@@ -26,6 +27,7 @@ function parseOptionalNumber(value: string): number | null {
  */
 function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps) {
   const [draft, setDraft] = useState<Settings>(settings);
+  const version = useAppVersion();
 
   // Re-seed the draft if the persisted settings change while the panel is open
   // (e.g. an external load resolved after first render).
@@ -139,6 +141,10 @@ function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps) {
           保存
         </button>
       </div>
+
+      <footer className="settings-panel-footer">
+        SCBox Assistant{version ? ` v${version}` : ""}
+      </footer>
     </section>
   );
 }
