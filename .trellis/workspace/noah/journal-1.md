@@ -206,3 +206,36 @@ Hardened SC2 Client API polling: 800ms request timeout (<1s base) so stalled soc
 ### Next Steps
 
 - None - task complete
+
+
+## Session 7: Voice cue queue + persistent native TTS worker
+
+**Date**: 2026-06-06
+**Task**: Voice cue queue + persistent native TTS worker
+**Branch**: `main`
+
+### Summary
+
+Fixed bunched build-order TTS overlap/clobber/stale. Frontend: a single FIFO speech queue in lib/speech.ts plays one cue at a time and drops cues past a 3s freshness window (web advances on utterance onend/onerror, native paced by estimateDurationMs); speak() enqueues, cancelAll() clears. Rust: replaced the per-call construct/interrupt=true/drop pattern (which made bunched native cues cancel each other) with one long-lived Tts on a dedicated worker thread fed by an mpsc channel, speaking interrupt=false; only the Sender is app.manage()d (Tts is !Send), speak_tts/stop_tts now send TtsCommand msgs. invoke contract unchanged. Added tauri/index.md note on the !Send worker-thread pattern. 152 vitest, cargo 41, coverage held, tsc/clippy clean. Native runtime is Windows-deferred; macOS web tier fully fixed+testable.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `33db0f8` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
