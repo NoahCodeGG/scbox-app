@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 8
-- **Last Active**: 2026-06-06
+- **Total Sessions**: 9
+- **Last Active**: 2026-06-07
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~274 | Active |
+| `journal-1.md` | ~307 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 9 | 2026-06-07 | App icon + Tauri auto-update | `d9e4adf` | `main` |
 | 8 | 2026-06-06 | Branding metadata + in-app version | `2b82586` | `main` |
 | 7 | 2026-06-06 | Voice cue queue + persistent native TTS worker | `33db0f8` | `main` |
 | 6 | 2026-06-06 | 6119 connection lifecycle hardening | `2f3c61f` | `main` |

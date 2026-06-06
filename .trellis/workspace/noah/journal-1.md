@@ -272,3 +272,36 @@ Branded the app off scaffold defaults (S1+S2 of the packaging item). productName
 ### Next Steps
 
 - None - task complete
+
+
+## Session 9: App icon + Tauri auto-update
+
+**Date**: 2026-06-07
+**Task**: App icon + Tauri auto-update
+**Branch**: `main`
+
+### Summary
+
+Added the real app icon (regenerated icons/* from the user's logo at src-tauri/icons/source.png; removed unused android/ios dirs) and Tauri 2 auto-update. Updater: tauri-plugin-updater + tauri-plugin-process registered; plugins.updater config with GitHub latest.json endpoint + bundle.createUpdaterArtifacts; minimal updater:default + process:allow-restart capability; a committed THROWAWAY public placeholder pubkey (user replaces it). useUpdateCheck hook (check-on-launch, fully defensive try/catch, typed) + tests; overlay update banner + Settings 检查更新 button (hook lifted to App, single instance). release.yml: tag-driven (v*) windows+macos matrix via tauri-action, draft release, TAURI_SIGNING_* secret env. docs/AUTO_UPDATE.md handoff. Decisions: user generates the production keypair; Windows+macOS; check+prompt UX; tag-driven. 165 vitest, cargo 41, coverage held, dev boots clean. User manual steps before first release: generate keypair, replace pubkey, add 2 GitHub secrets, bump version, push v tag, publish draft. Pre-existing flaky useSettings.test.ts voiceRate clamp test flagged (unrelated, not fixed).
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d9e4adf` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
