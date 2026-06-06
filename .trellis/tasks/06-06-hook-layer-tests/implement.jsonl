@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "Tests target the hooks; their documented contracts/cleanup expectations define what to assert."}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Project testing/quality bar (80% coverage, no placeholder tests) drives this task."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Test helpers and mocks must stay typed (no any), narrow unknown for invoke payloads."}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Tauri invoke/event mocks must mirror the real command/event contract (names, camelCase, payload shapes)."}

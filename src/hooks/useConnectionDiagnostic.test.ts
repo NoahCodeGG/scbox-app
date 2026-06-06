@@ -1,42 +1,101 @@
-import { describe, expect, it } from "vitest";
+// @vitest-environment jsdom
+import { act, renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useConnectionDiagnostic } from "./useConnectionDiagnostic";
 
-/**
- * Tests for useConnectionDiagnostic hook.
- * Note: This hook uses React's useState and useEffect with timers, which are
- * integration-tested via the main App component. These are placeholder unit
- * tests for the hook's logic contract.
- */
+const THIRTY_SECONDS = 30_000;
+
 describe("useConnectionDiagnostic", () => {
-  it("hook contract: tracks connection state and provides diagnostic controls", () => {
-    // The hook returns { showDiagnostic, openDiagnostic, closeDiagnostic }
-    // - showDiagnostic becomes true after 30s of disconnection
-    // - auto-hides when connection is restored
-    // - openDiagnostic/closeDiagnostic allow manual control
-    // Full behavior is tested in integration/e2e tests with actual timers.
-    expect(true).toBe(true);
+  beforeEach(() => {
+    vi.useFakeTimers();
   });
 
-  it("disconnection timer: shows diagnostic after 30s of continuous disconnection", () => {
-    // When connected=false for 30s continuously, showDiagnostic becomes true
-    // Tested in integration with real component lifecycle
-    expect(true).toBe(true);
+  afterEach(() => {
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
   });
 
-  it("auto-hide: diagnostic hides when connection is restored", () => {
-    // When connected becomes true, showDiagnostic is set to false
-    // Tested in integration with real component lifecycle
-    expect(true).toBe(true);
+  it("does not show the diagnostic before 30s of disconnection", () => {
+    const { result } = renderHook(() => useConnectionDiagnostic(false));
+
+    expect(result.current.showDiagnostic).toBe(false);
+
+    act(() => {
+      vi.advanceTimersByTime(THIRTY_SECONDS - 1);
+    });
+
+    expect(result.current.showDiagnostic).toBe(false);
   });
 
-  it("manual control: openDiagnostic and closeDiagnostic work independently", () => {
-    // User can manually open/close the diagnostic panel
-    // Tested in integration with real component lifecycle
-    expect(true).toBe(true);
+  it("shows the diagnostic after 30s of continuous disconnection", () => {
+    const { result } = renderHook(() => useConnectionDiagnostic(false));
+
+    act(() => {
+      vi.advanceTimersByTime(THIRTY_SECONDS);
+    });
+
+    expect(result.current.showDiagnostic).toBe(true);
   });
 
-  it("cleanup: clears timer on unmount (StrictMode-safe)", () => {
-    // useEffect cleanup clears the timeout to prevent memory leak
-    // Tested in integration with real component lifecycle
-    expect(true).toBe(true);
+  it("auto-hides the diagnostic when the connection is restored", () => {
+    const { result, rerender } = renderHook(
+      ({ connected }) => useConnectionDiagnostic(connected),
+      { initialProps: { connected: false } },
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(THIRTY_SECONDS);
+    });
+    expect(result.current.showDiagnostic).toBe(true);
+
+    rerender({ connected: true });
+    expect(result.current.showDiagnostic).toBe(false);
+  });
+
+  it("cancels the pending timer when reconnecting before 30s elapse", () => {
+    const { result, rerender } = renderHook(
+      ({ connected }) => useConnectionDiagnostic(connected),
+      { initialProps: { connected: false } },
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(THIRTY_SECONDS - 1);
+    });
+    rerender({ connected: true });
+
+    // Even after the original 30s would have elapsed, the timer was cleared.
+    act(() => {
+      vi.advanceTimersByTime(THIRTY_SECONDS);
+    });
+    expect(result.current.showDiagnostic).toBe(false);
+  });
+
+  it("supports manual open and close independent of the timer", () => {
+    const { result } = renderHook(() => useConnectionDiagnostic(false));
+
+    act(() => {
+      result.current.openDiagnostic();
+    });
+    expect(result.current.showDiagnostic).toBe(true);
+
+    act(() => {
+      result.current.closeDiagnostic();
+    });
+    expect(result.current.showDiagnostic).toBe(false);
+  });
+
+  it("clears the timer on unmount (no late state update)", () => {
+    const clearSpy = vi.spyOn(globalThis, "clearTimeout");
+    const { unmount } = renderHook(() => useConnectionDiagnostic(false));
+
+    unmount();
+
+    expect(clearSpy).toHaveBeenCalled();
+
+    // Advancing past the threshold must not throw or warn about a dead update.
+    act(() => {
+      vi.advanceTimersByTime(THIRTY_SECONDS);
+    });
+    clearSpy.mockRestore();
   });
 });

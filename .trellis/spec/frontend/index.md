@@ -25,6 +25,7 @@ define how the frontend should grow from here.
 | [Directory Structure](./directory-structure.md) | File layout and where new code goes |
 | [Component Guidelines](./component-guidelines.md) | Function components, props, styling |
 | [Hook Guidelines](./hook-guidelines.md) | Custom hooks and wrapping Tauri commands |
+| [Testing Hooks](./hook-testing.md) | jsdom docblock, Tauri mocks, coverage gate for hook tests |
 | [State Management](./state-management.md) | `useState`-first, immutability rules |
 | [Type Safety](./type-safety.md) | Strict-mode rules and typing the Rust boundary |
 | [Quality Guidelines](./quality-guidelines.md) | Build gate, forbidden patterns, review checklist |

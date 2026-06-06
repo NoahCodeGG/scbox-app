@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Verify the 80% bar is met and no placeholder/trivial tests remain."}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "Verify tests assert the hooks' real contracts incl. cleanup/StrictMode safety."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify mocks/helpers are typed, no any, unknown narrowed."}
