@@ -10,6 +10,18 @@ interface SettingsPanelProps {
   onSave: (next: Settings) => void;
   /** Close the panel without further action. */
   onClose: () => void;
+  /** Trigger a manual update check (lifted to App so there is one source). */
+  onCheckUpdate: () => Promise<void>;
+  /** True while an update check/install is in flight. */
+  updateBusy: boolean;
+  /** True when a newer version is available. */
+  updateAvailable: boolean;
+  /** The available version string, or `null`. */
+  updateVersion: string | null;
+  /** True when the last check confirmed the app is current. */
+  updateUpToDate: boolean;
+  /** Last update error message, or `null`. */
+  updateError: string | null;
 }
 
 /** Parse a number input's string; empty/invalid maps to `null`. */
@@ -20,12 +32,37 @@ function parseOptionalNumber(value: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/** Short status line shown next to the manual update-check button. */
+function updateStatusText(props: {
+  busy: boolean;
+  available: boolean;
+  version: string | null;
+  upToDate: boolean;
+  error: string | null;
+}): string {
+  if (props.busy) return "检查中…";
+  if (props.error) return `检查失败：${props.error}`;
+  if (props.available && props.version) return `有新版本 v${props.version}`;
+  if (props.upToDate) return "已是最新";
+  return "";
+}
+
 /**
  * The settings view, toggled from the overlay. Holds local draft state so edits
  * are batched and only persisted on Save; closing without saving discards the
  * draft. Field values are seeded from `settings` and re-sync if it changes.
  */
-function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps) {
+function SettingsPanel({
+  settings,
+  onSave,
+  onClose,
+  onCheckUpdate,
+  updateBusy,
+  updateAvailable,
+  updateVersion,
+  updateUpToDate,
+  updateError,
+}: SettingsPanelProps) {
   const [draft, setDraft] = useState<Settings>(settings);
   const version = useAppVersion();
 
@@ -140,6 +177,28 @@ function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps) {
         <button type="button" className="settings-save-btn" onClick={submit}>
           保存
         </button>
+      </div>
+
+      <div className="settings-update-row">
+        <button
+          type="button"
+          className="settings-update-btn"
+          onClick={() => {
+            void onCheckUpdate();
+          }}
+          disabled={updateBusy}
+        >
+          检查更新
+        </button>
+        <span className="settings-update-status">
+          {updateStatusText({
+            busy: updateBusy,
+            available: updateAvailable,
+            version: updateVersion,
+            upToDate: updateUpToDate,
+            error: updateError,
+          })}
+        </span>
       </div>
 
       <footer className="settings-panel-footer">

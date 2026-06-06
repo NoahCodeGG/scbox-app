@@ -23,3 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 coverage/
+
+# Tauri updater signing keys — NEVER commit a private key.
+*.key
+*.key.pub

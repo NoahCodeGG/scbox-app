@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "updater + process plugins each need their capability permission added to the main window; follow least-privilege capability rules."}
+{"file": ".trellis/spec/tauri/index.md", "reason": "Register the updater/process plugins in lib.rs per the plugin conventions; keep lib.rs thin."}
+{"file": ".trellis/spec/frontend/hook-testing.md", "reason": "useUpdateCheck is a new hook under the coverage gate; test it with a mocked @tauri-apps/plugin-updater per the harness conventions."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Updater hook + prompt must be strictly typed (no any); narrow the plugin's check() result and handle errors."}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "The in-app update prompt + Settings button follow component conventions."}

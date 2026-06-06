@@ -9,6 +9,7 @@ import { useVoiceCapability } from "./hooks/useVoiceCapability";
 import { useSettings } from "./hooks/useSettings";
 import { useWindowControls } from "./hooks/useWindowControls";
 import { useConnectionDiagnostic } from "./hooks/useConnectionDiagnostic";
+import { useUpdateCheck } from "./hooks/useUpdateCheck";
 import SettingsPanel from "./components/SettingsPanel";
 import DiagnosticPanel from "./components/DiagnosticPanel";
 import { FALLBACK_BUILD } from "./lib/builds";
@@ -109,6 +110,7 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { showDiagnostic, openDiagnostic, closeDiagnostic } =
     useConnectionDiagnostic(snapshot.connected);
+  const update = useUpdateCheck();
 
   // Apply window position, click-through, and listen for global shortcut.
   useWindowControls({ settings, saveSettings });
@@ -192,11 +194,33 @@ function App() {
         </button>
       </div>
 
+      {update.available && update.version && (
+        <div className="update-banner">
+          <span>新版本 v{update.version} 可用</span>
+          <button
+            type="button"
+            className="update-btn"
+            onClick={() => {
+              void update.install();
+            }}
+            disabled={update.busy}
+          >
+            {update.busy ? "更新中…" : "更新"}
+          </button>
+        </div>
+      )}
+
       {settingsOpen && (
         <SettingsPanel
           settings={settings}
           onSave={saveSettings}
           onClose={() => setSettingsOpen(false)}
+          onCheckUpdate={update.check}
+          updateBusy={update.busy}
+          updateAvailable={update.available}
+          updateVersion={update.version}
+          updateUpToDate={update.upToDate}
+          updateError={update.error}
         />
       )}
 

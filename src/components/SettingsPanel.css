@@ -89,3 +89,34 @@
   text-align: center;
   color: #7a808a;
 }
+
+.settings-update-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-update-btn {
+  flex: none;
+  padding: 3px 10px;
+  font-size: 0.8rem;
+  color: #f2f2f2;
+  background-color: #2a2f38;
+  border: 1px solid #3a3f48;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.settings-update-btn:hover:not(:disabled) {
+  background-color: #343a44;
+}
+
+.settings-update-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.settings-update-status {
+  font-size: 0.75rem;
+  color: #c8cdd4;
+}

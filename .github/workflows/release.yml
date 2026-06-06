@@ -1,0 +1,79 @@
+# Build, sign, and publish a draft GitHub Release with auto-update artifacts.
+#
+# Triggered by pushing a `v*` tag (e.g. `v0.2.0`). Builds on a matrix of
+# Windows + macOS, signs the updater artifacts, generates `latest.json`, and
+# uploads everything to one DRAFT GitHub Release. The maintainer reviews and
+# publishes the draft, which makes the updater endpoint
+# (releases/latest/download/latest.json) resolve for clients.
+#
+# REQUIRED repo secrets (see docs/AUTO_UPDATE.md):
+# - TAURI_SIGNING_PRIVATE_KEY:          contents of the private key file
+# - TAURI_SIGNING_PRIVATE_KEY_PASSWORD: the password set when generating it
+#
+# NOTE: the public key counterpart must already be set in
+# tauri.conf.json -> plugins.updater.pubkey, replacing the committed placeholder.
+# The existing build-windows.yml stays as the unsigned test-artifact build.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+# tauri-action needs write access to create the release.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Reads the "packageManager" field (pnpm@10.12.1) so CI matches dev.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run frontend tests
+        run: pnpm test
+
+      - name: Run Rust tests
+        run: cargo test
+        working-directory: src-tauri
+
+      # tauri-action builds + signs the bundle, generates latest.json, and
+      # uploads to the (draft) release for the pushed tag.
+      - name: Build and release Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "SCBox Assistant ${{ github.ref_name }}"
+          releaseDraft: true
