@@ -441,3 +441,36 @@ Fixed the diagnostic modal overflowing/not-scrolling in the now content-fit fram
 ### Next Steps
 
 - None - task complete
+
+
+## Session 14: Soften overlay card shadow halo
+
+**Date**: 2026-06-07
+**Task**: Soften overlay card shadow halo
+**Branch**: `main`
+
+### Summary
+
+The transparent content-fit overlay showed a dark halo around the card — it was the card's heavy drop shadow (0 18px 50px -12px rgba(0,0,0,0.55)) bleeding into the 8px transparent ring and clipping. Replaced it with a tight shadow (0 2px 8px rgba(0,0,0,0.18)) in App.tsx; dark theme has no own box-shadow so it inherits. border+rounded still define the card. tsc/168 vitest/cargo 41/build green. Manual macOS confirm pending.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `e4c40be` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 13
+- **Total Sessions**: 14
 - **Last Active**: 2026-06-07
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~443 | Active |
+| `journal-1.md` | ~476 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 14 | 2026-06-07 | Soften overlay card shadow halo | `e4c40be` | `main` |
 | 13 | 2026-06-07 | Move connection diagnostic from overlay to dashboard | `c383464` | `main` |
 | 12 | 2026-06-07 | Frameless transparent overlay + clickable buttons | `e8f6556` | `main` |
 | 11 | 2026-06-07 | Two-window architecture: dashboard shell + launchable overlay | `6bbd34b`, `a6baef3` | `main` |
