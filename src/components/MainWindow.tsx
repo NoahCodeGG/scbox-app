@@ -7,6 +7,7 @@ import BuildEditor from "./BuildEditor";
 import Dashboard from "./Dashboard";
 import SettingsPanel from "./SettingsPanel";
 import { cn } from "@/lib/utils";
+import logo from "@/assets/logo.png";
 
 /** Sidebar nav link with active-state styling, mirroring the dashboard mockup. */
 function SidebarLink({
@@ -80,17 +81,15 @@ function MainWindow() {
       <div className="grid h-screen grid-cols-[208px_1fr] bg-secondary">
         <nav className="flex flex-col gap-2 border-r bg-card p-5">
           <div className="mb-4 flex items-center gap-2.5">
-            <span className="grid size-[30px] place-items-center rounded-lg bg-primary font-mono text-sm font-bold text-primary-foreground">
-              SC
-            </span>
-            <b className="text-base font-semibold">scbox</b>
+            <img src={logo} alt="" className="size-[30px] rounded-lg" />
+            <b className="text-base font-semibold">SCBox Assistant</b>
           </div>
           <SidebarLink to="/" icon={<LayoutGrid />} label="仪表盘" />
           <SidebarLink to="/editor" icon={<Pencil />} label="Build Order" />
           <SidebarLink to="/settings" icon={<SettingsIcon />} label="设置" />
           <div className="flex-1" />
           <span className="font-mono text-[11px] text-muted-foreground">
-            SCBox Assistant{version ? ` v${version}` : ""}
+            {version ? `v${version}` : null}
           </span>
         </nav>
 

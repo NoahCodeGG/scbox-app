@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Logo asset goes in src/assets and is imported (bundled), not referenced by runtime path."}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Sidebar logo/footer edits follow component conventions; img alt, typed."}
