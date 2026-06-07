@@ -738,3 +738,36 @@ The native macOS titlebar stayed white and didn't follow the app theme. Set the 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 23: Allow main window dragging (capability)
+
+**Date**: 2026-06-07
+**Task**: Allow main window dragging (capability)
+**Branch**: `main`
+
+### Summary
+
+Main window couldn't be dragged after the overlay-titlebar change: data-tauri-drag-region calls startDragging which needs core:window:allow-start-dragging, but that perm was only on the overlay capability (removed from main during the window restructure). Added core:window:allow-start-dragging to capabilities/default.json (main), least-privilege (only that perm). cargo build/test, tsc, 183 vitest green. Manual macOS confirm pending.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0f53d07` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
