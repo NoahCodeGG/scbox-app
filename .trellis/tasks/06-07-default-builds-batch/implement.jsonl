@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/tauri/index.md", "reason": "遵循 Build-Orders 加载模型：新数据落 src/data/builds 作只读默认"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "改动需通过 cargo test / 前端 test"}

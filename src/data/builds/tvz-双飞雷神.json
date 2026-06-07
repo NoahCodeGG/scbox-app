@@ -1,0 +1,33 @@
+{
+  "name": "双飞雷神",
+  "matchup": "TvZ",
+  "race": "Terran",
+  "leadTimeSec": 4,
+  "steps": [
+    { "time": 0,   "say": "SCV" },
+    { "time": 17,  "say": "补给站" },
+    { "time": 21,  "say": "SCV" },
+    { "time": 27,  "say": "SCV" },
+    { "time": 40,  "say": "兵营" },
+    { "time": 46,  "say": "精炼厂" },
+    { "time": 53,  "say": "SCV" },
+    { "time": 98,  "say": "收割者.轨道控制基地" },
+    { "time": 110, "say": "指挥中心" },
+    { "time": 115, "say": "补给站" },
+    { "time": 124, "say": "SCV.扩建" },
+    { "time": 135, "say": "重工厂" },
+    { "time": 141, "say": "精炼厂" },
+    { "time": 154, "say": "SCV" },
+    { "time": 169, "say": "反应堆.轨道控制基地.星港" },
+    { "time": 180, "say": "恶火 x2" },
+    { "time": 192, "say": "科技实验室" },
+    { "time": 204, "say": "SCV x2.矿骡" },
+    { "time": 215, "say": "雷神" },
+    { "time": 226, "say": "补给站" },
+    { "time": 240, "say": "SCV x2" },
+    { "time": 252, "say": "女妖 x2" },
+    { "time": 305, "say": "SCV x2" },
+    { "time": 318, "say": "雷神" },
+    { "time": 328, "say": "SCV x2" }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "TVZ 野4兵营",
+  "matchup": "TvZ",
+  "race": "Terran",
+  "leadTimeSec": 4,
+  "steps": [
+    { "time": 0,   "say": "SCV" },
+    { "time": 11,  "say": "SCV" },
+    { "time": 17,  "say": "补给站" },
+    { "time": 24,  "say": "SCV" },
+    { "time": 36,  "say": "SCV" },
+    { "time": 39,  "say": "兵营" },
+    { "time": 55,  "say": "兵营" },
+    { "time": 67,  "say": "兵营" },
+    { "time": 79,  "say": "兵营" },
+    { "time": 87,  "say": "机枪" },
+    { "time": 91,  "say": "补给站" },
+    { "time": 104, "say": "机枪" },
+    { "time": 106, "say": "机枪" },
+    { "time": 114, "say": "机枪" },
+    { "time": 121, "say": "机枪" },
+    { "time": 124, "say": "机枪" },
+    { "time": 126, "say": "机枪" },
+    { "time": 132, "say": "机枪" },
+    { "time": 139, "say": "机枪" },
+    { "time": 141, "say": "机枪" },
+    { "time": 143, "say": "机枪.发起进攻" }
+  ]
+}
