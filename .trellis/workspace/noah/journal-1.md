@@ -837,3 +837,36 @@ Replaced the low-value copy/paste import/export panel (BuildTransferPanel) with 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 26: Overlay click-through toggle button
+
+**Date**: 2026-06-07
+**Task**: Overlay click-through toggle button
+**Branch**: `main`
+
+### Summary
+
+Added a 穿透模式 toggle button (MousePointer2) to the overlay header icon cluster. onClick flips settings.clickThrough via saveSettings (persists, applied by useWindowControls.setIgnoreCursorEvents, emits SETTINGS_CHANGED to sync the main window); active accent + aria-pressed when on; onMouseDown stopPropagation (drag-region rule). Disabling stays via the existing Ctrl+Shift+S (button unclickable once passthrough on). Reuses existing setting — no new IPC/type. 183 vitest, cargo 41, coverage held, build green. Manual macOS confirm pending.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `e585d7d` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
