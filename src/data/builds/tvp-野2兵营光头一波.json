@@ -1,0 +1,32 @@
+{
+  "name": "TVP 野2兵营光头一波",
+  "matchup": "TvP",
+  "race": "Terran",
+  "leadTimeSec": 4,
+  "steps": [
+    { "time": 0,   "say": "SCV" },
+    { "time": 1,   "say": "SCV" },
+    { "time": 11,  "say": "SCV" },
+    { "time": 18,  "say": "房子" },
+    { "time": 35,  "say": "气矿" },
+    { "time": 41,  "say": "兵营" },
+    { "time": 55,  "say": "兵营" },
+    { "time": 60,  "say": "SCV" },
+    { "time": 71,  "say": "SCV" },
+    { "time": 88,  "say": "科技挂件.星轨" },
+    { "time": 103, "say": "科技挂件" },
+    { "time": 107, "say": "光头.震撼弹" },
+    { "time": 117, "say": "房子" },
+    { "time": 124, "say": "光头" },
+    { "time": 129, "say": "光头" },
+    { "time": 143, "say": "光头" },
+    { "time": 148, "say": "光头" },
+    { "time": 150, "say": "进攻" },
+    { "time": 163, "say": "光头" },
+    { "time": 170, "say": "光头" },
+    { "time": 177, "say": "房子" },
+    { "time": 185, "say": "光头" },
+    { "time": 190, "say": "光头" },
+    { "time": 194, "say": "进攻" }
+  ]
+}
