@@ -705,3 +705,36 @@ Replaced the overlay-only Moon toggle with a global theme (浅色/深色/跟随�
 ### Next Steps
 
 - None - task complete
+
+
+## Session 22: Themed overlay titlebar (main window)
+
+**Date**: 2026-06-07
+**Task**: Themed overlay titlebar (main window)
+**Branch**: `main`
+
+### Summary
+
+The native macOS titlebar stayed white and didn't follow the app theme. Set the main window to titleBarStyle:Overlay + hiddenTitle (macOS) so the titlebar is transparent and the themed bg-secondary background shows through (native traffic lights kept). MainWindow: added an empty full-width data-tauri-drag-region top strip (select-none, no interactive children) so the window stays draggable, and a pt-7 top inset on the sidebar nav + main content so the logo clears the ~28px traffic-light zone; nav links stay clickable (outside the drag region). macOS-only config; Windows native bar unaffected (deferred). No IPC/type/behavior changes. 183 vitest, cargo 41, coverage held, build green. Manual macOS confirm pending.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0e1a4a6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
