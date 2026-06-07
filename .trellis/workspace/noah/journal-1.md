@@ -771,3 +771,36 @@ Main window couldn't be dragged after the overlay-titlebar change: data-tauri-dr
 ### Next Steps
 
 - None - task complete
+
+
+## Session 24: Unify app dark theme with overlay dark-glass
+
+**Date**: 2026-06-07
+**Task**: Unify app dark theme with overlay dark-glass
+**Branch**: `main`
+
+### Summary
+
+Dark mode was inconsistent: main window used shadcn neutral grayscale, overlay used cyan dark-glass. Rewrote the .dark shadcn token block in index.css to derive from the overlay --ov-* source (background=ov-dark-surface, card/popover/secondary/muted/accent=ov-dark-raise, foreground=ov-dark-fg, muted-foreground=ov-dark-muted, primary/ring=ov-accent-cyan, primary-foreground=#06222a, border/input=ov-dark-border, sidebar* mapped likewise; destructive kept red; chart keys retained). Now the whole app dark theme matches the overlay. Single-sourced from :root --ov-*; light mode + .dark .overlay-card unchanged. Updated ui-system.md. CSS-only; 183 vitest, cargo 41, coverage held, build green. Manual macOS confirm pending.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3dd150d` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
