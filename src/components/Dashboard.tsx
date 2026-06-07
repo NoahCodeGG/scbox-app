@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Play, Square } from "lucide-react";
 import { useGameSnapshot } from "../hooks/useGameSnapshot";
@@ -9,7 +9,7 @@ import { useSettings } from "../hooks/useSettings";
 import { useConnectionDiagnostic } from "../hooks/useConnectionDiagnostic";
 import { identifyMatchup, matchupMatches, raceCodeToLetter, selectBuild } from "../lib/matchup";
 import { formatGameTime } from "../lib/format";
-import { previewSpokenSet, upcomingStepIndices } from "../lib/schedule";
+import { previewSpokenSet } from "../lib/schedule";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -272,7 +272,7 @@ function BuildSelectCard({
   onAuto: () => void;
 }) {
   return (
-    <Card className="gap-4 py-5">
+    <Card className="flex h-full min-h-0 flex-col gap-4 py-5">
       <CardHeader className="flex-row items-center justify-between px-5">
         <CardEyebrow>流程 · 自动匹配</CardEyebrow>
         {override !== null && (
@@ -281,11 +281,11 @@ function BuildSelectCard({
           </Button>
         )}
       </CardHeader>
-      <CardContent className="px-5">
+      <CardContent className="flex min-h-0 flex-1 flex-col px-5">
         {stored.length === 0 ? (
           <p className="text-sm text-muted-foreground">尚未加载任何流程。</p>
         ) : (
-          <div className="flex max-h-80 flex-col gap-2 overflow-y-auto pr-1">
+          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
             {stored.map((s) => {
               const active =
                 override !== null
@@ -350,11 +350,11 @@ function StepsPreviewCard({
     stored.find((s) => s.filename === activeFilename)?.build ?? null;
 
   return (
-    <Card className="gap-4 py-5">
+    <Card className="flex h-full min-h-0 flex-col gap-4 py-5">
       <CardHeader className="px-5">
         <CardEyebrow>步骤预览 · 接下来</CardEyebrow>
       </CardHeader>
-      <CardContent className="px-5">
+      <CardContent className="flex min-h-0 flex-1 flex-col px-5">
         {!active || active.steps.length === 0 ? (
           <p className="text-sm text-muted-foreground">没有可预览的步骤。</p>
         ) : (
@@ -365,7 +365,7 @@ function StepsPreviewCard({
   );
 }
 
-/** Render up to four upcoming steps with the next-step highlight. */
+/** Render the full build order with the next-step highlight and auto-scroll. */
 function PreviewSteps({
   build,
   clock,
@@ -378,20 +378,23 @@ function PreviewSteps({
   // At clock <= 0 (not started) nothing is pre-marked, so the preview starts
   // from the very first step.
   const spoken = previewSpokenSet(build, clock);
-  const upcoming = upcomingStepIndices(build, spoken, 4);
+  const nextIdx = build.steps.findIndex((_, i) => !spoken.has(i));
+  const nextRef = useRef<HTMLDivElement | null>(null);
 
-  if (upcoming.length === 0) {
-    return <p className="text-sm text-muted-foreground">建造顺序已播完。</p>;
-  }
+  // Keep the current position visible as the clock advances.
+  useEffect(() => {
+    nextRef.current?.scrollIntoView({ block: "nearest" });
+  }, [nextIdx, clock]);
 
   return (
-    <div className="flex flex-col">
-      {upcoming.map((idx, position) => {
-        const step = build.steps[idx];
-        const next = position === 0;
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pr-1">
+      {build.steps.map((step, idx) => {
+        const next = idx === nextIdx;
+        const isSpoken = spoken.has(idx);
         return (
           <div
             key={idx}
+            ref={next ? nextRef : null}
             className={cn(
               "grid grid-cols-[54px_1fr_auto] items-center gap-3 border-t py-2.5 text-sm first:border-t-0",
               next && "-mx-3 rounded-lg border-t-0 bg-primary/5 px-3",
@@ -400,12 +403,23 @@ function PreviewSteps({
             <span
               className={cn(
                 "font-mono text-[13px] tabular-nums",
-                next ? "font-semibold text-primary" : "text-muted-foreground",
+                next
+                  ? "font-semibold text-primary"
+                  : isSpoken
+                    ? "text-muted-foreground/60"
+                    : "text-muted-foreground",
               )}
             >
               {formatGameTime(step.time)}
             </span>
-            <span className="truncate font-medium">{step.say}</span>
+            <span
+              className={cn(
+                "truncate font-medium",
+                isSpoken && !next && "text-muted-foreground",
+              )}
+            >
+              {step.say}
+            </span>
             <span
               className={cn(
                 "font-mono text-[11px]",
@@ -460,7 +474,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex h-full flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-[26px] font-semibold tracking-tight">仪表盘</h1>
@@ -487,7 +501,7 @@ function Dashboard() {
         <MatchCard snapshot={snapshot} />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid min-h-0 flex-1 gap-4 md:grid-cols-2">
         <BuildSelectCard
           stored={visibleStored}
           autoFilename={autoFilename}
