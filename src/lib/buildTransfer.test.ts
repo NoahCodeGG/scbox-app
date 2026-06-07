@@ -6,6 +6,7 @@ function build(overrides: Partial<BuildOrder> = {}): BuildOrder {
   return {
     matchup: "TvP",
     race: "Terran",
+    name: "test build",
     leadTimeSec: 4,
     steps: [
       { time: 17, say: "14 补给站" },
@@ -35,6 +36,7 @@ describe("exportBuildJson", () => {
     expect(Object.keys(parsed).sort()).toEqual([
       "leadTimeSec",
       "matchup",
+      "name",
       "race",
       "steps",
     ]);
@@ -98,11 +100,20 @@ describe("parseImportedBuild", () => {
     if (!result.ok) expect(result.error).toContain("种族");
   });
 
+  it("rejects missing name", () => {
+    const result = parseImportedBuild(
+      JSON.stringify({ matchup: "TvP", race: "Terran", leadTimeSec: 4, steps: [] }),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain("名称");
+  });
+
   it("rejects a non-numeric step time", () => {
     const result = parseImportedBuild(
       JSON.stringify({
         matchup: "TvP",
         race: "Terran",
+        name: "x",
         leadTimeSec: 4,
         steps: [{ time: "soon", say: "兵营" }],
       }),
@@ -116,6 +127,7 @@ describe("parseImportedBuild", () => {
       JSON.stringify({
         matchup: "TvP",
         race: "Terran",
+        name: "x",
         leadTimeSec: 4,
         steps: [{ time: -5, say: "兵营" }],
       }),
@@ -129,6 +141,7 @@ describe("parseImportedBuild", () => {
       JSON.stringify({
         matchup: "TvP",
         race: "Terran",
+        name: "x",
         leadTimeSec: 4,
         steps: [{ time: 17, say: "补给站", supply: 14 }],
       }),
@@ -141,7 +154,7 @@ describe("parseImportedBuild", () => {
 
   it("treats missing steps as an empty build", () => {
     const result = parseImportedBuild(
-      JSON.stringify({ matchup: "TvP", race: "Terran", leadTimeSec: 4 }),
+      JSON.stringify({ matchup: "TvP", race: "Terran", name: "x", leadTimeSec: 4 }),
     );
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.build.steps).toEqual([]);
@@ -152,6 +165,7 @@ describe("parseImportedBuild", () => {
       JSON.stringify({
         matchup: "TvP",
         race: "Terran",
+        name: "x",
         leadTimeSec: 4,
         steps: [
           { time: 30, say: "兵营" },

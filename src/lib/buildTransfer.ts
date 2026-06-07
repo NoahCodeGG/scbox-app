@@ -14,13 +14,14 @@ export type ImportResult =
 
 /**
  * Serialize a build to pretty (2-space) JSON containing exactly the on-disk
- * contract fields — matchup, race, leadTimeSec, and each step's time/say. Never
- * leaks loader metadata such as `filename`.
+ * contract fields — matchup, race, name, leadTimeSec, and each step's time/say.
+ * Never leaks loader metadata such as `filename`.
  */
 export function exportBuildJson(build: BuildOrder): string {
   const clean = {
     matchup: build.matchup,
     race: build.race,
+    name: build.name,
     leadTimeSec: build.leadTimeSec,
     steps: build.steps.map((step) => ({ time: step.time, say: step.say })),
   };
@@ -83,6 +84,7 @@ export function parseImportedBuild(text: string): ImportResult {
   const draft: DraftBuild = {
     matchup: toFieldString(parsed.matchup),
     race: toFieldString(parsed.race),
+    name: toFieldString(parsed.name),
     leadTimeSec: toFieldString(parsed.leadTimeSec),
     steps: (rawSteps ?? []).map(toDraftStep),
   };

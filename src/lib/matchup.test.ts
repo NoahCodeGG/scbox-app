@@ -21,7 +21,7 @@ function player(overrides: Partial<PlayerInfo>): PlayerInfo {
 }
 
 function build(matchup: string, race = "Terran"): BuildOrder {
-  return { matchup, race, leadTimeSec: 4, steps: [{ time: 17, say: "x" }] };
+  return { matchup, race, name: matchup, leadTimeSec: 4, steps: [{ time: 17, say: "x" }] };
 }
 
 describe("raceCodeToLetter", () => {

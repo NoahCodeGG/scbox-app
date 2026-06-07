@@ -51,17 +51,15 @@ fn register_clickthrough_shortcut(app: &tauri::AppHandle, accel: &str) {
     }
 }
 
-/// Load every build order from the app-data `builds/` dir, seeding the bundled
-/// default on first run. Returns the valid builds plus a per-file error list so
-/// the frontend can surface partial failures without crashing.
+/// Load build orders for the UI: read-only embedded defaults merged with the
+/// user's editable builds from the app-data `builds/` dir. Pristine seed files
+/// from the old seed-on-first-run model are cleaned up on load. Returns the
+/// valid builds plus a per-file error list so the frontend can surface partial
+/// failures without crashing.
 #[tauri::command]
 fn load_build_orders(app: tauri::AppHandle) -> Result<LoadResult, String> {
     let dir = builds_dir(&app)?;
-
-    builds::seed_if_empty(&dir)
-        .map_err(|e| format!("cannot seed builds dir: {e}"))?;
-
-    Ok(builds::load_from_dir(&dir))
+    Ok(builds::load_builds(&dir))
 }
 
 /// Save a single build order to `builds/<filename>` in the app-data dir. The

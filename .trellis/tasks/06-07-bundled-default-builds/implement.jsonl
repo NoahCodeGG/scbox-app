@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "BuildOrder/StoredBuild 是 TS↔Rust 契约，新增 name/readOnly 字段需双端同步"}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "改动 load_build_orders/save_build_order 加载与持久化逻辑"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "BuildOrder.name / StoredBuild.readOnly 类型与校验"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "BuildEditor 新增名称输入与只读/复制交互"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "满足前端质量基线（测试/typecheck）"}

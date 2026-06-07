@@ -3,7 +3,7 @@
 // unit-testable in the node test env.
 
 import type { BuildOrder } from "../types/build";
-import terranStandard from "../data/builds/terran-standard.json";
+import tvzTwoMedivac from "../data/builds/tvz-two-medivac.json";
 
 /**
  * The bundled default build, used ONLY as an in-memory fallback when the Rust
@@ -12,10 +12,11 @@ import terranStandard from "../data/builds/terran-standard.json";
  * doc-only keys like `_note` are dropped.
  */
 export const FALLBACK_BUILD: BuildOrder = {
-  matchup: terranStandard.matchup,
-  race: terranStandard.race,
-  leadTimeSec: terranStandard.leadTimeSec,
-  steps: terranStandard.steps.map((step) => ({
+  matchup: tvzTwoMedivac.matchup,
+  race: tvzTwoMedivac.race,
+  name: tvzTwoMedivac.name,
+  leadTimeSec: tvzTwoMedivac.leadTimeSec,
+  steps: tvzTwoMedivac.steps.map((step) => ({
     time: step.time,
     say: step.say,
   })),

@@ -13,7 +13,8 @@ vi.mock("@tauri-apps/api/core", () => ({
 const STORED: StoredBuild[] = [
   {
     filename: "tvp.json",
-    build: { matchup: "TvP", race: "Terran", leadTimeSec: 4, steps: [] },
+    build: { matchup: "TvP", race: "Terran", name: "TvP", leadTimeSec: 4, steps: [] },
+    readOnly: false,
   },
 ];
 

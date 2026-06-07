@@ -1,13 +1,13 @@
 // Pure helper to generate a safe `*.json` filename for a NEW build. The Rust
 // side independently sanitizes whatever it receives (defense in depth), but
-// generating a clean name here keeps files human-readable (e.g. `tvp-2.json`).
+// generating a clean name here keeps files human-readable (e.g. `tvz-2.json`).
 
-/** Filenames already present in the builds dir, used to avoid collisions. */
+/** Filenames already present (defaults + user builds), used to avoid collisions. */
 export type ExistingFilenames = readonly string[];
 
-/** Slugify a matchup into a filename-safe base (lowercase, ascii word chars). */
-function slugify(matchup: string): string {
-  const slug = matchup
+/** Slugify a source string into a filename-safe base (lowercase, ascii word chars). */
+function slugify(source: string): string {
+  const slug = source
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -18,12 +18,15 @@ function slugify(matchup: string): string {
 /**
  * Generate a unique `<slug>.json` filename for a new build, suffixing `-2`,
  * `-3`, … if needed to avoid clobbering an existing file (case-insensitive).
+ * `source` is typically the build's name (falling back to its matchup). Pass the
+ * FULL existing set (defaults + user builds) so a new user build never collides
+ * with a read-only default.
  */
 export function generateBuildFilename(
-  matchup: string,
+  source: string,
   existing: ExistingFilenames,
 ): string {
-  const base = slugify(matchup);
+  const base = slugify(source);
   const taken = new Set(existing.map((name) => name.toLowerCase()));
 
   let candidate = `${base}.json`;

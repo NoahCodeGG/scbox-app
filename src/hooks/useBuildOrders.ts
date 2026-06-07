@@ -4,7 +4,7 @@ import type { BuildOrder, LoadResult, StoredBuild } from "../types/build";
 import { FALLBACK_BUILD } from "../lib/builds";
 
 /** Filename used for the in-memory fallback's `StoredBuild` wrapper. */
-const FALLBACK_FILENAME = "terran-standard.json";
+const FALLBACK_FILENAME = "tvz-two-medivac.json";
 
 /** UI state surfaced by the build-order loader hook. */
 export interface BuildOrdersState {
@@ -54,7 +54,9 @@ export function useBuildOrders(): BuildOrdersState {
         // Hard failure: surface the error but keep guiding with the bundled build.
         setLoadError(errorMessage(e));
         setErrors([]);
-        setStored([{ filename: FALLBACK_FILENAME, build: FALLBACK_BUILD }]);
+        setStored([
+          { filename: FALLBACK_FILENAME, build: FALLBACK_BUILD, readOnly: true },
+        ]);
       }
     })();
   }, []);

@@ -5,6 +5,7 @@ function draft(overrides: Partial<DraftBuild> = {}): DraftBuild {
   return {
     matchup: "TvP",
     race: "Terran",
+    name: "test build",
     leadTimeSec: "4",
     steps: [{ time: "17", say: "14 补给站" }],
     ...overrides,
@@ -47,6 +48,10 @@ describe("validateBuild", () => {
   it("rejects empty matchup / race", () => {
     expect(validateBuild(draft({ matchup: "  " })).ok).toBe(false);
     expect(validateBuild(draft({ race: "" })).ok).toBe(false);
+  });
+
+  it("rejects an empty name", () => {
+    expect(validateBuild(draft({ name: "   " })).ok).toBe(false);
   });
 
   it("rejects an empty step say", () => {

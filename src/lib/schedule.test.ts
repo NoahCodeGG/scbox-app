@@ -11,6 +11,7 @@ import {
 const order: BuildOrder = {
   matchup: "TvX",
   race: "Terran",
+  name: "test",
   leadTimeSec: 4,
   steps: [
     { time: 17, say: "补给站" }, // trigger at 13

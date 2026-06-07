@@ -65,12 +65,19 @@ function emptyStep(): DraftStep {
 interface EditorForm {
   race: AuthorRace;
   opponent: RaceLetter;
+  name: string;
   leadTimeSec: string;
   steps: DraftStep[];
 }
 
 function emptyForm(): EditorForm {
-  return { race: "Terran", opponent: "X", leadTimeSec: "4", steps: [emptyStep()] };
+  return {
+    race: "Terran",
+    opponent: "X",
+    name: "",
+    leadTimeSec: "4",
+    steps: [emptyStep()],
+  };
 }
 
 /** Convert a persisted build into editable form fields (numbers → strings). */
@@ -78,6 +85,7 @@ function toForm(build: BuildOrder): EditorForm {
   return {
     race: normalizeRace(build.race),
     opponent: parseMatchup(build.matchup)?.opp ?? "X",
+    name: build.name ?? "",
     leadTimeSec: String(build.leadTimeSec),
     steps: build.steps.map((step) => ({
       time: String(step.time),
@@ -92,6 +100,7 @@ function toDraft(form: EditorForm): DraftBuild {
   return {
     matchup,
     race: form.race,
+    name: form.name,
     leadTimeSec: form.leadTimeSec,
     steps: form.steps,
   };
@@ -114,6 +123,7 @@ function formToJson(form: EditorForm): string {
   const lenient = {
     matchup: `${raceNameToLetter(form.race)}v${form.opponent}`,
     race: form.race,
+    name: form.name,
     leadTimeSec: form.leadTimeSec,
     steps: form.steps.map((step) => ({
       time: step.time,
@@ -171,11 +181,23 @@ export default function BuildEditor() {
 
   // Validate once per render to drive both the live preview and its filename.
   const result = useMemo(() => validateBuild(toDraft(form)), [form]);
+
+  // Whether the currently-selected build is a read-only embedded default.
+  const selectedReadOnly = useMemo(() => {
+    if (selectedFilename === null) return false;
+    return stored.find((s) => s.filename === selectedFilename)?.readOnly ?? false;
+  }, [selectedFilename, stored]);
+
+  // Filename base derived from the build's name (falling back to its matchup).
+  const filenameSource = useMemo(
+    () => (form.name.trim() !== "" ? form.name : `${raceNameToLetter(form.race)}v${form.opponent}`),
+    [form.name, form.race, form.opponent],
+  );
+
   const previewFilename = useMemo(() => {
     if (selectedFilename !== null) return selectedFilename;
-    const derived = `${raceNameToLetter(form.race)}v${form.opponent}`;
-    return generateBuildFilename(derived, existingFilenames);
-  }, [selectedFilename, form.race, form.opponent, existingFilenames]);
+    return generateBuildFilename(filenameSource, existingFilenames);
+  }, [selectedFilename, filenameSource, existingFilenames]);
 
   // The pane's valid/invalid indicator reflects whether the CURRENT json text
   // parses + validates (coincides with the form's `validateBuild` since
@@ -238,6 +260,10 @@ export default function BuildEditor() {
     setForm((prev) => ({ ...prev, opponent: value }));
   }
 
+  function updateName(value: string): void {
+    setForm((prev) => ({ ...prev, name: value }));
+  }
+
   function updateLeadTime(value: string): void {
     setForm((prev) => ({ ...prev, leadTimeSec: value }));
   }
@@ -268,13 +294,14 @@ export default function BuildEditor() {
   }
 
   async function handleSave(): Promise<void> {
+    if (selectedReadOnly) return; // defaults are read-only; use "copy" instead
     if (!result.ok) {
       setStatus({ kind: "error", message: result.error });
       return;
     }
     const filename =
       selectedFilename ??
-      generateBuildFilename(result.build.matchup, existingFilenames);
+      generateBuildFilename(filenameSource, existingFilenames);
 
     setBusy(true);
     setStatus(null);
@@ -285,6 +312,32 @@ export default function BuildEditor() {
       setStatus({ kind: "success", message: `已保存：${filename}` });
     } catch (e: unknown) {
       setStatus({ kind: "error", message: `保存失败：${errorMessage(e)}` });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /**
+   * Copy the currently-selected read-only default into a new, editable user
+   * build. Generates a fresh filename from the build's name so it never collides
+   * with the default, persists it, then selects the new writable copy.
+   */
+  async function handleCopyToMine(): Promise<void> {
+    if (!result.ok) {
+      setStatus({ kind: "error", message: result.error });
+      return;
+    }
+    const filename = generateBuildFilename(filenameSource, existingFilenames);
+
+    setBusy(true);
+    setStatus(null);
+    try {
+      await invoke("save_build_order", { filename, build: result.build });
+      setSelectedFilename(filename);
+      await notifyChanged();
+      setStatus({ kind: "success", message: `已复制为我的流程：${filename}` });
+    } catch (e: unknown) {
+      setStatus({ kind: "error", message: `复制失败：${errorMessage(e)}` });
     } finally {
       setBusy(false);
     }
@@ -326,14 +379,25 @@ export default function BuildEditor() {
               <RotateCw />
               重载
             </Button>
-            <Button
-              type="button"
-              onClick={() => void handleSave()}
-              disabled={busy}
-            >
-              <Save />
-              保存
-            </Button>
+            {selectedReadOnly ? (
+              <Button
+                type="button"
+                onClick={() => void handleCopyToMine()}
+                disabled={busy}
+              >
+                <Plus />
+                复制为我的流程
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={() => void handleSave()}
+                disabled={busy}
+              >
+                <Save />
+                保存
+              </Button>
+            )}
           </div>
         </header>
 
@@ -368,7 +432,7 @@ export default function BuildEditor() {
               </p>
             ) : (
               <ul className="flex flex-col gap-1.5">
-                {stored.map(({ filename, build }) => {
+                {stored.map(({ filename, build, readOnly }) => {
                   const selected = filename === selectedFilename;
                   return (
                     <li key={filename}>
@@ -382,11 +446,19 @@ export default function BuildEditor() {
                             : "border-border hover:border-foreground/40",
                         )}
                       >
-                        <span className="font-mono text-[13px] tabular-nums">
-                          {build.matchup}
+                        <span className="flex w-full items-center gap-1.5">
+                          <span className="truncate text-[13px] font-medium">
+                            {build.name?.trim() ? build.name : build.matchup}
+                          </span>
+                          {readOnly && (
+                            <span className="shrink-0 rounded bg-muted px-1 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+                              默认
+                            </span>
+                          )}
                         </span>
                         <span className="text-[12px] text-muted-foreground">
-                          {raceLabel(build.race)} · {build.steps.length} 步
+                          {build.matchup} · {raceLabel(build.race)} ·{" "}
+                          {build.steps.length} 步
                         </span>
                       </button>
                     </li>
@@ -398,6 +470,21 @@ export default function BuildEditor() {
 
           {/* editor form */}
           <section className="flex flex-col">
+            {selectedReadOnly && (
+              <div className="mb-4 rounded-md border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                这是内置默认流程（只读）。点「复制为我的流程」生成可编辑副本。
+              </div>
+            )}
+            <div className="mb-4 flex flex-col gap-1.5">
+              <FieldLabel htmlFor="editor-name">name · 名称</FieldLabel>
+              <Input
+                id="editor-name"
+                className="w-full text-[14px]"
+                value={form.name}
+                placeholder="如「TvZ 两船兵」"
+                onChange={(e) => updateName(e.currentTarget.value)}
+              />
+            </div>
             <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="flex flex-col gap-1.5">
                 <FieldLabel>race</FieldLabel>
@@ -529,52 +616,65 @@ export default function BuildEditor() {
             )}
 
             <div className="mt-4 flex items-center gap-2">
-              <Button
-                type="button"
-                onClick={() => void handleSave()}
-                disabled={busy}
-              >
-                <Save />
-                保存
-              </Button>
-              {selectedFilename === null ? (
+              {selectedReadOnly ? (
                 <Button
                   type="button"
-                  variant="outline"
-                  onClick={startNew}
+                  onClick={() => void handleCopyToMine()}
                   disabled={busy}
                 >
-                  清空
+                  <Plus />
+                  复制为我的流程
                 </Button>
-              ) : confirmingDelete ? (
+              ) : (
                 <>
                   <Button
                     type="button"
-                    variant="destructive"
-                    onClick={() => void confirmDelete()}
+                    onClick={() => void handleSave()}
                     disabled={busy}
                   >
-                    确认删除
+                    <Save />
+                    保存
                   </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setConfirmingDelete(false)}
-                    disabled={busy}
-                  >
-                    取消
-                  </Button>
+                  {selectedFilename === null ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={startNew}
+                      disabled={busy}
+                    >
+                      清空
+                    </Button>
+                  ) : confirmingDelete ? (
+                    <>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => void confirmDelete()}
+                        disabled={busy}
+                      >
+                        确认删除
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setConfirmingDelete(false)}
+                        disabled={busy}
+                      >
+                        取消
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => setConfirmingDelete(true)}
+                      disabled={busy}
+                    >
+                      删除
+                    </Button>
+                  )}
                 </>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => setConfirmingDelete(true)}
-                  disabled={busy}
-                >
-                  删除
-                </Button>
               )}
             </div>
 

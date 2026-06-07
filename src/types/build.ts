@@ -16,6 +16,11 @@ export interface BuildOrder {
   matchup: string;
   /** Player race this build is authored for, e.g. "Terran". */
   race: string;
+  /**
+   * Human-readable label, e.g. "TvZ 两船兵". May be empty for older files; the
+   * UI falls back to `matchup` for display.
+   */
+  name: string;
   /** Seconds to announce a step ahead of its `time` (announce-ahead). */
   leadTimeSec: number;
   /** Cues in (expected) ascending `time` order. */
@@ -43,4 +48,9 @@ export interface StoredBuild {
   filename: string;
   /** The parsed build order. */
   build: BuildOrder;
+  /**
+   * True for embedded defaults (read-only, cannot be saved/deleted in place);
+   * false for user files under the app-data builds dir.
+   */
+  readOnly: boolean;
 }

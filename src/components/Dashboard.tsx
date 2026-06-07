@@ -267,7 +267,9 @@ function BuildSelectCard({
                   ? s.filename === override
                   : s.filename === autoFilename;
               const isAuto = override === null && s.filename === autoFilename;
-              const name = s.filename.replace(/\.json$/i, "");
+              const label = s.build.name?.trim()
+                ? s.build.name
+                : s.filename.replace(/\.json$/i, "");
               return (
                 <button
                   key={s.filename}
@@ -284,7 +286,7 @@ function BuildSelectCard({
                     <span className="font-mono font-semibold">
                       {s.build.matchup}
                     </span>{" "}
-                    · {name}
+                    · {label}
                   </span>
                   {isAuto ? (
                     <span className="shrink-0 font-mono text-[11px] text-success">

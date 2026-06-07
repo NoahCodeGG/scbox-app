@@ -16,6 +16,7 @@ vi.mock("../lib/speech", () => ({
 const ORDER: BuildOrder = {
   matchup: "TvX",
   race: "Terran",
+  name: "test",
   leadTimeSec: 4,
   steps: [
     { time: 17, say: "补给站" }, // trigger 13

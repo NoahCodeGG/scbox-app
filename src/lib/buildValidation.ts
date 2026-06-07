@@ -16,6 +16,7 @@ export interface DraftStep {
 export interface DraftBuild {
   matchup: string;
   race: string;
+  name: string;
   leadTimeSec: string;
   steps: DraftStep[];
 }
@@ -37,7 +38,7 @@ function parseNonNegative(raw: string, label: string): number | string {
 
 /**
  * Validate and normalize a draft build:
- * - `matchup` / `race` required (trimmed).
+ * - `matchup` / `race` / `name` required (trimmed).
  * - `leadTimeSec` a non-negative number.
  * - each step: `say` required, `time` a non-negative number.
  * - steps sorted ascending by `time` (the scheduler expects ascending order).
@@ -50,6 +51,9 @@ export function validateBuild(draft: DraftBuild): ValidationResult {
 
   const race = draft.race.trim();
   if (race === "") return { ok: false, error: "种族 (race) 不能为空" };
+
+  const name = draft.name.trim();
+  if (name === "") return { ok: false, error: "名称 (name) 不能为空" };
 
   const leadTimeSec = parseNonNegative(draft.leadTimeSec, "提前播报秒数");
   if (typeof leadTimeSec === "string") {
@@ -73,5 +77,5 @@ export function validateBuild(draft: DraftBuild): ValidationResult {
   // Auto-sort ascending by time (stable) so entry order doesn't matter.
   const sorted = [...steps].sort((a, b) => a.time - b.time);
 
-  return { ok: true, build: { matchup, race, leadTimeSec, steps: sorted } };
+  return { ok: true, build: { matchup, race, name, leadTimeSec, steps: sorted } };
 }

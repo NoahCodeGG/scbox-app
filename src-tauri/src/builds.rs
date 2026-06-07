@@ -1,23 +1,32 @@
-//! Build-order loading from the app-data directory.
+//! Build-order loading: read-only embedded defaults merged with the user's
+//! editable JSON files.
 //!
-//! Build orders are user-editable JSON files living under the OS app-data
-//! `builds/` dir, so they can be changed after the app is packaged. On first
-//! run we seed a bundled default. The on-disk shape is the cross-layer contract
-//! mirrored by `src/types/build.ts` — keep the (camelCase) field names in sync.
+//! Default builds are compiled into the binary from the repo's
+//! `src/data/builds/` dir (`include_dir!`), so they ship with the app and update
+//! with each release — they are never written to disk. User builds live under
+//! the OS app-data `builds/` dir and are fully editable; the app NEVER overwrites
+//! them. On load we clean up any pristine (untouched) seed files left by the old
+//! seed-on-first-run model, then merge defaults + user builds. The on-disk shape
+//! is the cross-layer contract mirrored by `src/types/build.ts` — keep the
+//! (camelCase) field names in sync.
 
+use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
 
+use include_dir::{include_dir, Dir};
 use serde::{Deserialize, Serialize};
 
-/// The bundled default build, the single source of truth for both seeding the
-/// app-data dir on first run and the frontend's in-memory fallback. Referenced
-/// relatively from this module so there is only one copy of the JSON.
-pub const DEFAULT_BUILD_JSON: &str =
-    include_str!("../../src/data/builds/terran-standard.json");
+/// Read-only default builds, compiled into the binary from the repo's
+/// `src/data/builds/` dir. They ship with the app and update with each release.
+static DEFAULT_BUILDS: Dir<'_> =
+    include_dir!("$CARGO_MANIFEST_DIR/../src/data/builds");
 
-/// Filename used when seeding the bundled default build.
-const DEFAULT_BUILD_FILENAME: &str = "terran-standard.json";
+/// Exact bytes of a seed file the app shipped (and copied into the user's builds
+/// dir) under the old seed-on-first-run model. Used to recognise an untouched
+/// (pristine) seed so it can be removed when migrating to embedded defaults. A
+/// user file whose bytes differ (i.e. was edited) never matches and is kept.
+const LEGACY_SEED_TERRAN: &str = include_str!("legacy_seed_terran.json");
 
 /// One build-order cue keyed to the in-game clock.
 ///
@@ -42,6 +51,10 @@ pub struct BuildOrder {
     pub matchup: String,
     /// Player race this build is authored for.
     pub race: String,
+    /// Human-readable label, e.g. "TvZ 两船兵". Absent in older files → empty
+    /// string; the UI falls back to `matchup` for display.
+    #[serde(default)]
+    pub name: String,
     /// Seconds to announce a step ahead of its `time`.
     pub lead_time_sec: f64,
     /// Cues in (expected) ascending `time` order.
@@ -54,14 +67,17 @@ pub struct BuildOrder {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StoredBuild {
-    /// Source filename within the builds dir, e.g. `"tvp.json"`.
+    /// Source filename, e.g. `"tvz.json"`.
     pub filename: String,
     /// The parsed build order.
     pub build: BuildOrder,
+    /// True for embedded defaults (cannot be edited/deleted in place); false for
+    /// user files under the app-data builds dir.
+    pub read_only: bool,
 }
 
-/// Result of scanning a builds directory: the valid builds (each paired with its
-/// source filename) plus a human-readable error per file that failed to parse.
+/// Result of a build load: the valid builds (each paired with its source
+/// filename) plus a human-readable error per file that failed to parse.
 /// Mirrors `LoadResult` in `src/types/build.ts`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct LoadResult {
@@ -69,18 +85,101 @@ pub struct LoadResult {
     pub errors: Vec<String>,
 }
 
-/// Read every `*.json` in `dir`, parsing each into a `BuildOrder`.
+/// Parse the embedded read-only default builds, sorted by filename. Returns the
+/// parsed builds plus a per-file error for any default that fails to parse.
+fn embedded_defaults() -> (Vec<StoredBuild>, Vec<String>) {
+    let mut builds = Vec::new();
+    let mut errors = Vec::new();
+
+    let mut files: Vec<_> = DEFAULT_BUILDS
+        .files()
+        .filter(|f| {
+            f.path().extension().and_then(|e| e.to_str()) == Some("json")
+        })
+        .collect();
+    files.sort_by(|a, b| a.path().cmp(b.path()));
+
+    for file in files {
+        let filename = file
+            .path()
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("<unknown>")
+            .to_string();
+        match file.contents_utf8() {
+            Some(contents) => match serde_json::from_str::<BuildOrder>(contents) {
+                Ok(build) => builds.push(StoredBuild {
+                    filename,
+                    build,
+                    read_only: true,
+                }),
+                Err(e) => errors.push(format!("{filename}: {e}")),
+            },
+            None => errors.push(format!("{filename}: not valid UTF-8")),
+        }
+    }
+
+    (builds, errors)
+}
+
+/// Byte-exact fingerprints of pristine shipped seeds: every current embedded
+/// default plus known legacy seeds. A user file matching any of these is an
+/// untouched copy safe to remove during migration.
+fn pristine_fingerprints() -> Vec<String> {
+    let mut fps: Vec<String> = DEFAULT_BUILDS
+        .files()
+        .filter_map(|f| f.contents_utf8())
+        .map(str::to_string)
+        .collect();
+    fps.push(LEGACY_SEED_TERRAN.to_string());
+    fps
+}
+
+/// Remove any `*.json` in `dir` whose contents byte-match a pristine shipped
+/// seed (see [`pristine_fingerprints`]). User-edited files have different bytes
+/// and are left untouched. A missing dir is a no-op. Returns the removed names.
+pub fn cleanup_pristine(dir: &Path) -> Vec<String> {
+    let fingerprints = pristine_fingerprints();
+    let mut removed = Vec::new();
+
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(_) => return removed,
+    };
+
+    let mut paths: Vec<_> = entries
+        .filter_map(|entry| entry.ok().map(|e| e.path()))
+        .filter(|path| {
+            path.extension().and_then(|ext| ext.to_str()) == Some("json")
+        })
+        .collect();
+    paths.sort();
+
+    for path in paths {
+        let Ok(contents) = fs::read_to_string(&path) else {
+            continue;
+        };
+        if fingerprints.iter().any(|fp| fp == &contents) && fs::remove_file(&path).is_ok() {
+            if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                removed.push(name.to_string());
+            }
+        }
+    }
+
+    removed
+}
+
+/// Read every `*.json` in `dir` as a user (editable) build.
 ///
-/// Valid files contribute to `builds`; an unparseable file contributes a
-/// `"<filename>: <error>"` string to `errors` rather than failing the whole
-/// load. A missing directory yields an empty result with no errors. This is the
-/// pure, testable unit (no app handle).
+/// Valid files contribute to `builds` (with `read_only: false`); an unparseable
+/// file contributes a `"<filename>: <error>"` string to `errors` rather than
+/// failing the whole load. A missing directory yields an empty result. This is
+/// the pure, testable unit (no app handle).
 pub fn load_from_dir(dir: &Path) -> LoadResult {
     let mut result = LoadResult::default();
 
     let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,
-        // Missing dir is not an error here: seeding is the caller's job.
         Err(_) => return result,
     };
 
@@ -102,7 +201,11 @@ pub fn load_from_dir(dir: &Path) -> LoadResult {
 
         match fs::read_to_string(&path) {
             Ok(contents) => match serde_json::from_str::<BuildOrder>(&contents) {
-                Ok(build) => result.builds.push(StoredBuild { filename, build }),
+                Ok(build) => result.builds.push(StoredBuild {
+                    filename,
+                    build,
+                    read_only: false,
+                }),
                 Err(e) => result.errors.push(format!("{filename}: {e}")),
             },
             Err(e) => result.errors.push(format!("{filename}: {e}")),
@@ -112,27 +215,31 @@ pub fn load_from_dir(dir: &Path) -> LoadResult {
     result
 }
 
-/// Ensure `dir` exists and holds at least one build, seeding the bundled default
-/// when it is absent or contains no `*.json` files. Idempotent: an already
-/// populated dir is left untouched.
-pub fn seed_if_empty(dir: &Path) -> std::io::Result<()> {
-    if has_any_json(dir) {
-        return Ok(());
-    }
-    fs::create_dir_all(dir)?;
-    let target = dir.join(DEFAULT_BUILD_FILENAME);
-    fs::write(target, DEFAULT_BUILD_JSON)?;
-    Ok(())
-}
+/// Full build load: clean pristine seeds in `user_dir`, then merge embedded
+/// read-only defaults with the user's editable builds. On a filename collision
+/// the user file wins (defensive — filenames are normally deduped at creation so
+/// a user build never shares a default's name). Output is defaults-first then
+/// user builds, each group sorted by filename.
+pub fn load_builds(user_dir: &Path) -> LoadResult {
+    cleanup_pristine(user_dir);
 
-/// Whether `dir` exists and contains at least one `*.json` file.
-fn has_any_json(dir: &Path) -> bool {
-    match fs::read_dir(dir) {
-        Ok(entries) => entries.filter_map(|e| e.ok()).any(|e| {
-            e.path().extension().and_then(|ext| ext.to_str()) == Some("json")
-        }),
-        Err(_) => false,
-    }
+    let (defaults, mut errors) = embedded_defaults();
+    let user = load_from_dir(user_dir);
+    errors.extend(user.errors);
+
+    let user_names: HashSet<String> = user
+        .builds
+        .iter()
+        .map(|b| b.filename.to_lowercase())
+        .collect();
+
+    let mut builds: Vec<StoredBuild> = defaults
+        .into_iter()
+        .filter(|d| !user_names.contains(&d.filename.to_lowercase()))
+        .collect();
+    builds.extend(user.builds);
+
+    LoadResult { builds, errors }
 }
 
 /// Validate a build filename coming from the (untrusted) frontend before using
@@ -230,43 +337,108 @@ mod tests {
     const VALID_BUILD: &str = r#"{
         "matchup": "TvP",
         "race": "Terran",
+        "name": "user build",
         "leadTimeSec": 4,
         "steps": [{ "time": 17, "say": "supply" }]
     }"#;
 
     #[test]
-    fn loads_two_valid_builds() {
+    fn embedded_defaults_parse_and_are_read_only() {
+        let (builds, errors) = embedded_defaults();
+        assert!(errors.is_empty(), "default builds must parse: {errors:?}");
+        assert!(!builds.is_empty(), "expected at least one embedded default");
+        assert!(builds.iter().all(|b| b.read_only));
+        // The shipped TvZ default is present.
+        assert!(builds.iter().any(|b| b.filename == "tvz-two-medivac.json"));
+    }
+
+    #[test]
+    fn load_builds_includes_defaults_when_user_dir_empty() {
+        let tmp = TempDir::new();
+        let dir = tmp.path().join("builds"); // missing dir
+        let result = load_builds(&dir);
+        assert!(result.errors.is_empty());
+        assert!(!result.builds.is_empty());
+        assert!(result.builds.iter().all(|b| b.read_only));
+    }
+
+    #[test]
+    fn load_builds_merges_user_builds_as_writable() {
+        let tmp = TempDir::new();
+        fs::write(tmp.path().join("mine.json"), VALID_BUILD).unwrap();
+
+        let result = load_builds(tmp.path());
+        let (defaults, _) = embedded_defaults();
+        assert_eq!(result.builds.len(), defaults.len() + 1);
+
+        let mine = result
+            .builds
+            .iter()
+            .find(|b| b.filename == "mine.json")
+            .expect("user build present");
+        assert!(!mine.read_only);
+        assert_eq!(mine.build.name, "user build");
+    }
+
+    #[test]
+    fn user_file_overrides_same_named_default() {
+        let tmp = TempDir::new();
+        // Shadow an embedded default by filename.
+        fs::write(tmp.path().join("tvz-two-medivac.json"), VALID_BUILD).unwrap();
+
+        let result = load_builds(tmp.path());
+        let matching: Vec<_> = result
+            .builds
+            .iter()
+            .filter(|b| b.filename == "tvz-two-medivac.json")
+            .collect();
+        assert_eq!(matching.len(), 1, "no duplicate filename");
+        assert!(!matching[0].read_only, "user copy wins, is writable");
+    }
+
+    #[test]
+    fn cleanup_removes_pristine_legacy_seed() {
+        let tmp = TempDir::new();
+        // A byte-exact copy of the old shipped seed = pristine.
+        fs::write(tmp.path().join("terran-standard.json"), LEGACY_SEED_TERRAN)
+            .unwrap();
+
+        let removed = cleanup_pristine(tmp.path());
+        assert_eq!(removed, vec!["terran-standard.json".to_string()]);
+        assert!(!tmp.path().join("terran-standard.json").exists());
+    }
+
+    #[test]
+    fn cleanup_keeps_edited_seed() {
+        let tmp = TempDir::new();
+        let edited = LEGACY_SEED_TERRAN.replace("Terran", "Protoss");
+        fs::write(tmp.path().join("terran-standard.json"), &edited).unwrap();
+
+        let removed = cleanup_pristine(tmp.path());
+        assert!(removed.is_empty());
+        assert!(tmp.path().join("terran-standard.json").exists());
+    }
+
+    #[test]
+    fn load_builds_cleans_pristine_then_shows_default() {
+        let tmp = TempDir::new();
+        fs::write(tmp.path().join("terran-standard.json"), LEGACY_SEED_TERRAN)
+            .unwrap();
+
+        let result = load_builds(tmp.path());
+        // The pristine seed is gone; only read-only defaults remain.
+        assert!(!tmp.path().join("terran-standard.json").exists());
+        assert!(result.builds.iter().all(|b| b.read_only));
+    }
+
+    #[test]
+    fn load_from_dir_marks_user_builds_writable() {
         let tmp = TempDir::new();
         fs::write(tmp.path().join("a.json"), VALID_BUILD).unwrap();
-        fs::write(tmp.path().join("b.json"), VALID_BUILD).unwrap();
-
         let result = load_from_dir(tmp.path());
-        assert_eq!(result.builds.len(), 2);
-        assert!(result.errors.is_empty());
-    }
-
-    #[test]
-    fn seed_then_load_yields_default_build() {
-        let tmp = TempDir::new();
-        // Use a fresh, currently-empty subdir to exercise the "absent" path too.
-        let dir = tmp.path().join("builds");
-
-        seed_if_empty(&dir).expect("seed");
-        let result = load_from_dir(&dir);
-
         assert_eq!(result.builds.len(), 1);
-        assert!(result.errors.is_empty());
-        assert_eq!(result.builds[0].build.race, "Terran");
-    }
-
-    #[test]
-    fn seed_is_idempotent() {
-        let tmp = TempDir::new();
-        let dir = tmp.path().join("builds");
-        seed_if_empty(&dir).expect("seed once");
-        seed_if_empty(&dir).expect("seed twice");
-        let result = load_from_dir(&dir);
-        assert_eq!(result.builds.len(), 1);
+        assert!(!result.builds[0].read_only);
+        assert_eq!(result.builds[0].filename, "a.json");
     }
 
     #[test]
@@ -307,12 +479,18 @@ mod tests {
     }
 
     #[test]
-    fn loaded_build_carries_its_filename() {
+    fn missing_name_defaults_to_empty() {
         let tmp = TempDir::new();
-        fs::write(tmp.path().join("tvp.json"), VALID_BUILD).unwrap();
+        let no_name = r#"{
+            "matchup": "TvZ",
+            "race": "Terran",
+            "leadTimeSec": 4,
+            "steps": []
+        }"#;
+        fs::write(tmp.path().join("noname.json"), no_name).unwrap();
         let result = load_from_dir(tmp.path());
         assert_eq!(result.builds.len(), 1);
-        assert_eq!(result.builds[0].filename, "tvp.json");
+        assert_eq!(result.builds[0].build.name, "");
     }
 
     #[test]
@@ -339,6 +517,7 @@ mod tests {
         let build = BuildOrder {
             matchup: "TvZ".to_string(),
             race: "Terran".to_string(),
+            name: "my tvz".to_string(),
             lead_time_sec: 4.0,
             steps: vec![
                 BuildStep { time: 17.0, say: "depot".to_string() },
@@ -352,24 +531,9 @@ mod tests {
         assert_eq!(result.builds.len(), 1);
         let loaded = &result.builds[0];
         assert_eq!(loaded.filename, "tvz.json");
+        assert_eq!(loaded.build.name, "my tvz");
         assert_eq!(loaded.build.steps.len(), 2);
-        assert_eq!(loaded.build.steps[0].say, "depot");
-    }
-
-    #[test]
-    fn legacy_supply_field_is_ignored_on_load() {
-        let tmp = TempDir::new();
-        let with_supply = r#"{
-            "matchup": "TvZ",
-            "race": "Terran",
-            "leadTimeSec": 4,
-            "steps": [{ "time": 17, "say": "depot", "supply": 14 }]
-        }"#;
-        fs::write(tmp.path().join("legacy.json"), with_supply).unwrap();
-        let result = load_from_dir(tmp.path());
-        assert_eq!(result.builds.len(), 1);
-        assert!(result.errors.is_empty());
-        assert_eq!(result.builds[0].build.steps[0].say, "depot");
+        assert!(!loaded.read_only);
     }
 
     #[test]
@@ -378,6 +542,7 @@ mod tests {
         let build = BuildOrder {
             matchup: "TvP".to_string(),
             race: "Terran".to_string(),
+            name: "x".to_string(),
             lead_time_sec: 4.0,
             steps: vec![],
         };

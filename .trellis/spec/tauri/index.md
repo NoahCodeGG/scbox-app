@@ -54,4 +54,27 @@ Related: [Frontend spec layer](../frontend/index.md) ·
   (which is `Send + Sync`) via `manage()`; commands send messages to the worker.
   See `src/tts.rs` for the pattern.
 
+## Build-Orders Loading Model (`src/builds.rs`)
+
+Build orders come from two sources, merged on every `load_build_orders` call:
+
+- **Embedded read-only defaults** — the repo's `src/data/builds/` dir is compiled
+  into the binary via `include_dir!`, so defaults ship with the app and update
+  with each release. They are never written to disk. Returned with
+  `read_only: true`.
+- **User builds** — editable JSON under the app-data `builds/` dir, returned with
+  `read_only: false`. The app NEVER overwrites them.
+
+Rules:
+- Do NOT re-introduce seed-on-first-run (`seed_if_empty`). Defaults are read
+  straight from the binary; seeding into app-data would shadow future updates.
+- On load, `cleanup_pristine` deletes any user file whose bytes byte-match a
+  known shipped seed (current embedded defaults + `legacy_seed_terran.json`).
+  This removes untouched seeds left by the old model; edited files differ and are
+  kept. When removing/renaming a default, add its old bytes to the legacy
+  fingerprint so existing installs still clean it up.
+- Filenames are the selection/override key, deduped across the FULL set (defaults
+  + user) at creation — a user build never collides with a default. On a
+  defensive collision the user file wins.
+
 **Language**: All documentation is written in **English**.
