@@ -1,0 +1,23 @@
+{
+  "name": "ZVT 单矿火蟑螂一波",
+  "matchup": "ZvT",
+  "race": "Zerg",
+  "leadTimeSec": 4,
+  "steps": [
+    { "time": 18,  "say": "血池" },
+    { "time": 22,  "say": "工蜂" },
+    { "time": 28,  "say": "工蜂" },
+    { "time": 31,  "say": "工蜂" },
+    { "time": 42,  "say": "气矿.工蜂" },
+    { "time": 58,  "say": "气矿.工蜂" },
+    { "time": 64,  "say": "蟑螂巢" },
+    { "time": 67,  "say": "小狗 x2" },
+    { "time": 72,  "say": "王虫" },
+    { "time": 78,  "say": "采气" },
+    { "time": 81,  "say": "王虫" },
+    { "time": 107, "say": "蟑螂 x3" },
+    { "time": 128, "say": "火蟑螂 x2" },
+    { "time": 136, "say": "火蟑螂.王虫" },
+    { "time": 151, "say": "蟑螂 x2" }
+  ]
+}
