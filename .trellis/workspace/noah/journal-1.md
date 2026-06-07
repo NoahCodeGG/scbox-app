@@ -408,3 +408,36 @@ Fixed the overlay window: it was showing full macOS chrome + a big empty white a
 ### Next Steps
 
 - None - task complete
+
+
+## Session 13: Move connection diagnostic from overlay to dashboard
+
+**Date**: 2026-06-07
+**Task**: Move connection diagnostic from overlay to dashboard
+**Branch**: `main`
+
+### Summary
+
+Fixed the diagnostic modal overflowing/not-scrolling in the now content-fit frameless overlay. Removed DiagnosticPanel + useConnectionDiagnostic + the 诊断 button from the overlay (App.tsx) — the compact 未连接 banner remains. Hosted the diagnostic in the dashboard 连接状态 card (main window, room to scroll): a 诊断/如何启用 button + 30s-disconnect auto-open via useConnectionDiagnostic; onRetry=refetch (useGameSnapshot), onOpenSettings=navigate('/settings'). Made DiagnosticPanel DialogContent scroll-safe (max-h-[85vh] overflow-y-auto). No IPC/type changes; 168 vitest, cargo 41, coverage held, build ok. MANUAL TODO: macOS run-through.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c383464` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
