@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
-import { Moon, Pencil, RotateCw, Settings as SettingsIcon, Volume2 } from "lucide-react";
+import { Pencil, RotateCw, Settings as SettingsIcon, Volume2 } from "lucide-react";
 import { useGameSnapshot } from "./hooks/useGameSnapshot";
 import { useBuildOrders } from "./hooks/useBuildOrders";
 import { useBuildOrderVoice } from "./hooks/useBuildOrderVoice";
 import { useInterpolatedClock } from "./hooks/useInterpolatedClock";
 import { useVoiceCapability } from "./hooks/useVoiceCapability";
+import { useApplyTheme } from "./hooks/useApplyTheme";
 import { useSettings } from "./hooks/useSettings";
 import { useWindowControls } from "./hooks/useWindowControls";
 import { cn } from "@/lib/utils";
@@ -266,8 +267,12 @@ function App() {
   const { settings, saveSettings, reload: reloadSettings, error: settingsError } =
     useSettings();
   const [hintDismissed, setHintDismissed] = useState(false);
-  const [darkTheme, setDarkTheme] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+
+  // Apply the global theme to the overlay's document; the overlay dark-glass
+  // (`.dark .overlay-card`) follows the same `.dark` class. Settings + the
+  // SETTINGS_CHANGED reload listener below keep `settings.theme` live.
+  useApplyTheme(settings.theme);
 
   // Apply window position, click-through, and listen for global shortcut.
   useWindowControls({ settings, saveSettings });
@@ -360,7 +365,6 @@ function App() {
         ref={cardRef}
         className={cn(
           "overlay-card overflow-hidden rounded-[14px] border border-[color:var(--o-border)] bg-[color:var(--o-surface)] text-[color:var(--o-fg)] shadow-[0_2px_8px_rgba(0,0,0,0.18)] transition-opacity",
-          darkTheme && "theme-dark",
           passthrough && "opacity-45",
         )}
       >
@@ -401,16 +405,6 @@ function App() {
               aria-label="编辑建造顺序"
             >
               <Pencil />
-            </button>
-            <button
-              type="button"
-              className={cn(iconBtn, darkTheme && "text-[color:var(--o-accent)]")}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={() => setDarkTheme((on) => !on)}
-              aria-label="切换暗色主题"
-              aria-pressed={darkTheme}
-            >
-              <Moon />
             </button>
             <button
               type="button"

@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Adding Settings.theme is a cross-layer contract change — settings.rs serde ↔ TS Settings ↔ normalize in lockstep."}
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Theme moves from overlay-scoped .theme-dark to a global .dark; overlay dark-glass follows the app theme. Update the dark-mode rule."}
+{"file": ".trellis/spec/frontend/hook-testing.md", "reason": "New useApplyTheme hook under the coverage gate; test classList toggling (light/dark/system) + matchMedia listener cleanup."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "theme union + useApplyTheme typed; no any."}

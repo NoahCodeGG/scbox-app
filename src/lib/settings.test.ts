@@ -4,6 +4,7 @@ import {
   normalizeLeadTimeOverride,
   normalizePort,
   normalizeSettings,
+  normalizeTheme,
   normalizeVoiceRate,
 } from "./settings";
 
@@ -68,6 +69,7 @@ describe("normalizeSettings", () => {
     windowX: null,
     windowY: null,
     activeBuildOverride: null,
+    theme: "system",
   };
 
   it("passes a valid settings object through unchanged", () => {
@@ -84,6 +86,7 @@ describe("normalizeSettings", () => {
       windowX: 100,
       windowY: 200,
       activeBuildOverride: "  ",
+      theme: "bogus" as Settings["theme"],
     });
     expect(repaired).toEqual({
       clientApiPort: 6119,
@@ -94,6 +97,7 @@ describe("normalizeSettings", () => {
       windowX: 100,
       windowY: 200,
       activeBuildOverride: null,
+      theme: "system",
     });
   });
 
@@ -102,5 +106,18 @@ describe("normalizeSettings", () => {
       normalizeSettings({ ...valid, activeBuildOverride: " tvp.json " })
         .activeBuildOverride,
     ).toBe("tvp.json");
+  });
+});
+
+describe("normalizeTheme", () => {
+  it("keeps each valid theme", () => {
+    expect(normalizeTheme("light")).toBe("light");
+    expect(normalizeTheme("dark")).toBe("dark");
+    expect(normalizeTheme("system")).toBe("system");
+  });
+
+  it("coerces invalid or missing values to system", () => {
+    expect(normalizeTheme("bogus")).toBe("system");
+    expect(normalizeTheme(undefined)).toBe("system");
   });
 });

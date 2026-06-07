@@ -25,6 +25,7 @@ const DEFAULT_SETTINGS: Settings = {
   windowX: null,
   windowY: null,
   activeBuildOverride: null,
+  theme: "system",
 };
 
 describe("useSettings", () => {

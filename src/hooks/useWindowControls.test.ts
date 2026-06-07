@@ -37,6 +37,7 @@ const SETTINGS: Settings = {
   windowX: null,
   windowY: null,
   activeBuildOverride: null,
+  theme: "system",
 };
 
 /** A close-requested event carrying a preventDefault spy. */

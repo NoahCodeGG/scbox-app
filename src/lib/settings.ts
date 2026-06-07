@@ -66,6 +66,20 @@ export function normalizeActiveBuildOverride(
   return trimmed === "" ? null : trimmed;
 }
 
+/** Valid theme values; anything else coerces to `"system"`. */
+type Theme = "light" | "dark" | "system";
+
+/**
+ * Normalize the UI theme: only `"light"`, `"dark"`, and `"system"` are valid;
+ * any other value (including `undefined` from an older settings.json) coerces to
+ * `"system"` so the app follows the OS by default.
+ */
+export function normalizeTheme(theme: Theme | string | undefined): Theme {
+  return theme === "light" || theme === "dark" || theme === "system"
+    ? theme
+    : "system";
+}
+
 /**
  * Produce a fully-valid `Settings` from a possibly-out-of-range one. Applied
  * after loading (defending against a hand-edited settings.json) and before
@@ -81,5 +95,6 @@ export function normalizeSettings(raw: Settings): Settings {
     windowX: raw.windowX,
     windowY: raw.windowY,
     activeBuildOverride: normalizeActiveBuildOverride(raw.activeBuildOverride),
+    theme: normalizeTheme(raw.theme),
   };
 }

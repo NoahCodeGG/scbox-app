@@ -29,6 +29,8 @@ export interface Settings {
   windowY: number | null;
   /** Manually-chosen active build filename; `null` uses matchup auto-select. */
   activeBuildOverride: string | null;
+  /** Global UI theme; `"system"` follows the OS appearance. */
+  theme: "light" | "dark" | "system";
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -40,6 +42,7 @@ const DEFAULT_SETTINGS: Settings = {
   windowX: null,
   windowY: null,
   activeBuildOverride: null,
+  theme: "system",
 };
 
 /** UI state surfaced by the settings hook. */

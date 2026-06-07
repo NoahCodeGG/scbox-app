@@ -31,6 +31,10 @@ fn default_click_through() -> bool {
     false
 }
 
+fn default_theme() -> String {
+    "system".into()
+}
+
 /// User-editable application settings.
 ///
 /// Mirrors the TS `Settings` interface (camelCase keys). Every field carries a
@@ -65,6 +69,9 @@ pub struct Settings {
     /// Manually-chosen active build filename; `None` uses matchup auto-select.
     #[serde(default)]
     pub active_build_override: Option<String>,
+    /// Global UI theme: `"light"`, `"dark"`, or `"system"` (follow OS).
+    #[serde(default = "default_theme")]
+    pub theme: String,
 }
 
 impl Default for Settings {
@@ -78,6 +85,7 @@ impl Default for Settings {
             window_x: None,
             window_y: None,
             active_build_override: None,
+            theme: default_theme(),
         }
     }
 }
@@ -162,6 +170,7 @@ mod tests {
         assert_eq!(s.window_x, None);
         assert_eq!(s.window_y, None);
         assert_eq!(s.active_build_override, None);
+        assert_eq!(s.theme, "system");
     }
 
     #[test]
@@ -175,6 +184,7 @@ mod tests {
         assert_eq!(s.window_x, None);
         assert_eq!(s.window_y, None);
         assert_eq!(s.active_build_override, None);
+        assert_eq!(s.theme, "system");
     }
 
     #[test]
@@ -187,7 +197,8 @@ mod tests {
             "clickThrough": true,
             "windowX": 100.0,
             "windowY": 200.0,
-            "activeBuildOverride": "tvp.json"
+            "activeBuildOverride": "tvp.json",
+            "theme": "dark"
         }"#;
         let s = parse_settings(json).unwrap();
         assert_eq!(s.client_api_port, 5000);
@@ -198,6 +209,7 @@ mod tests {
         assert_eq!(s.window_x, Some(100.0));
         assert_eq!(s.window_y, Some(200.0));
         assert_eq!(s.active_build_override, Some("tvp.json".to_string()));
+        assert_eq!(s.theme, "dark");
     }
 
     #[test]
@@ -228,6 +240,7 @@ mod tests {
             window_x: Some(150.0),
             window_y: Some(250.0),
             active_build_override: Some("tvz.json".to_string()),
+            theme: "light".to_string(),
         };
         let json = serialize_settings(&original).unwrap();
         let parsed = parse_settings(&json).unwrap();

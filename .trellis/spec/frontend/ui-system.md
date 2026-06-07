@@ -40,17 +40,28 @@ not hardcode hex except inside the overlay's intentional dark-glass surface.
 
 ---
 
-## Overlay-scoped dark theme (NOT a global dark mode)
+## Global light/dark theme
 
-The overlay (`main` window) supports a cyan dark-glass look that is **scoped to
-the overlay card**, independent of any app-wide theme. It is wired via:
+The app has a GLOBAL light/dark theme driven by a persisted `theme:
+"light" | "dark" | "system"` setting (default `"system"`). It is applied by
+toggling a `.dark` class on `document.documentElement` via the
+`useApplyTheme(theme)` hook, which runs PER WINDOW (both the main window and the
+overlay manage their own webview's `<html>`). For `"system"` the hook follows
+`prefers-color-scheme: dark` and re-applies live on OS appearance changes.
 
-- `@custom-variant dark (.theme-dark *)` in `index.css`.
-- Overlay-local CSS vars (`--o-surface/-raise/-fg/-muted/-border/-accent/...`)
-  set on `.overlay-card`; `.theme-dark` overrides them to the `--ov-*` dark set
-  + `backdrop-filter: blur()`.
+- The dark variant is the standard global `@custom-variant dark (&:is(.dark *))`
+  in `index.css`; the shadcn `.dark { --... }` palette activates the whole main
+  window (dashboard/editor/settings).
+- The overlay's dark-glass follows the SAME global theme: `.dark .overlay-card`
+  flips the `--ov-*` cyan tokens (the overlay no longer has its own Moon toggle
+  or local `theme-dark` state).
+- The theme is chosen on the Settings page (浅色/深色/跟随系统), persisted with
+  the rest of `Settings`, and synced across windows via `SETTINGS_CHANGED_EVENT`
+  (the Settings page and the MainWindow shell are separate `useSettings`
+  instances, so MainWindow listens for the event and `reload()`s to re-apply).
 
-Do NOT introduce a global `.dark` class — the editor/settings windows stay light.
+Do NOT toggle `.dark` by hand — go through `useApplyTheme(settings.theme)`.
+
 
 ---
 

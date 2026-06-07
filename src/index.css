@@ -3,10 +3,10 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
 
-/* Overlay dark-glass theme is applied via a scoped class in Phase 3, not a
-   global app dark mode. This variant lets shadcn primitives respond to a
-   `.theme-dark` ancestor when that work lands. */
-@custom-variant dark (&:is(.theme-dark *));
+/* Global light/dark theme. A `.dark` class on `<html>` (driven by the persisted
+   `theme` setting via `useApplyTheme`, applied per-window) activates the shadcn
+   `.dark` palette below AND the overlay's dark-glass (`.dark .overlay-card`). */
+@custom-variant dark (&:is(.dark *));
 
 :root {
   --radius: 0.625rem;
@@ -70,9 +70,9 @@
   /* Motion easing from the design system */
   --ease-overlay: cubic-bezier(0.2, 0, 0, 1);
 
-  /* Overlay-local dark-glass tokens (cyan accent over a game). The overlay's
-     dark variant is overlay-SCOPED via `.theme-dark` on the overlay root, not
-     the global app dark mode. */
+  /* Overlay-local dark-glass tokens (cyan accent over a game). Activated by the
+     GLOBAL `.dark` theme via `.dark .overlay-card`, in lockstep with the rest
+     of the app rather than a separate overlay-local toggle. */
   --ov-dark-surface: #0b0d10;
   --ov-dark-raise: #15181d;
   --ov-dark-fg: #f4f5f7;
@@ -192,11 +192,12 @@ body,
 }
 
 /* ── Overlay window ──────────────────────────────────────────────────────
-   The overlay re-skin (Phase 3) uses overlay-LOCAL tokens (`--o-*`) so the
-   light look (default shadcn palette) and the dark-glass look (`.theme-dark`,
-   cyan accent + backdrop blur) can be switched by a single class on the
-   overlay root, independent of any app-wide theme. Tailwind utilities read
-   these via arbitrary values (e.g. `text-[color:var(--o-fg)]`). */
+   The overlay re-skin uses overlay-LOCAL tokens (`--o-*`) so the light look
+   (default shadcn palette) and the dark-glass look (cyan accent + backdrop
+   blur) can be switched in lockstep with the GLOBAL theme: when `<html>` has
+   `.dark` (from the `theme` setting), `.dark .overlay-card` flips the tokens.
+   Tailwind utilities read these via arbitrary values (e.g.
+   `text-[color:var(--o-fg)]`). */
 .overlay-card {
   --o-surface: var(--color-card);
   --o-raise: #f4f4f5;
@@ -207,7 +208,7 @@ body,
   --o-accent-on: #ffffff;
 }
 
-.overlay-card.theme-dark {
+.dark .overlay-card {
   --o-surface: color-mix(in oklab, var(--ov-dark-surface), transparent 8%);
   --o-raise: var(--ov-dark-raise);
   --o-fg: var(--ov-dark-fg);

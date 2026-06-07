@@ -54,6 +54,16 @@ function updateStatusText(props: {
   return "";
 }
 
+/** Selectable global themes with their Chinese labels (mockup: 浅色/深色/跟随系统). */
+const THEME_OPTIONS: ReadonlyArray<{
+  value: Settings["theme"];
+  label: string;
+}> = [
+  { value: "light", label: "浅色" },
+  { value: "dark", label: "深色" },
+  { value: "system", label: "跟随系统" },
+];
+
 /** Mono uppercase eyebrow label heading a settings group (mockup `.ghead`). */
 function GroupHeading({ children }: { children: React.ReactNode }) {
   return (
@@ -234,6 +244,31 @@ function SettingsPanel({
                 setDraft((prev) => ({ ...prev, clickThrough: checked }))
               }
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="gap-0 overflow-hidden py-0">
+        <GroupHeading>外观</GroupHeading>
+        <CardContent className="px-3 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <Label className="text-[13px]">主题</Label>
+            <div className="flex items-center gap-1">
+              {THEME_OPTIONS.map((option) => (
+                <Button
+                  key={option.value}
+                  type="button"
+                  size="sm"
+                  variant={draft.theme === option.value ? "default" : "secondary"}
+                  aria-pressed={draft.theme === option.value}
+                  onClick={() =>
+                    setDraft((prev) => ({ ...prev, theme: option.value }))
+                  }
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>

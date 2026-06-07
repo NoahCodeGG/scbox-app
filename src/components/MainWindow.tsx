@@ -1,10 +1,14 @@
+import { useEffect } from "react";
 import { HashRouter, NavLink, Route, Routes } from "react-router-dom";
+import { listen } from "@tauri-apps/api/event";
 import { LayoutGrid, Pencil, Settings as SettingsIcon } from "lucide-react";
 import { useAppIcon } from "../hooks/useAppIcon";
 import { useAppName } from "../hooks/useAppName";
 import { useAppVersion } from "../hooks/useAppVersion";
+import { useApplyTheme } from "../hooks/useApplyTheme";
 import { useSettings } from "../hooks/useSettings";
 import { useUpdateCheck } from "../hooks/useUpdateCheck";
+import { SETTINGS_CHANGED_EVENT } from "../lib/events";
 import BuildEditor from "./BuildEditor";
 import Dashboard from "./Dashboard";
 import SettingsPanel from "./SettingsPanel";
@@ -78,6 +82,20 @@ function MainWindow() {
   const version = useAppVersion();
   const name = useAppName();
   const icon = useAppIcon();
+  const { settings, reload } = useSettings();
+
+  // Apply the global theme to this window's document. The Settings page uses a
+  // separate useSettings instance, so reload here when it saves (the
+  // SETTINGS_CHANGED event) to re-apply the theme in the shell live.
+  useApplyTheme(settings.theme);
+  useEffect(() => {
+    const unlisten = listen(SETTINGS_CHANGED_EVENT, () => {
+      void reload();
+    });
+    return () => {
+      void unlisten.then((off) => off());
+    };
+  }, [reload]);
 
   return (
     <HashRouter>
