@@ -65,7 +65,7 @@ export default function DiagnosticPanel({
         if (!open) onClose();
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>无法连接到星际争霸 2</DialogTitle>
           {reason && <DialogDescription>{reason}</DialogDescription>}

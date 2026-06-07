@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Verify the overlay no longer hosts a modal and the dialog lives in the main window."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify no dangling imports/state in App.tsx and DiagnosticPanel props are correctly typed in the dashboard."}

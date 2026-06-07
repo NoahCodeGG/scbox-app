@@ -10,8 +10,6 @@ import { useInterpolatedClock } from "./hooks/useInterpolatedClock";
 import { useVoiceCapability } from "./hooks/useVoiceCapability";
 import { useSettings } from "./hooks/useSettings";
 import { useWindowControls } from "./hooks/useWindowControls";
-import { useConnectionDiagnostic } from "./hooks/useConnectionDiagnostic";
-import DiagnosticPanel from "./components/DiagnosticPanel";
 import { cn } from "@/lib/utils";
 import { FALLBACK_BUILD } from "./lib/builds";
 import { identifyMatchup, parseMatchup, selectBuild } from "./lib/matchup";
@@ -261,7 +259,7 @@ function OverlayBanner({ state, port }: { state: OverlayState; port: number }) {
 }
 
 function App() {
-  const { snapshot, refetch } = useGameSnapshot();
+  const { snapshot } = useGameSnapshot();
   const currentTime = useInterpolatedClock(snapshot);
   const { builds, stored, errors, loadError, reload } = useBuildOrders();
   const { needsInstallHint } = useVoiceCapability();
@@ -270,8 +268,6 @@ function App() {
   const [hintDismissed, setHintDismissed] = useState(false);
   const [darkTheme, setDarkTheme] = useState(false);
   const [speaking, setSpeaking] = useState(false);
-  const { showDiagnostic, openDiagnostic, closeDiagnostic } =
-    useConnectionDiagnostic(snapshot.connected);
 
   // Apply window position, click-through, and listen for global shortcut.
   useWindowControls({ settings, saveSettings });
@@ -384,17 +380,6 @@ function App() {
             </span>
           </div>
           <div className="flex shrink-0 items-center gap-0.5">
-            {!snapshot.connected && (
-              <button
-                type="button"
-                className={cn(iconBtn, "w-auto px-1.5 font-mono text-[11px]")}
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={openDiagnostic}
-                aria-label="连接诊断"
-              >
-                诊断
-              </button>
-            )}
             <button
               type="button"
               className={iconBtn}
@@ -490,23 +475,9 @@ function App() {
       </div>
 
       {/* Auxiliary surfaces — outside the overlay card so they don't disturb
-          the live coaching layout. Settings + updates now live in the main
-          window (the gear icon focuses it); the overlay keeps only the
-          connection diagnostic + load hints. */}
-      <DiagnosticPanel
-        isOpen={showDiagnostic}
-        currentPort={settings.clientApiPort}
-        status={snapshot.status}
-        onClose={closeDiagnostic}
-        onOpenSettings={() => {
-          // Settings live in the main window now; focus it to change the port.
-          void invoke("open_main").catch(() => {
-            // Main window failed to focus; nothing actionable here.
-          });
-        }}
-        onRetry={refetch}
-      />
-
+          the live coaching layout. Settings, updates, and the connection
+          diagnostic now live in the main window (the gear icon focuses it); the
+          overlay keeps only the load hints. */}
       {settingsError && (
         <div className="mt-2 rounded-md bg-destructive/10 px-2.5 py-1.5 text-[13px] text-destructive">
           无法保存设置：{settingsError}

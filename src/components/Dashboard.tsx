@@ -1,16 +1,19 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Play, Square } from "lucide-react";
 import { useGameSnapshot } from "../hooks/useGameSnapshot";
 import { useInterpolatedClock } from "../hooks/useInterpolatedClock";
 import { useBuildOrders } from "../hooks/useBuildOrders";
 import { useSettings } from "../hooks/useSettings";
+import { useConnectionDiagnostic } from "../hooks/useConnectionDiagnostic";
 import { identifyMatchup, raceCodeToLetter, selectBuild } from "../lib/matchup";
 import { formatGameTime } from "../lib/format";
 import { upcomingStepIndices } from "../lib/schedule";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import DiagnosticPanel from "./DiagnosticPanel";
 import type { GameSnapshot, PlayerInfo } from "../types/sc2";
 import type { StoredBuild } from "../types/build";
 
@@ -44,15 +47,32 @@ function KeyValue({ k, v, accent }: { k: string; v: React.ReactNode; accent?: bo
 function ConnectionCard({
   snapshot,
   port,
+  onRetry,
 }: {
   snapshot: GameSnapshot;
   port: number;
+  onRetry: () => void;
 }) {
   const connected = snapshot.connected;
+  const navigate = useNavigate();
+  // Reuse the 30s-disconnect timer here: the main window can show the modal
+  // properly (it has room to scroll), so an auto-open after a sustained
+  // disconnect is helpful rather than broken (as it was in the overlay).
+  const { showDiagnostic, openDiagnostic, closeDiagnostic } =
+    useConnectionDiagnostic(connected);
+
   return (
     <Card className="gap-4 py-5">
-      <CardHeader className="px-5">
+      <CardHeader className="flex-row items-center justify-between px-5">
         <CardEyebrow>连接状态</CardEyebrow>
+        <Button
+          type="button"
+          variant="outline"
+          size="xs"
+          onClick={openDiagnostic}
+        >
+          诊断 / 如何启用
+        </Button>
       </CardHeader>
       <CardContent className="px-5">
         <div className="flex items-center justify-between">
@@ -95,6 +115,17 @@ function ConnectionCard({
           <KeyValue k="语音引擎" v="Web Speech · zh-CN" />
         </div>
       </CardContent>
+      <DiagnosticPanel
+        isOpen={showDiagnostic}
+        currentPort={port}
+        status={snapshot.status}
+        onClose={closeDiagnostic}
+        onOpenSettings={() => {
+          closeDiagnostic();
+          navigate("/settings");
+        }}
+        onRetry={onRetry}
+      />
     </Card>
   );
 }
@@ -371,7 +402,7 @@ function PreviewSteps({
  * which the overlay picks up live through `SETTINGS_CHANGED`.
  */
 function Dashboard() {
-  const { snapshot } = useGameSnapshot();
+  const { snapshot, refetch } = useGameSnapshot();
   const clock = useInterpolatedClock(snapshot);
   const { stored } = useBuildOrders();
   const { settings, saveSettings } = useSettings();
@@ -416,7 +447,11 @@ function Dashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <ConnectionCard snapshot={snapshot} port={settings.clientApiPort} />
+        <ConnectionCard
+          snapshot={snapshot}
+          port={settings.clientApiPort}
+          onRetry={refetch}
+        />
         <MatchCard snapshot={snapshot} />
       </div>
 
