@@ -1,0 +1,27 @@
+{
+  "name": "ZVZ12d 狗毒爆一波",
+  "matchup": "ZvZ",
+  "race": "Zerg",
+  "leadTimeSec": 4,
+  "steps": [
+    { "time": 12,  "say": "气矿" },
+    { "time": 21,  "say": "血池" },
+    { "time": 25,  "say": "工蜂" },
+    { "time": 30,  "say": "工蜂" },
+    { "time": 35,  "say": "工蜂" },
+    { "time": 48,  "say": "王虫" },
+    { "time": 68,  "say": "小狗 x6" },
+    { "time": 75,  "say": "狗速" },
+    { "time": 81,  "say": "小狗" },
+    { "time": 90,  "say": "小狗" },
+    { "time": 97,  "say": "毒爆虫巢" },
+    { "time": 102, "say": "小狗" },
+    { "time": 111, "say": "小狗" },
+    { "time": 123, "say": "女王" },
+    { "time": 134, "say": "王虫" },
+    { "time": 138, "say": "小狗" },
+    { "time": 143, "say": "毒爆虫 x2" },
+    { "time": 152, "say": "小狗" },
+    { "time": 159, "say": "注卵.小狗" }
+  ]
+}
