@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 33
+- **Total Sessions**: 34
 - **Last Active**: 2026-06-07
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1103 | Active |
+| `journal-1.md` | ~1148 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 34 | 2026-06-07 | 批量录入内置默认流程 + mm:ss 输入 + UI 中文化 | `91079e0`, `fc5ddc9`, `bbb382c`, `2a905f4`, `dcd71ba`, `654bc77`, `58808a2`, `933ea3a`, `fe24d6f`, `76a942f`, `09c119e`, `06f2193`, `edccd54` | `main` |
 | 33 | 2026-06-07 | 修复中文 build 文件名生成 | `cdbe761` | `main` |
 | 32 | 2026-06-07 | 内置只读默认流程 + 用户流程不被覆盖 | `d71c440` | `main` |
 | 31 | 2026-06-07 | 移除 build step 人口字段 | `6d7845d` | `main` |
