@@ -870,3 +870,36 @@ Added a 穿透模式 toggle button (MousePointer2) to the overlay header icon cl
 ### Next Steps
 
 - None - task complete
+
+
+## Session 27: Overlay resize measures full content (passthrough sliver)
+
+**Date**: 2026-06-07
+**Task**: Overlay resize measures full content (passthrough sliver)
+**Branch**: `main`
+
+### Summary
+
+Enabling passthrough collapsed the overlay into a thin scrollbar sliver: the content-fit ResizeObserver sized the window to cardRef only, but auxiliary surfaces (穿透模式 hint, settingsError, voice install hint, loadError, parse errors) render outside the card inside <main className=p-2>; when shown they overflowed the card-sized transparent frameless window → scrollbar/sliver. Fix: moved the ref from the card to the <main> wrapper (cardRef→contentRef, HTMLElement) and size the window to el.offsetWidth/Height directly (dropped +16 since p-2 is included). Now the window hugs card + hints in every state; no-hint case unchanged. CSS/measurement only. 183 vitest, cargo 41, coverage held, build green. Manual macOS confirm pending.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8687f9d` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
