@@ -1,24 +1,19 @@
-# Build a Windows installer for scbox-app via tauri-action.
+# CI gate for scbox-app.
 #
-# NOTE: This is an UNSIGNED build. On first run, Windows SmartScreen will show a
-# "Windows protected your PC" warning. This is expected for unsigned binaries —
-# choose "More info" -> "Run anyway". Code signing is out of scope for now.
+# Runs the test suite + a full Tauri build on every push to main and every PR
+# to main (and on manual dispatch). The build validates that the packaging
+# chain still works; no artifacts are uploaded and no release is created.
 #
-# Output: the .msi and NSIS .exe installers are uploaded as a workflow artifact
-# ("scbox-app-windows"). No GitHub Release is created.
-#
-# DEFERRED (future tasks):
-# - S4 Auto-update: needs a `tauri signer generate` keypair (public key in
-#   tauri.conf.json; private key + password as GitHub secrets), plus this
-#   workflow creating GitHub Releases with a `latest.json` updater endpoint.
-# - S5 Windows code signing: removes the SmartScreen warning but needs a paid
-#   code-signing certificate; out of practical scope for now.
+# Formal releases are handled by release.yml (tag-triggered).
 
-name: Build Windows Installer
+name: CI
 
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
@@ -67,12 +62,3 @@ jobs:
       # GitHub Release.
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
-
-      - name: Upload Windows installers
-        uses: actions/upload-artifact@v4
-        with:
-          name: scbox-app-windows
-          if-no-files-found: error
-          path: |
-            src-tauri/target/release/bundle/**/*.msi
-            src-tauri/target/release/bundle/**/*.exe
