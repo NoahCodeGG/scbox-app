@@ -969,3 +969,36 @@ Passthrough collapsed the overlay into a scrollbar sliver even after the fixed-w
 ### Next Steps
 
 - None - task complete
+
+
+## Session 30: Customizable click-through shortcut
+
+**Date**: 2026-06-07
+**Task**: Customizable click-through shortcut
+**Branch**: `main`
+
+### Summary
+
+Made the 穿透模式 global shortcut configurable instead of hardcoded CmdOrCtrl+Shift+S. Additive Settings.clickThroughShortcut (default CmdOrCtrl+Shift+S) mirrored Rust serde↔TS↔normalize. Rust register_clickthrough_shortcut(app, accel) does unregister_all() then on_shortcut(accel → emit ui://toggle-clickthrough); called in setup from the loaded setting and at the end of save_settings for live re-registration (invalid accel caught/logged). New src/lib/shortcut.ts buildAccelerator (≥1 modifier + main key, Ctrl/Meta→CmdOrCtrl, rejects shift-only/pure-modifier) + formatAccelerator + tests. SettingsPanel 穿透快捷键 recorder row (record next keydown, Esc cancel, 重置 default; hint shows live shortcut). Event name unchanged; overlay listener untouched. trellis-check passed (no duplicate registration, no cross-layer drift). 196 vitest, cargo 41, coverage held, build green. Manual macOS confirm pending.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `232d55c` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
