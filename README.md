@@ -225,6 +225,6 @@ MIT License
 
 ## 🙏 致谢
 
-- 灵感来源：[SCBox 手机应用](https://www.sc2box.com/)
+- 灵感来源：[SCBox（参考视频）](https://www.bilibili.com/video/BV1564y1o7WE/)
 - SC2 Client API 文档和社区
 - Tauri 团队提供的跨平台桌面框架
