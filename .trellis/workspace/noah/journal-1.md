@@ -1035,3 +1035,36 @@ Made the 穿透模式 global shortcut configurable instead of hardcoded CmdOrCtr
 ### Next Steps
 
 - None - task complete
+
+
+## Session 32: 内置只读默认流程 + 用户流程不被覆盖
+
+**Date**: 2026-06-07
+**Task**: 内置只读默认流程 + 用户流程不被覆盖
+**Branch**: `main`
+
+### Summary
+
+build 加载改为编译期嵌入的只读默认(include_dir)+app-data 可写用户流程合并；移除 seed-on-first-run，按内容指纹清理历史 pristine 种子；BuildOrder 加 name，编辑器加名称输入与「复制为我的流程」只读交互；落 TvZ 两船兵默认、移除 terran-standard 占位；StoredBuild 加 readOnly 双端同步。Rust 46 + 前端 192 测试全绿。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d71c440` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

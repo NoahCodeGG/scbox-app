@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 31
+- **Total Sessions**: 32
 - **Last Active**: 2026-06-07
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1037 | Active |
+| `journal-1.md` | ~1070 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 32 | 2026-06-07 | 内置只读默认流程 + 用户流程不被覆盖 | `d71c440` | `main` |
 | 31 | 2026-06-07 | 移除 build step 人口字段 | `6d7845d` | `main` |
 | 30 | 2026-06-07 | Customizable click-through shortcut | `232d55c` | `main` |
 | 29 | 2026-06-07 | Fix overlay resize feedback-loop sliver | `a2187c6` | `main` |
