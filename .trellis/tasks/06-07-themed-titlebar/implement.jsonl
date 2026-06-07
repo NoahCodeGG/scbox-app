@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/tauri/index.md", "reason": "Main window titleBarStyle=Overlay + hiddenTitle config (macOS themed titlebar); window config conventions."}
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "MainWindow needs a top drag region + content inset under the traffic-light zone; drag-region rules apply."}

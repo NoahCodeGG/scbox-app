@@ -99,8 +99,19 @@ function MainWindow() {
 
   return (
     <HashRouter>
-      <div className="grid h-screen grid-cols-[208px_1fr] bg-secondary">
-        <nav className="flex flex-col gap-2 border-r bg-card p-5">
+      <div className="relative grid h-screen grid-cols-[208px_1fr] bg-secondary">
+        {/*
+          Overlay titlebar (macOS): the window content draws under the
+          transparent native titlebar, with traffic lights floating top-left.
+          This empty, non-interactive strip spans both columns at the very top
+          so the window stays draggable; it must have no interactive children
+          (clicks must reach the nav below).
+        */}
+        <div
+          data-tauri-drag-region
+          className="pointer-events-auto absolute inset-x-0 top-0 z-10 h-7 select-none"
+        />
+        <nav className="flex flex-col gap-2 border-r bg-card p-5 pt-7">
           <div className="mb-4 flex items-center gap-2.5">
             <img src={icon ?? undefined} alt="" className="size-[30px] rounded-lg" />
             <b className="text-base font-semibold">{name ?? ""}</b>
@@ -114,7 +125,7 @@ function MainWindow() {
           </span>
         </nav>
 
-        <main className="overflow-auto p-8">
+        <main className="overflow-auto p-8 pt-7">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/editor" element={<EditorPage />} />

@@ -21,7 +21,9 @@
         "minHeight": 560,
         "alwaysOnTop": false,
         "resizable": true,
-        "visible": true
+        "visible": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
       },
       {
         "label": "overlay",
