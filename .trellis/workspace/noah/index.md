@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 37
-- **Last Active**: 2026-06-07
+- **Total Sessions**: 38
+- **Last Active**: 2026-06-08
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1254 | Active |
+| `journal-1.md` | ~1287 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 38 | 2026-06-08 | SCBox 链接 + 版本号单点化 | `9bac233` | `main` |
 | 37 | 2026-06-07 | README 精准更新 | `49752bf` | `main` |
 | 36 | 2026-06-07 | 发布准备：通用 CI 化 | `8889596` | `main` |
 | 35 | 2026-06-07 | Dashboard 流程列表/步骤预览交互优化 | `7f0c657`, `65b314c`, `8f60cce`, `7b6533b`, `0ac2d58`, `3a36ee8`, `32fb476`, `1221917` | `main` |
