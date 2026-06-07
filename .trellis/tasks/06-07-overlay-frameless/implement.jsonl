@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/tauri/index.md", "reason": "Overlay window config (decorations/transparent/macOSPrivateApi) + frameless drag behavior conventions."}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "Add core:window:allow-set-size to the overlay capability (least-privilege) for content-fit resizing."}
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Overlay drag-region rule + transparent root; main window keeps its own opaque bg container."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "ResizeObserver/setSize wiring must be typed; no any."}

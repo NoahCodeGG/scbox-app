@@ -82,7 +82,7 @@ function MainWindow() {
 
   return (
     <HashRouter>
-      <div className="grid h-screen grid-cols-[208px_1fr] bg-secondary/40">
+      <div className="grid h-screen grid-cols-[208px_1fr] bg-secondary">
         <nav className="flex flex-col gap-2 border-r bg-card p-5">
           <div className="mb-4 flex items-center gap-2.5">
             <span className="grid size-[30px] place-items-center rounded-lg bg-primary font-mono text-sm font-bold text-primary-foreground">

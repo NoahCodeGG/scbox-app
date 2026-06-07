@@ -125,6 +125,16 @@
   --font-mono: var(--font-mono);
 }
 
+/* The bundle is shared by the main (opaque) window and the overlay
+   (frameless + transparent) window. Keep the page background transparent so the
+   overlay shows ONLY its `.overlay-card`; the main window supplies its own
+   opaque background via the `MainWindow` container (see MainWindow.tsx). */
+html,
+body,
+#root {
+  background: transparent;
+}
+
 /* ── Overlay window ──────────────────────────────────────────────────────
    The overlay re-skin (Phase 3) uses overlay-LOCAL tokens (`--o-*`) so the
    light look (default shadcn palette) and the dark-glass look (`.theme-dark`,

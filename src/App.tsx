@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import { Moon, Pencil, RotateCw, Settings as SettingsIcon, Volume2 } from "lucide-react";
 import { useGameSnapshot } from "./hooks/useGameSnapshot";
 import { useBuildOrders } from "./hooks/useBuildOrders";
@@ -275,6 +276,37 @@ function App() {
   // Apply window position, click-through, and listen for global shortcut.
   useWindowControls({ settings, saveSettings });
 
+  // Content-fit sizing (overlay only): keep the frameless, transparent window
+  // hugging the card so there is no empty chrome in any state (waiting banner vs
+  // live 3-step vs dark). Observe the card's measured size and resize the window
+  // to it plus the wrapper padding. `App` only renders in the overlay window, so
+  // this is inherently overlay-scoped.
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+
+    const appWindow = getCurrentWindow();
+    // `<main>` wrapper padding (Tailwind `p-2` = 8px) on each side; included so
+    // the card's drop shadow is not clipped.
+    const wrapperPadding = 8;
+
+    const applySize = (): void => {
+      const width = Math.ceil(card.offsetWidth + wrapperPadding * 2);
+      const height = Math.ceil(card.offsetHeight + wrapperPadding * 2);
+      void appWindow
+        .setSize(new LogicalSize(width, height))
+        .catch((e: unknown) => {
+          console.error("Failed to resize overlay window:", e);
+        });
+    };
+
+    applySize();
+    const observer = new ResizeObserver(() => applySize());
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, []);
+
   // Reload build orders on the transition INTO a live game, so an edit made
   // between games is picked up without restarting the app.
   const wasInGameRef = useRef(false);
@@ -329,6 +361,7 @@ function App() {
   return (
     <main className="p-2">
       <div
+        ref={cardRef}
         className={cn(
           "overlay-card overflow-hidden rounded-[14px] border border-[color:var(--o-border)] bg-[color:var(--o-surface)] text-[color:var(--o-fg)] shadow-[0_18px_50px_-12px_rgba(0,0,0,0.55)] transition-opacity",
           darkTheme && "theme-dark",
@@ -355,6 +388,7 @@ function App() {
               <button
                 type="button"
                 className={cn(iconBtn, "w-auto px-1.5 font-mono text-[11px]")}
+                onMouseDown={(e) => e.stopPropagation()}
                 onClick={openDiagnostic}
                 aria-label="连接诊断"
               >
@@ -364,6 +398,7 @@ function App() {
             <button
               type="button"
               className={iconBtn}
+              onMouseDown={(e) => e.stopPropagation()}
               onClick={reload}
               aria-label="重载建造顺序"
             >
@@ -372,6 +407,7 @@ function App() {
             <button
               type="button"
               className={iconBtn}
+              onMouseDown={(e) => e.stopPropagation()}
               onClick={() => {
                 void invoke("open_main").catch(() => {
                   // Main window failed to focus; nothing actionable here.
@@ -384,6 +420,7 @@ function App() {
             <button
               type="button"
               className={cn(iconBtn, darkTheme && "text-[color:var(--o-accent)]")}
+              onMouseDown={(e) => e.stopPropagation()}
               onClick={() => setDarkTheme((on) => !on)}
               aria-label="切换暗色主题"
               aria-pressed={darkTheme}
@@ -393,6 +430,7 @@ function App() {
             <button
               type="button"
               className={iconBtn}
+              onMouseDown={(e) => e.stopPropagation()}
               onClick={() => {
                 void invoke("open_main").catch(() => {
                   // Main window failed to focus; nothing actionable here.
