@@ -387,7 +387,7 @@ function PreviewSteps({
   }, [nextIdx, clock]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pr-1">
+    <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden px-1 pr-2">
       {build.steps.map((step, idx) => {
         const next = idx === nextIdx;
         const isSpoken = spoken.has(idx);
@@ -396,8 +396,8 @@ function PreviewSteps({
             key={idx}
             ref={next ? nextRef : null}
             className={cn(
-              "grid grid-cols-[54px_1fr_auto] items-center gap-3 border-t py-2.5 text-sm first:border-t-0",
-              next && "rounded-md border-t-0 bg-primary/5",
+              "grid grid-cols-[54px_1fr_auto] items-center gap-3 rounded-lg px-3 py-2.5 text-sm",
+              next && "bg-primary/5",
             )}
           >
             <span
@@ -423,10 +423,18 @@ function PreviewSteps({
             <span
               className={cn(
                 "font-mono text-[11px]",
-                next ? "text-primary" : "text-muted-foreground",
+                next
+                  ? "text-primary"
+                  : isSpoken
+                    ? "text-muted-foreground/60"
+                    : "text-muted-foreground",
               )}
             >
-              {next ? "下一步" : `+${Math.round(step.time - clock)}s`}
+              {next
+                ? "下一步"
+                : isSpoken
+                  ? "已播报"
+                  : `+${Math.round(step.time - clock)}s`}
             </span>
           </div>
         );
