@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "改动需满足前端质量基线（测试/typecheck）"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "文件名最终经 Rust sanitize_filename 校验，确认 unicode 跨层放行"}

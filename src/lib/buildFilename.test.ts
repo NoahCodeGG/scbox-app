@@ -12,6 +12,17 @@ describe("generateBuildFilename", () => {
     expect(generateBuildFilename("!!!", [])).toBe("build.json");
   });
 
+  it("keeps CJK / unicode letters in the slug", () => {
+    expect(generateBuildFilename("两船兵", [])).toBe("两船兵.json");
+    expect(generateBuildFilename("TvZ 两船兵", [])).toBe("tvz-两船兵.json");
+  });
+
+  it("dedupes distinct unicode names instead of collapsing to 'build'", () => {
+    expect(generateBuildFilename("两船兵", [])).toBe("两船兵.json");
+    expect(generateBuildFilename("飞龙", ["两船兵.json"])).toBe("飞龙.json");
+    expect(generateBuildFilename("两船兵", ["两船兵.json"])).toBe("两船兵-2.json");
+  });
+
   it("suffixes to avoid collisions (case-insensitive)", () => {
     expect(generateBuildFilename("TvP", ["tvp.json"])).toBe("tvp-2.json");
     expect(

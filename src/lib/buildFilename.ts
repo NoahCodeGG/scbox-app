@@ -5,12 +5,17 @@
 /** Filenames already present (defaults + user builds), used to avoid collisions. */
 export type ExistingFilenames = readonly string[];
 
-/** Slugify a source string into a filename-safe base (lowercase, ascii word chars). */
+/**
+ * Slugify a source string into a filename-safe base. Keeps Unicode letters and
+ * numbers (so CJK names like `两船兵` survive), folds any run of other characters
+ * (whitespace, punctuation, path separators) into a single `-`, lowercases
+ * ASCII, and trims edge `-`. Returns `build` only when nothing usable remains.
+ */
 function slugify(source: string): string {
   const slug = source
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
     .replace(/^-+|-+$/g, "");
   return slug === "" ? "build" : slug;
 }
