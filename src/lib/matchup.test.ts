@@ -3,6 +3,7 @@ import type { BuildOrder } from "../types/build";
 import type { PlayerInfo } from "../types/sc2";
 import {
   identifyMatchup,
+  matchupMatches,
   parseMatchup,
   raceCodeToLetter,
   raceNameToLetter,
@@ -129,6 +130,28 @@ describe("identifyMatchup", () => {
     ];
     const result = identifyMatchup(players);
     expect(result).toEqual({ meId: 1, myRace: "T", oppRace: "X" });
+  });
+});
+
+describe("matchupMatches", () => {
+  it("matches an exact matchup", () => {
+    expect(matchupMatches("TvZ", "T", "Z")).toBe(true);
+  });
+
+  it("matches the vX catch-all", () => {
+    expect(matchupMatches("TvX", "T", "Z")).toBe(true);
+  });
+
+  it("rejects a wrong opponent", () => {
+    expect(matchupMatches("TvP", "T", "Z")).toBe(false);
+  });
+
+  it("rejects a wrong race", () => {
+    expect(matchupMatches("ZvT", "T", "Z")).toBe(false);
+  });
+
+  it("rejects a malformed matchup", () => {
+    expect(matchupMatches("bad", "T", "Z")).toBe(false);
   });
 });
 

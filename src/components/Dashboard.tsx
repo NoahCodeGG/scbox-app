@@ -7,7 +7,7 @@ import { useInterpolatedClock } from "../hooks/useInterpolatedClock";
 import { useBuildOrders } from "../hooks/useBuildOrders";
 import { useSettings } from "../hooks/useSettings";
 import { useConnectionDiagnostic } from "../hooks/useConnectionDiagnostic";
-import { identifyMatchup, raceCodeToLetter, selectBuild } from "../lib/matchup";
+import { identifyMatchup, matchupMatches, raceCodeToLetter, selectBuild } from "../lib/matchup";
 import { formatGameTime } from "../lib/format";
 import { upcomingStepIndices } from "../lib/schedule";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import DiagnosticPanel from "./DiagnosticPanel";
 import type { GameSnapshot, PlayerInfo } from "../types/sc2";
 import type { StoredBuild } from "../types/build";
+import type { DetectedMatchup } from "../lib/matchup";
 
 /** Mono uppercase eyebrow heading matching the dashboard card mockup. */
 function CardEyebrow({ children }: { children: React.ReactNode }) {
@@ -232,6 +233,30 @@ function autoSelectedFilename(
   return match ? match.filename : null;
 }
 
+/**
+ * Narrow the stored builds to those relevant to the detected matchup.
+ *
+ * With no detected matchup, returns the full list. Otherwise keeps builds that
+ * match the matchup (plus the currently active build so the selection never
+ * disappears), and falls back to the full list when nothing matches so the user
+ * is never left with an empty picker.
+ */
+function computeVisibleStored(
+  stored: StoredBuild[],
+  detected: DetectedMatchup | null,
+  activeFilename: string | null,
+): StoredBuild[] {
+  if (!detected) return stored;
+
+  const filtered = stored.filter(
+    (s) =>
+      matchupMatches(s.build.matchup, detected.myRace, detected.oppRace) ||
+      s.filename === activeFilename,
+  );
+
+  return filtered.length === 0 ? stored : filtered;
+}
+
 /** The build-list card with manual override (Q2). */
 function BuildSelectCard({
   stored,
@@ -414,6 +439,12 @@ function Dashboard() {
   const override = settings.activeBuildOverride;
   const activeFilename = override ?? autoFilename;
 
+  // Narrow the build list to the current matchup so the picker shows only the
+  // builds relevant to this game. Falls back to the full list when no matchup is
+  // detected or nothing matches, and always keeps the active build visible.
+  const detected = snapshot.in_game ? identifyMatchup(snapshot.players) : null;
+  const visibleStored = computeVisibleStored(stored, detected, activeFilename);
+
   const pickBuild = (filename: string): void => {
     void saveSettings({ ...settings, activeBuildOverride: filename });
   };
@@ -459,7 +490,7 @@ function Dashboard() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <BuildSelectCard
-          stored={stored}
+          stored={visibleStored}
           autoFilename={autoFilename}
           override={override}
           onPick={pickBuild}

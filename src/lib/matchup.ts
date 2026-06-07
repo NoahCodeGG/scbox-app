@@ -109,6 +109,24 @@ function resolveMe(players: readonly PlayerInfo[]): PlayerInfo {
 }
 
 /**
+ * Whether a build's `matchup` string is relevant to the detected matchup.
+ *
+ * True when the build parses, its `mine` letter equals `myRace`, and its `opp`
+ * letter is either an exact match for `oppRace` or the `X` catch-all. Returns
+ * false when the matchup string is malformed. Used to narrow the dashboard's
+ * build list to the current game's matchup.
+ */
+export function matchupMatches(
+  buildMatchup: string,
+  myRace: RaceLetter,
+  oppRace: RaceLetter,
+): boolean {
+  const parsed = parseMatchup(buildMatchup);
+  if (!parsed) return false;
+  return parsed.mine === myRace && (parsed.opp === oppRace || parsed.opp === "X");
+}
+
+/**
  * Select the build order to coach with for the detected matchup.
  *
  * Among builds whose parsed `mine` letter equals `myRace`, prefer an exact
