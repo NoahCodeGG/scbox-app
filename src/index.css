@@ -189,11 +189,16 @@
 /* The bundle is shared by the main (opaque) window and the overlay
    (frameless + transparent) window. Keep the page background transparent so the
    overlay shows ONLY its `.overlay-card`; the main window supplies its own
-   opaque background via the `MainWindow` container (see MainWindow.tsx). */
+   opaque background via the `MainWindow` container (see MainWindow.tsx).
+   `overflow: hidden` defensively prevents the overlay from ever showing a
+   scrollbar (which would otherwise feed back into the content-fit resize). The
+   main window scrolls inside its own `overflow-auto` container within `h-screen`
+   (MainWindow.tsx), so hiding body/#root overflow doesn't break it. */
 html,
 body,
 #root {
   background: transparent;
+  overflow: hidden;
 }
 
 /* ── Overlay window ──────────────────────────────────────────────────────

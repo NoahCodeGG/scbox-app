@@ -296,13 +296,14 @@ function App() {
   // Content-fit sizing (overlay only): keep the frameless, transparent window
   // hugging the full content so there is no empty chrome — or, when auxiliary
   // surfaces (passthrough hint, settings/voice/load/parse errors) render outside
-  // the card, no overflow/scrollbar — in any state. Observe the `<main>` wrapper
-  // (which contains the card AND all auxiliary surfaces) and resize the window to
-  // its offset box. The wrapper's own `p-2` padding is included in
-  // offsetWidth/Height, so the card's drop shadow has room without an extra
-  // addition. `App` only renders in the overlay window, so this is inherently
-  // overlay-scoped.
-  const contentRef = useRef<HTMLElement | null>(null);
+  // the card, no overflow/scrollbar — in any state. Observe the inner fixed-width
+  // `w-[328px]` content column (which contains the card AND all auxiliary
+  // surfaces) and resize the window to its offset box plus the `<main>` `p-2`
+  // padding (16px). Measuring the intrinsic-width column rather than `<main>`
+  // means a transient scrollbar can't shrink `offsetWidth` and collapse the
+  // window into a sliver. `App` only renders in the overlay window, so this is
+  // inherently overlay-scoped.
+  const contentRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const el = contentRef.current;
     if (!el) return;
@@ -310,8 +311,10 @@ function App() {
     const appWindow = getCurrentWindow();
 
     const applySize = (): void => {
-      const width = Math.ceil(el.offsetWidth);
-      const height = Math.ceil(el.offsetHeight);
+      // Measure the inner fixed-width column (intrinsic 328px, immune to any
+      // scrollbar) and re-add the `<main>` `p-2` padding (8px each side = 16).
+      const width = Math.ceil(el.offsetWidth) + 16;
+      const height = Math.ceil(el.offsetHeight) + 16;
       void appWindow
         .setSize(new LogicalSize(width, height))
         .catch((e: unknown) => {
@@ -377,12 +380,14 @@ function App() {
     "grid size-[26px] place-items-center rounded-md border-0 bg-transparent text-[color:var(--o-muted)] transition-colors hover:bg-[color:color-mix(in_oklab,var(--o-fg),transparent_90%)] hover:text-[color:var(--o-fg)] [&_svg]:size-[15px]";
 
   return (
-    <main ref={contentRef} className="p-2">
+    <main className="p-2">
       {/* Fixed-width content column (328px mockup design width). Wrapping the
           card AND the auxiliary surfaces here keeps the content-fit measured
           width constant: hints/errors wrap within 328px instead of widening
-          `<main>`, so toggling passthrough only changes height. */}
-      <div className="w-[328px]">
+          `<main>`, so toggling passthrough only changes height. The content-fit
+          ResizeObserver measures THIS column (intrinsic 328px), not `<main>`,
+          so a transient scrollbar can never shrink the window into a sliver. */}
+      <div ref={contentRef} className="w-[328px]">
         <div
           className={cn(
             "overlay-card overflow-hidden rounded-[14px] border border-[color:var(--o-border)] bg-[color:var(--o-surface)] text-[color:var(--o-fg)] shadow-[0_2px_8px_rgba(0,0,0,0.18)] transition-opacity",

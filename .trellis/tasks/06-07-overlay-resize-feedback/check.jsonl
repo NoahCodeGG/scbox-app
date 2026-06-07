@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Verify the resize measures the fixed column (no window-width feedback) and overflow:hidden prevents scrollbar collapse; main window still scrolls."}
