@@ -341,3 +341,37 @@ Re-skinned the 3 in-app surfaces to the user's mockups with Tailwind v4 + shadcn
 ### Next Steps
 
 - None - task complete
+
+
+## Session 11: Two-window architecture: dashboard shell + launchable overlay
+
+**Date**: 2026-06-07
+**Task**: Two-window architecture: dashboard shell + launchable overlay
+**Branch**: `main`
+
+### Summary
+
+Corrected the window model to match the prototype. Main window is now a normal desktop window rendering a react-router sidebar shell (Dashboard / Build Order / Settings pages); the overlay is a SEPARATE always-on-top window, hidden by default, launched via open_overlay from the dashboard. PR1 (6bbd34b): tauri.conf windows (main visible/non-top 1000x680; new hidden alwaysOnTop overlay; editor window removed), capabilities moved (window-control perms→overlay, main keeps updater/process/opener), lib.rs open_editor→open_overlay/hide_overlay/open_main + position-restore/close=hide retargeted to overlay, main.tsx routes overlay→App / main→MainWindow, react-router-dom added, editor+settings became routes. PR2 (a6baef3): Dashboard cards (连接状态/当前对局/Build Order自动匹配/步骤预览) from real hooks + 启动/隐藏悬浮窗 toggle; additive Settings.activeBuildOverride (Rust serde + TS, default null) for manual build override with auto fallback; SETTINGS_CHANGED event so the overlay live-reloads settings; overlay slimmed (removed settings popover + update banner, gear→open_main); settings as a page. Decisions: react-router, manual override, mgmt consolidated to main, no onboarding. trellis-check passed both PRs (no emit/reload loop, graceful override-missing fallback, drag/click-through/clock/voice preserved). 168 vitest, cargo 41, coverage held, build ok. KEY MANUAL TODO: macOS run-through — main opens to dashboard, overlay launches/hides, drag/click-through, live settings+override sync.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6bbd34b` | (see git log) |
+| `a6baef3` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
