@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "The UI library is changing Radix→Base UI; update the stack description + verify controlled-component prop wiring + font choice match the new reality."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Primitive wrappers + consumer call sites (Slider/Switch/Select) must stay typed against Base UI APIs; no any."}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Migrated primitives/consumers follow component conventions."}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Dead-code/dep removal: confirm radix + any swapped font/dep are truly unused before deleting."}

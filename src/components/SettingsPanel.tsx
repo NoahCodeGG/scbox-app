@@ -204,9 +204,9 @@ function SettingsPanel({
               min={0.5}
               max={2}
               step={0.1}
-              value={[draft.voiceRate]}
+              value={draft.voiceRate}
               onValueChange={(value) =>
-                setDraft((prev) => ({ ...prev, voiceRate: value[0] }))
+                setDraft((prev) => ({ ...prev, voiceRate: value }))
               }
             />
           </div>

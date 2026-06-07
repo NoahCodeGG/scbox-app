@@ -3,10 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 // Tailwind base + design-system theme tokens.
 import "./index.css";
 // Self-hosted fonts (no runtime CDN — packaged app must not depend on network).
-import "@fontsource/geist-sans/400.css";
-import "@fontsource/geist-sans/500.css";
-import "@fontsource/geist-sans/600.css";
-import "@fontsource/geist-sans/700.css";
+// Inter (variable, sans) is imported in index.css; Fira Code (mono) here.
 import "@fontsource/fira-code/400.css";
 import "@fontsource/fira-code/500.css";
 import "@fontsource/fira-code/600.css";

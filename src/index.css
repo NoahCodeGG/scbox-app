@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
 
 /* Overlay dark-glass theme is applied via a scoped class in Phase 3, not a
    global app dark mode. This variant lets shadcn primitives respond to a
@@ -7,59 +9,59 @@
 @custom-variant dark (&:is(.theme-dark *));
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.625rem;
 
   /* Surfaces / text — white + neutral #f4f4f5 chrome, slate text */
   --background: oklch(1 0 0); /* #ffffff */
-  --foreground: oklch(0.21 0.034 264.665); /* #111827 */
+  --foreground: oklch(0.145 0 0); /* #111827 */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.034 264.665);
+  --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.034 264.665);
+  --popover-foreground: oklch(0.145 0 0);
 
   /* Black accent on white */
-  --primary: oklch(0 0 0); /* #000000 */
-  --primary-foreground: oklch(1 0 0); /* #ffffff */
+  --primary: oklch(0.205 0 0); /* #000000 */
+  --primary-foreground: oklch(0.985 0 0); /* #ffffff */
 
-  --secondary: oklch(0.985 0 0); /* #fafafa */
-  --secondary-foreground: oklch(0.21 0 0);
+  --secondary: oklch(0.97 0 0); /* #fafafa */
+  --secondary-foreground: oklch(0.205 0 0);
 
-  --muted: oklch(0.967 0.001 286.375); /* #f4f4f5 */
-  --muted-foreground: oklch(0.554 0.046 257.417); /* #64748b */
+  --muted: oklch(0.97 0 0); /* #f4f4f5 */
+  --muted-foreground: oklch(0.556 0 0); /* #64748b */
 
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
 
   --destructive: oklch(0.577 0.245 27.325); /* #dc2626 */
 
-  --border: oklch(0.928 0.006 264.531); /* #e5e7eb */
-  --input: oklch(0.928 0.006 264.531);
-  --ring: oklch(0 0 0); /* ring follows black accent */
+  --border: oklch(0.922 0 0); /* #e5e7eb */
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0); /* ring follows black accent */
 
   /* Custom semantic tokens (not part of default shadcn) */
   --success: oklch(0.627 0.194 149.214); /* #16a34a */
   --warning: oklch(0.666 0.179 58.318); /* #d97706 */
 
   /* Charts — neutral defaults */
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
 
   /* Sidebar (used by later dashboard work) */
   --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.21 0.034 264.665);
-  --sidebar-primary: oklch(0 0 0);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0 0);
-  --sidebar-border: oklch(0.928 0.006 264.531);
-  --sidebar-ring: oklch(0 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 
-  /* Typography — self-hosted Geist + Fira Code with system fallbacks */
+  /* Typography — self-hosted Inter (variable) + Fira Code with system fallbacks */
   --font-sans:
-    "Geist", "Geist Sans", -apple-system, system-ui, "Segoe UI", Arial,
+    "Inter Variable", -apple-system, system-ui, "Segoe UI", Arial,
     sans-serif;
   --font-mono:
     "Fira Code", ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco,
@@ -123,6 +125,60 @@
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --font-heading: var(--font-sans);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  html {
+    @apply font-sans;
+  }
 }
 
 /* The bundle is shared by the main (opaque) window and the overlay

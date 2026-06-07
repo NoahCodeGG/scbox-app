@@ -10,17 +10,24 @@
 - **Tailwind v4** via the `@tailwindcss/vite` plugin (CSS-first — there is NO
   `tailwind.config.js`). Theme tokens live in `src/index.css` under
   `@theme inline` / `:root`.
-- **shadcn/ui** (style "new-york", base color "neutral", `cssVariables: true`).
+- **shadcn/ui** (base color "neutral", `cssVariables: true`).
   Config in `components.json`. Generated primitives live in
   `src/components/ui/*` — treat these as vendored; don't hand-rewrite them, use
-  `shadcn add` to update.
+  `shadcn add` to update. The primitives are built on **Base UI
+  (`@base-ui/react`)**, not Radix (the project migrated off `radix-ui`). Base
+  UI's component structure and controlled-prop names differ from Radix — when
+  touching a primitive, verify against the Base UI docs. Notably the `Slider`
+  wrapper is generic over its value: pass a single `number` for a single-thumb
+  slider (its `onValueChange` then yields a `number`), or a `number[]` for a
+  range.
 - `@/` path alias → `src/`, declared in `tsconfig.json`, `vite.config.ts`, AND
   `vitest.config.ts` (all three must agree or tests break). `cn()` is in
   `@/lib/utils`.
-- Fonts are **self-hosted** via `@fontsource/geist-sans` + `@fontsource/fira-code`
-  (imported in `main.tsx`). NEVER rely on a runtime CDN — the packaged app must
-  work offline. Geist = display/sans, Fira Code = mono (used for clocks, times,
-  ports, JSON — anything technical/numeric; pair with `tabular-nums`).
+- Fonts are **self-hosted** via `@fontsource-variable/inter` (imported in
+  `index.css`) + `@fontsource/fira-code` (imported in `main.tsx`). NEVER rely on
+  a runtime CDN — the packaged app must work offline. Inter = display/sans, Fira
+  Code = mono (used for clocks, times, ports, JSON — anything technical/numeric;
+  pair with `tabular-nums`).
 
 ---
 
@@ -67,6 +74,7 @@ names/casing. In particular for the overlay:
   any firing/speaking animation must be presentational only (never mutate the
   spoken set or the clock).
 
-shadcn `Switch`/`Slider`/`Select` are controlled Radix components: wire
-`checked`/`onCheckedChange`, `value`/`onValueChange` (Slider value is an array),
-mapping to the existing immutable state updates.
+shadcn `Switch`/`Slider`/`Select` are controlled Base UI components: wire
+`checked`/`onCheckedChange`, `value`/`onValueChange` (the `Slider` wrapper takes
+a single `number` for the single-thumb case), mapping to the existing immutable
+state updates.

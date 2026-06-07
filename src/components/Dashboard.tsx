@@ -27,16 +27,19 @@ function CardEyebrow({ children }: { children: React.ReactNode }) {
 }
 
 /** A label/value row inside a card (mockup `.kv`). */
-function KeyValue({ k, v, accent }: { k: string; v: React.ReactNode; accent?: boolean }) {
+function KeyValue({
+  k,
+  v,
+  accent,
+}: {
+  k: string;
+  v: React.ReactNode;
+  accent?: boolean;
+}) {
   return (
     <div className="flex justify-between border-t py-2 text-sm first:border-t-0">
       <span className="text-muted-foreground">{k}</span>
-      <span
-        className={cn(
-          "font-mono tabular-nums",
-          accent && "text-success",
-        )}
-      >
+      <span className={cn("font-mono tabular-nums", accent && "text-success")}>
         {v}
       </span>
     </div>
@@ -136,9 +139,7 @@ function RaceTile({ letter, me }: { letter: string; me?: boolean }) {
     <div
       className={cn(
         "grid size-[46px] place-items-center rounded-lg border font-mono text-[20px] font-bold",
-        me
-          ? "border-primary bg-primary text-primary-foreground"
-          : "bg-card",
+        me ? "border-primary bg-primary text-primary-foreground" : "bg-card",
       )}
     >
       {letter}
@@ -275,7 +276,8 @@ function BuildSelectCard({
                   onClick={() => onPick(s.filename)}
                   className={cn(
                     "flex w-full items-center justify-between gap-2.5 rounded-md border px-3 py-2.5 text-left text-sm transition-colors hover:border-foreground",
-                    active && "border-primary shadow-[inset_0_0_0_1px_var(--primary)]",
+                    active &&
+                      "border-primary shadow-[inset_0_0_0_1px_var(--primary)]",
                   )}
                 >
                   <span className="min-w-0 truncate">
@@ -353,9 +355,7 @@ function PreviewSteps({
   const upcoming = upcomingStepIndices(build, spoken, 4);
 
   if (upcoming.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">建造顺序已播完。</p>
-    );
+    return <p className="text-sm text-muted-foreground">建造顺序已播完。</p>;
   }
 
   return (
