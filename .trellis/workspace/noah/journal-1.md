@@ -672,3 +672,36 @@ Made app name + icon single-sourced from the Tauri backend instead of hardcoded 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 21: Global light/dark theme from Settings
+
+**Date**: 2026-06-07
+**Task**: Global light/dark theme from Settings
+**Branch**: `main`
+
+### Summary
+
+Replaced the overlay-only Moon toggle with a global theme (浅色/深色/跟随系统) chosen in Settings, applied to both the main window and overlay. Additive Settings.theme ('light'|'dark'|'system', default system) mirrored Rust serde↔TS↔normalize. New useApplyTheme hook toggles .dark on documentElement; 'system' follows prefers-color-scheme + reacts to OS changes live; applied in MainWindow + App(overlay), synced cross-window via SETTINGS_CHANGED. index.css: @custom-variant dark switched from overlay-scoped .theme-dark to global .dark; overlay dark-glass now via .dark .overlay-card (kept --ov-* tokens). SettingsPanel gained an 外观 segmented control. Removed the overlay Moon button + local darkTheme state. Updated settings.rs/lib/settings/useSettings tests + ui-system spec. 183 vitest, cargo 41, coverage held (useApplyTheme 100%), build green. Manual macOS confirm pending.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `375e735` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
