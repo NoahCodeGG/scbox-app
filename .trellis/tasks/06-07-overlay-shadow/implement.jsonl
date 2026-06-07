@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Overlay is transparent + content-fit; the card shadow must stay tight so no halo clips. Light + overlay-scoped dark theme both covered here."}

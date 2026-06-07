@@ -359,7 +359,7 @@ function App() {
       <div
         ref={cardRef}
         className={cn(
-          "overlay-card overflow-hidden rounded-[14px] border border-[color:var(--o-border)] bg-[color:var(--o-surface)] text-[color:var(--o-fg)] shadow-[0_18px_50px_-12px_rgba(0,0,0,0.55)] transition-opacity",
+          "overlay-card overflow-hidden rounded-[14px] border border-[color:var(--o-border)] bg-[color:var(--o-surface)] text-[color:var(--o-fg)] shadow-[0_2px_8px_rgba(0,0,0,0.18)] transition-opacity",
           darkTheme && "theme-dark",
           passthrough && "opacity-45",
         )}
