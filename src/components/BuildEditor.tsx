@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
 import { Plus, RotateCw, Save, Trash2 } from "lucide-react";
@@ -6,7 +6,7 @@ import { useBuildOrders } from "../hooks/useBuildOrders";
 import { raceLabel } from "../lib/format";
 import { supplyToTime } from "../lib/supplyTime";
 import { generateBuildFilename } from "../lib/buildFilename";
-import { exportBuildJson } from "../lib/buildTransfer";
+import { exportBuildJson, parseImportedBuild } from "../lib/buildTransfer";
 import {
   validateBuild,
   type DraftBuild,
@@ -26,8 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import BuildJsonPreview from "./BuildJsonPreview";
-import BuildTransferPanel from "./BuildTransferPanel";
+import BuildJsonEditor from "./BuildJsonEditor";
 
 /** Authoring races (Random is not a valid build race). */
 const AUTHOR_RACES = ["Terran", "Protoss", "Zerg"] as const;
@@ -104,6 +103,29 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/**
+ * Serialize the current form to pretty JSON for the editable pane. When the form
+ * validates, use the clean canonical export; otherwise build a plain object that
+ * mirrors the raw form fields so the pane still shows JSON mid-edit without
+ * crashing (the indicator will flag it invalid).
+ */
+function formToJson(form: EditorForm): string {
+  const result = validateBuild(toDraft(form));
+  if (result.ok) return exportBuildJson(result.build);
+
+  const lenient = {
+    matchup: `${raceNameToLetter(form.race)}v${form.opponent}`,
+    race: form.race,
+    leadTimeSec: form.leadTimeSec,
+    steps: form.steps.map((step) => ({
+      time: step.time,
+      say: step.say,
+      ...(step.supply.trim() !== "" ? { supply: step.supply } : {}),
+    })),
+  };
+  return JSON.stringify(lenient, null, 2);
+}
+
 /** Mono uppercase eyebrow label (mockup `.field label` / `.sect-label`). */
 function FieldLabel({
   htmlFor,
@@ -139,17 +161,15 @@ export default function BuildEditor() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  // Text mirror of the form for the editable JSON pane. The form stays the
+  // canonical source of truth; `jsonText` is regenerated from it ONLY while the
+  // pane is unfocused (see effect below), so typing never reformats mid-edit.
+  const [jsonText, setJsonText] = useState("");
+  const [jsonFocused, setJsonFocused] = useState(false);
+
   const existingFilenames = useMemo(
     () => stored.map((s) => s.filename),
     [stored],
-  );
-
-  const selectedBuild = useMemo(
-    () =>
-      selectedFilename === null
-        ? null
-        : stored.find((s) => s.filename === selectedFilename)?.build ?? null,
-    [stored, selectedFilename],
   );
 
   // Validate once per render to drive both the live preview and its filename.
@@ -159,6 +179,45 @@ export default function BuildEditor() {
     const derived = `${raceNameToLetter(form.race)}v${form.opponent}`;
     return generateBuildFilename(derived, existingFilenames);
   }, [selectedFilename, form.race, form.opponent, existingFilenames]);
+
+  // The pane's valid/invalid indicator reflects whether the CURRENT json text
+  // parses + validates (coincides with the form's `validateBuild` since
+  // `parseImportedBuild` delegates to it).
+  const jsonResult = useMemo(() => parseImportedBuild(jsonText), [jsonText]);
+
+  // form → JSON: regenerate the text mirror from the form, but only while the
+  // pane is unfocused so we never reformat under the user's cursor. Gating on
+  // `jsonFocused` also prevents a sync loop with the json → form handler.
+  useEffect(() => {
+    if (jsonFocused) return;
+    setJsonText(formToJson(form));
+  }, [form, jsonFocused]);
+
+  // json → form: a user edit/paste. Always mirror the raw text; only push into
+  // the form when it parses + validates, so invalid JSON can't corrupt the form.
+  function handleJsonChange(value: string): void {
+    setJsonText(value);
+    const parsed = parseImportedBuild(value);
+    if (parsed.ok) {
+      setForm(toForm(parsed.build));
+    }
+  }
+
+  function handleJsonFocusChange(focused: boolean): void {
+    setJsonFocused(focused);
+  }
+
+  async function handleCopyJson(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(jsonText);
+      setStatus({ kind: "success", message: "已复制到剪贴板" });
+    } catch {
+      setStatus({
+        kind: "error",
+        message: "复制失败，请手动选中文本并按 Cmd+C 复制",
+      });
+    }
+  }
 
   function selectBuild(filename: string, build: BuildOrder): void {
     setSelectedFilename(filename);
@@ -555,24 +614,18 @@ export default function BuildEditor() {
               )}
             </div>
 
-            <div className="mt-6 border-t pt-6">
-              <BuildTransferPanel
-                selectedBuild={selectedBuild}
-                existingFilenames={existingFilenames}
-                busy={busy}
-                setBusy={setBusy}
-                setStatus={setStatus}
-                reload={reload}
-              />
-            </div>
           </section>
 
-          {/* live JSON preview */}
+          {/* live, editable JSON pane (import = edit/paste, export = copy) */}
           <div className="lg:col-span-2 xl:col-span-1">
-            <BuildJsonPreview
+            <BuildJsonEditor
               filename={previewFilename}
-              json={result.ok ? exportBuildJson(result.build) : null}
-              error={result.ok ? null : result.error}
+              value={jsonText}
+              onChange={handleJsonChange}
+              valid={jsonResult.ok}
+              error={jsonResult.ok ? null : jsonResult.error}
+              onFocusChange={handleJsonFocusChange}
+              onCopy={() => void handleCopyJson()}
             />
           </div>
         </div>

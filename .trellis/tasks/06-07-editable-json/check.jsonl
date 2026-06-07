@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Verify the two-way JSON sync (focus-gated, invalid-safe) and no cursor-jump; conventions followed."}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Verify BuildTransferPanel removed, buildTransfer lib reused, no dead imports."}

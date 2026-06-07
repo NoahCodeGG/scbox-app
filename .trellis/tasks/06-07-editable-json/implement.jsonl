@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "The editable JSON pane + BuildEditor two-way sync follow component conventions (controlled textarea, focus-gated effect)."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "parseImportedBuild result narrowed; jsonText/focus state typed; no any."}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Reuse buildTransfer (export/parse); remove the now-redundant BuildTransferPanel without dropping the lib."}
