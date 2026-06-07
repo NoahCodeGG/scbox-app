@@ -112,18 +112,42 @@ fn exit_app() {
     std::process::exit(0);
 }
 
-/// Show and focus the build-order editor window (declared hidden in
-/// `tauri.conf.json`). Opening it lazily keeps the editor out of the way until
-/// the user asks for it.
+/// Show and focus the floating overlay window (declared hidden in
+/// `tauri.conf.json`). Launched from the dashboard's "启动悬浮窗" button.
 #[tauri::command]
-fn open_editor(app: tauri::AppHandle) -> Result<(), String> {
+fn open_overlay(app: tauri::AppHandle) -> Result<(), String> {
     let window = app
-        .get_webview_window("editor")
-        .ok_or_else(|| "editor window not found".to_string())?;
-    window.show().map_err(|e| format!("cannot show editor: {e}"))?;
+        .get_webview_window("overlay")
+        .ok_or_else(|| "overlay window not found".to_string())?;
+    window.show().map_err(|e| format!("cannot show overlay: {e}"))?;
     window
         .set_focus()
-        .map_err(|e| format!("cannot focus editor: {e}"))?;
+        .map_err(|e| format!("cannot focus overlay: {e}"))?;
+    Ok(())
+}
+
+/// Hide the floating overlay window without destroying it, so a later
+/// `open_overlay` can show it again.
+#[tauri::command]
+fn hide_overlay(app: tauri::AppHandle) -> Result<(), String> {
+    let window = app
+        .get_webview_window("overlay")
+        .ok_or_else(|| "overlay window not found".to_string())?;
+    window.hide().map_err(|e| format!("cannot hide overlay: {e}"))?;
+    Ok(())
+}
+
+/// Show and focus the main dashboard window. Used by the overlay's gear icon to
+/// surface the settings page in the main window.
+#[tauri::command]
+fn open_main(app: tauri::AppHandle) -> Result<(), String> {
+    let window = app
+        .get_webview_window("main")
+        .ok_or_else(|| "main window not found".to_string())?;
+    window.show().map_err(|e| format!("cannot show main: {e}"))?;
+    window
+        .set_focus()
+        .map_err(|e| format!("cannot focus main: {e}"))?;
     Ok(())
 }
 
@@ -144,7 +168,9 @@ pub fn run() {
             tts::stop_tts,
             tts::list_voices,
             exit_app,
-            open_editor
+            open_overlay,
+            hide_overlay,
+            open_main
         ])
         .setup(|app| {
             // Load settings early to seed shared state and restore window position.
@@ -170,50 +196,34 @@ pub fn run() {
             let tts_tx = tts::spawn_tts_worker();
             app.manage(tts::TtsHandle(tts_tx));
 
-            // Keep the editor window reusable: closing it should hide it (so a
-            // later `open_editor` can show it again) rather than destroy it,
-            // which would make `get_webview_window("editor")` return None.
-            if let Some(editor) = app.get_webview_window("editor") {
-                let editor_for_event = editor.clone();
-                editor.on_window_event(move |event| {
+            // Keep the overlay window reusable: closing it should hide it (so a
+            // later `open_overlay` can show it again) rather than destroy it,
+            // which would make `get_webview_window("overlay")` return None.
+            if let Some(overlay) = app.get_webview_window("overlay") {
+                let overlay_for_event = overlay.clone();
+                overlay.on_window_event(move |event| {
                     if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                         api.prevent_close();
-                        let _ = editor_for_event.hide();
+                        let _ = overlay_for_event.hide();
                     }
                 });
             }
 
-            // Restore window position from saved settings (if available) to avoid
-            // visible jump from default position on startup. Window starts hidden
-            // (tauri.conf.json visible: false), so we show it after positioning.
-            // Target the main overlay explicitly by label — the editor window
-            // also exists (hidden) so a generic "first window" lookup would be
-            // nondeterministic.
-            let window_opt = app.get_webview_window("main");
-
+            // Restore the OVERLAY window position from saved settings (if
+            // available) to avoid a visible jump from the default position. The
+            // overlay starts hidden (tauri.conf.json visible: false) and is shown
+            // on demand via `open_overlay`, so positioning it now is harmless. The
+            // main window is a normal OS window — its position is not persisted.
             if let Some(s) = settings {
                 if let (Some(x), Some(y)) = (s.window_x, s.window_y) {
-                    if let Some(window) = &window_opt {
+                    if let Some(overlay) = app.get_webview_window("overlay") {
                         let logical_pos = tauri::LogicalPosition::new(x, y);
-                        if let Err(e) = window.set_position(logical_pos) {
-                            eprintln!("Failed to restore window position: {e}");
+                        if let Err(e) = overlay.set_position(logical_pos) {
+                            eprintln!("Failed to restore overlay position: {e}");
                         }
                     }
                 }
             }
-
-            // Show the window after positioning (or immediately if no saved position).
-            // Use a small delay to allow the window manager to process the position
-            // change before showing, reducing visible flicker.
-            let window_for_show = window_opt.clone();
-            std::thread::spawn(move || {
-                std::thread::sleep(std::time::Duration::from_millis(50));
-                if let Some(window) = window_for_show {
-                    if let Err(e) = window.show() {
-                        eprintln!("Failed to show window: {e}");
-                    }
-                }
-            });
 
             // Register global shortcut to disable click-through from outside the window.
             // The shortcut emits an event that the frontend listens for.

@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/tauri/index.md", "reason": "Window model + lib.rs setup changes (show main, hidden overlay, commands); keep lib.rs thin and follow conventions."}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "Window-control permissions move to the overlay window's capability; main needs less. Least-privilege per window."}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "New open_overlay/hide_overlay/open_main commands + activeBuildOverride on save/load_settings must follow IPC + serde conventions."}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Adding Settings.activeBuildOverride is a cross-layer contract change (settings.rs serde + TS type) — keep in lockstep."}
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "MainWindow shell + pages reuse shadcn primitives/tokens; overlay-scoped behaviors per the UI system."}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "MainWindow/Dashboard/page components follow component conventions."}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Where MainWindow, pages, router, and the overlay entry live."}

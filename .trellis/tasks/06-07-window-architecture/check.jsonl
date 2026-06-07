@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Verify activeBuildOverride + new commands/events stay consistent across Rust and TS; no other contract drift."}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "Verify per-window capabilities are correct/minimal after moving window controls to the overlay."}
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Verify the shell/pages/overlay follow the UI system (drag region, overlay scoping, tokens)."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify routing/state and the new settings field are strictly typed; no any."}

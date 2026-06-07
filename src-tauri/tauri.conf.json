@@ -14,19 +14,20 @@
       {
         "label": "main",
         "title": "SCBox Assistant",
+        "width": 1000,
+        "height": 680,
+        "minWidth": 800,
+        "minHeight": 560,
+        "alwaysOnTop": false,
+        "resizable": true,
+        "visible": true
+      },
+      {
+        "label": "overlay",
+        "title": "SCBox Overlay",
         "width": 360,
         "height": 340,
         "alwaysOnTop": true,
-        "resizable": true,
-        "visible": false
-      },
-      {
-        "label": "editor",
-        "title": "建造顺序编辑器",
-        "width": 900,
-        "height": 700,
-        "minWidth": 600,
-        "minHeight": 400,
         "resizable": true,
         "visible": false
       }

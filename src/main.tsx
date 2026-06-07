@@ -11,11 +11,13 @@ import "@fontsource/fira-code/400.css";
 import "@fontsource/fira-code/500.css";
 import "@fontsource/fira-code/600.css";
 import App from "./App";
-import BuildEditor from "./components/BuildEditor";
+import MainWindow from "./components/MainWindow";
 
-// Both the overlay and the editor load the same bundle; render by window label.
-const isEditor = getCurrentWindow().label === "editor";
+// Both the main dashboard shell and the floating overlay load the same bundle;
+// render by window label. The overlay window renders the always-on-top coaching
+// UI (App); every other window (the "main" dashboard) renders MainWindow.
+const isOverlay = getCurrentWindow().label === "overlay";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  isEditor ? <BuildEditor /> : <App />,
+  isOverlay ? <App /> : <MainWindow />,
 );

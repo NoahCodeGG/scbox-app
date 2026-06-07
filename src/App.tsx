@@ -351,8 +351,8 @@ function App() {
               type="button"
               className={iconBtn}
               onClick={() => {
-                void invoke("open_editor").catch(() => {
-                  // Editor window failed to open; nothing actionable here.
+                void invoke("open_main").catch(() => {
+                  // Main window failed to focus; nothing actionable here.
                 });
               }}
               aria-label="编辑建造顺序"
