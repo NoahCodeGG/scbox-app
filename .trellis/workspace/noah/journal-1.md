@@ -573,3 +573,36 @@ Closing the main window destroyed it so the overlay's edit/settings buttons (ope
 ### Next Steps
 
 - None - task complete
+
+
+## Session 18: Finish Base UI migration; drop Radix + Geist
+
+**Date**: 2026-06-07
+**Task**: Finish Base UI migration; drop Radix + Geist
+**Branch**: `main`
+
+### Summary
+
+The user migrated shadcn primitives from Radix (radix-ui) to Base UI (@base-ui/react) but it didn't compile and left dead deps. Completed it: fixed the 2 tsc errors (Slider wrapper made generic over value so voiceRate flows a single number instead of value[0]; removed unused React import in scroll-area), verified Switch/Slider/Select/Dialog/Button/Input/etc. against Base UI APIs (Switch onCheckedChange + Dialog open/onOpenChange already matched; Select unchanged). Removed unused radix-ui dependency. Reconciled the font: Inter was already the live --font-sans (via @theme), so Geist was dead — removed @fontsource/geist-sans + its main.tsx imports, kept Inter + Fira Code. Updated frontend/ui-system.md to document Base UI + Inter. No behavior/IPC/type changes. 168 vitest, cargo 41, coverage held, build green. MANUAL TODO: macOS run-through of toggles/slider/select/dialog (runtime correctness of Base UI controls not fully caught by tsc).
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `00bb530` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
