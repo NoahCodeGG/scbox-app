@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 30
+- **Total Sessions**: 31
 - **Last Active**: 2026-06-07
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1004 | Active |
+| `journal-1.md` | ~1037 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 31 | 2026-06-07 | 移除 build step 人口字段 | `6d7845d` | `main` |
 | 30 | 2026-06-07 | Customizable click-through shortcut | `232d55c` | `main` |
 | 29 | 2026-06-07 | Fix overlay resize feedback-loop sliver | `a2187c6` | `main` |
 | 28 | 2026-06-07 | Overlay fixed content width (no width fluctuation) | `e3d7556` | `main` |

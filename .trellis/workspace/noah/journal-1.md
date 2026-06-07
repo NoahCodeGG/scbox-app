@@ -1002,3 +1002,36 @@ Made the 穿透模式 global shortcut configurable instead of hardcoded CmdOrCtr
 ### Next Steps
 
 - None - task complete
+
+
+## Session 31: 移除 build step 人口字段
+
+**Date**: 2026-06-07
+**Task**: 移除 build step 人口字段
+**Branch**: `main`
+
+### Summary
+
+将 BuildStep 简化为 time+say，删除 supply 字段及编辑器人口输入/估算与 supplyTime 工具，保留旧 JSON 向后兼容（serde 忽略未知字段），两端测试全绿。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6d7845d` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
