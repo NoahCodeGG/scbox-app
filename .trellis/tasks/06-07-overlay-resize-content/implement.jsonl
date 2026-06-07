@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Overlay content-fit sizing must measure the full content wrapper (card + auxiliary surfaces), or hints overflow the transparent window."}

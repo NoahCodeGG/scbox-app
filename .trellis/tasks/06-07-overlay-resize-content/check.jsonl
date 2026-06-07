@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Verify the resize observes the full content wrapper so passthrough/error hints fit without a scrollbar."}

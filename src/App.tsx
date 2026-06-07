@@ -284,23 +284,24 @@ function App() {
   useWindowControls({ settings, saveSettings });
 
   // Content-fit sizing (overlay only): keep the frameless, transparent window
-  // hugging the card so there is no empty chrome in any state (waiting banner vs
-  // live 3-step vs dark). Observe the card's measured size and resize the window
-  // to it plus the wrapper padding. `App` only renders in the overlay window, so
-  // this is inherently overlay-scoped.
-  const cardRef = useRef<HTMLDivElement | null>(null);
+  // hugging the full content so there is no empty chrome — or, when auxiliary
+  // surfaces (passthrough hint, settings/voice/load/parse errors) render outside
+  // the card, no overflow/scrollbar — in any state. Observe the `<main>` wrapper
+  // (which contains the card AND all auxiliary surfaces) and resize the window to
+  // its offset box. The wrapper's own `p-2` padding is included in
+  // offsetWidth/Height, so the card's drop shadow has room without an extra
+  // addition. `App` only renders in the overlay window, so this is inherently
+  // overlay-scoped.
+  const contentRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    const card = cardRef.current;
-    if (!card) return;
+    const el = contentRef.current;
+    if (!el) return;
 
     const appWindow = getCurrentWindow();
-    // `<main>` wrapper padding (Tailwind `p-2` = 8px) on each side; included so
-    // the card's drop shadow is not clipped.
-    const wrapperPadding = 8;
 
     const applySize = (): void => {
-      const width = Math.ceil(card.offsetWidth + wrapperPadding * 2);
-      const height = Math.ceil(card.offsetHeight + wrapperPadding * 2);
+      const width = Math.ceil(el.offsetWidth);
+      const height = Math.ceil(el.offsetHeight);
       void appWindow
         .setSize(new LogicalSize(width, height))
         .catch((e: unknown) => {
@@ -310,7 +311,7 @@ function App() {
 
     applySize();
     const observer = new ResizeObserver(() => applySize());
-    observer.observe(card);
+    observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
@@ -366,9 +367,8 @@ function App() {
     "grid size-[26px] place-items-center rounded-md border-0 bg-transparent text-[color:var(--o-muted)] transition-colors hover:bg-[color:color-mix(in_oklab,var(--o-fg),transparent_90%)] hover:text-[color:var(--o-fg)] [&_svg]:size-[15px]";
 
   return (
-    <main className="p-2">
+    <main ref={contentRef} className="p-2">
       <div
-        ref={cardRef}
         className={cn(
           "overlay-card overflow-hidden rounded-[14px] border border-[color:var(--o-border)] bg-[color:var(--o-surface)] text-[color:var(--o-fg)] shadow-[0_2px_8px_rgba(0,0,0,0.18)] transition-opacity",
           passthrough && "opacity-45",
