@@ -474,3 +474,36 @@ The transparent content-fit overlay showed a dark halo around the card — it wa
 ### Next Steps
 
 - None - task complete
+
+
+## Session 15: Overlay header drag region non-selectable
+
+**Date**: 2026-06-07
+**Task**: Overlay header drag region non-selectable
+**Branch**: `main`
+
+### Summary
+
+Dragging the overlay over the left header text (grip/matchup/race) selected text instead of moving the window. Added select-none to the data-tauri-drag-region title-bar div in App.tsx (user-select:none inherits to child spans) so the native window drag starts on mousedown; buttons still click via their existing onMouseDown stopPropagation. Noted the rule in frontend/ui-system.md. CSS-only; 168 vitest, cargo 41, coverage held, build green.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `2bfc400` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
