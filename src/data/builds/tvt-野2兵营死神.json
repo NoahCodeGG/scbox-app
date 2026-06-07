@@ -1,0 +1,24 @@
+{
+  "name": "TVT 野2兵营死神",
+  "matchup": "TvT",
+  "race": "Terran",
+  "leadTimeSec": 4,
+  "steps": [
+    { "time": 0,   "say": "SCV" },
+    { "time": 12,  "say": "SCV" },
+    { "time": 17,  "say": "补给站" },
+    { "time": 24,  "say": "SCV" },
+    { "time": 39,  "say": "兵营.气矿" },
+    { "time": 56,  "say": "兵营" },
+    { "time": 60,  "say": "SCV" },
+    { "time": 72,  "say": "SCV" },
+    { "time": 87,  "say": "死神.星轨" },
+    { "time": 92,  "say": "气矿" },
+    { "time": 105, "say": "死神.补给站" },
+    { "time": 113, "say": "SCV.矿骡" },
+    { "time": 121, "say": "死神" },
+    { "time": 127, "say": "SCV" },
+    { "time": 138, "say": "死神.补给站" },
+    { "time": 140, "say": "进攻" }
+  ]
+}
