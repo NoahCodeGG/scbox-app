@@ -368,7 +368,7 @@ function App() {
             stay clickable (children without the attr are interactive). */}
         <div
           data-tauri-drag-region
-          className="flex cursor-grab items-center justify-between border-b border-[color:var(--o-border)] bg-[color:var(--o-raise)] px-3 py-2 active:cursor-grabbing"
+          className="flex cursor-grab select-none items-center justify-between border-b border-[color:var(--o-border)] bg-[color:var(--o-raise)] px-3 py-2 active:cursor-grabbing"
         >
           <div className="flex min-w-0 items-center gap-2">
             <span className="font-mono text-[12px] tracking-[1px] text-[color:var(--o-muted)]">

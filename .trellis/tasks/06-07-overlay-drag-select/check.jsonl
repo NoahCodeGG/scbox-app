@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Verify the drag bar is non-selectable and dragging over header text works while buttons still click."}

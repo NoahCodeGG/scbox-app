@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Drag-region rule: the overlay title bar must be non-selectable so dragging over text moves the window; buttons opt out via stopPropagation."}

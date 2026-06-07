@@ -56,6 +56,9 @@ names/casing. In particular for the overlay:
 - The title bar MUST keep `data-tauri-drag-region`; interactive controls are
   children WITHOUT that attribute so they stay clickable. Making the whole card
   a drag region breaks all clicks.
+- The drag bar MUST be `select-none` (`user-select: none`, inherits to child
+  text spans) so dragging over its grip/matchup/race text starts the window
+  drag instead of selecting text.
 - Keep `useInterpolatedClock` / `useBuildOrderVoice` / countdown math intact;
   any firing/speaking animation must be presentational only (never mutate the
   spoken set or the clock).
