@@ -397,8 +397,8 @@ function PreviewSteps({
             key={idx}
             ref={next ? nextRef : null}
             className={cn(
-              "grid grid-cols-[54px_1fr_auto] items-center gap-3 rounded-lg border-t px-2 py-2.5 text-sm first:border-t-0",
-              next && "border-t-0 bg-primary/5",
+              "grid grid-cols-[54px_1fr_auto] items-center gap-3 border-t px-2 py-2.5 text-sm first:border-t-0",
+              next && "rounded-lg border-t-0 bg-primary/5",
               afterNext && "border-t-0",
             )}
           >
