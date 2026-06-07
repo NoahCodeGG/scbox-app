@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Verify the overlay content is fixed-width (hints wrap), so toggling passthrough changes only height, not width."}

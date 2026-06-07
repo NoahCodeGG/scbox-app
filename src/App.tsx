@@ -196,7 +196,9 @@ function BuildPanel({
             <span
               className={cn(
                 "truncate text-[color:var(--o-fg)]",
-                isImminent ? "text-[17px] font-semibold" : "text-[14px] font-medium",
+                isImminent
+                  ? "text-[17px] font-semibold"
+                  : "text-[14px] font-medium",
               )}
             >
               {step.say}
@@ -209,7 +211,11 @@ function BuildPanel({
                   : "text-[13px] text-[color:var(--o-muted)]",
               )}
             >
-              {countdown !== null ? (countdown > 0 ? `-${countdown}s` : "现在") : ""}
+              {countdown !== null
+                ? countdown > 0
+                  ? `-${countdown}s`
+                  : "现在"
+                : ""}
             </span>
           </div>
         );
@@ -270,8 +276,12 @@ function App() {
   const currentTime = useInterpolatedClock(snapshot);
   const { builds, stored, errors, loadError, reload } = useBuildOrders();
   const { needsInstallHint } = useVoiceCapability();
-  const { settings, saveSettings, reload: reloadSettings, error: settingsError } =
-    useSettings();
+  const {
+    settings,
+    saveSettings,
+    reload: reloadSettings,
+    error: settingsError,
+  } = useSettings();
   const [hintDismissed, setHintDismissed] = useState(false);
   const [speaking, setSpeaking] = useState(false);
 
@@ -368,176 +378,186 @@ function App() {
 
   return (
     <main ref={contentRef} className="p-2">
-      <div
-        className={cn(
-          "overlay-card overflow-hidden rounded-[14px] border border-[color:var(--o-border)] bg-[color:var(--o-surface)] text-[color:var(--o-fg)] shadow-[0_2px_8px_rgba(0,0,0,0.18)] transition-opacity",
-          passthrough && "opacity-45",
-        )}
-      >
-        {/* Title bar = drag region. Icon buttons opt out of dragging so they
-            stay clickable (children without the attr are interactive). */}
+      {/* Fixed-width content column (328px mockup design width). Wrapping the
+          card AND the auxiliary surfaces here keeps the content-fit measured
+          width constant: hints/errors wrap within 328px instead of widening
+          `<main>`, so toggling passthrough only changes height. */}
+      <div className="w-[328px]">
         <div
-          data-tauri-drag-region
-          className="flex cursor-grab select-none items-center justify-between border-b border-[color:var(--o-border)] bg-[color:var(--o-raise)] px-3 py-2 active:cursor-grabbing"
+          className={cn(
+            "overlay-card overflow-hidden rounded-[14px] border border-[color:var(--o-border)] bg-[color:var(--o-surface)] text-[color:var(--o-fg)] shadow-[0_2px_8px_rgba(0,0,0,0.18)] transition-opacity",
+            passthrough && "opacity-45",
+          )}
         >
-          <div className="pointer-events-none flex min-w-0 items-center gap-2">
-            <span className="font-mono text-[12px] tracking-[1px] text-[color:var(--o-muted)]">
-              ⠿
-            </span>
-            <MatchupLabel matchup={activeBuild.matchup} />
-            <span className="truncate text-[11px] text-[color:var(--o-muted)]">
-              {raceLabel(activeBuild.race)}
-            </span>
+          {/* Title bar = drag region. Icon buttons opt out of dragging so they
+            stay clickable (children without the attr are interactive). */}
+          <div
+            data-tauri-drag-region
+            className="flex cursor-grab select-none items-center justify-between border-b border-[color:var(--o-border)] bg-[color:var(--o-raise)] px-3 py-2 active:cursor-grabbing"
+          >
+            <div className="pointer-events-none flex min-w-0 items-center gap-2">
+              <span className="font-mono text-[12px] tracking-[1px] text-[color:var(--o-muted)]">
+                ⠿
+              </span>
+              <MatchupLabel matchup={activeBuild.matchup} />
+              <span className="truncate text-[11px] text-[color:var(--o-muted)]">
+                {raceLabel(activeBuild.race)}
+              </span>
+            </div>
+            <div className="flex shrink-0 items-center gap-0.5">
+              <button
+                type="button"
+                className={iconBtn}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={reload}
+                aria-label="重载建造顺序"
+              >
+                <RotateCw />
+              </button>
+              <button
+                type="button"
+                className={iconBtn}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={() => {
+                  void invoke("open_main").catch(() => {
+                    // Main window failed to focus; nothing actionable here.
+                  });
+                }}
+                aria-label="编辑建造顺序"
+              >
+                <Pencil />
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  iconBtn,
+                  passthrough && "text-[color:var(--o-accent)]",
+                )}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={() => {
+                  void saveSettings({
+                    ...settings,
+                    clickThrough: !settings.clickThrough,
+                  });
+                }}
+                aria-pressed={passthrough}
+                aria-label="穿透模式"
+                title="穿透模式（Ctrl+Shift+S 解除）"
+              >
+                <MousePointer2 />
+              </button>
+              <button
+                type="button"
+                className={iconBtn}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={() => {
+                  void invoke("open_main").catch(() => {
+                    // Main window failed to focus; nothing actionable here.
+                  });
+                }}
+                aria-label="设置"
+              >
+                <SettingsIcon />
+              </button>
+            </div>
           </div>
-          <div className="flex shrink-0 items-center gap-0.5">
-            <button
-              type="button"
-              className={iconBtn}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={reload}
-              aria-label="重载建造顺序"
-            >
-              <RotateCw />
-            </button>
-            <button
-              type="button"
-              className={iconBtn}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={() => {
-                void invoke("open_main").catch(() => {
-                  // Main window failed to focus; nothing actionable here.
-                });
-              }}
-              aria-label="编辑建造顺序"
-            >
-              <Pencil />
-            </button>
-            <button
-              type="button"
-              className={cn(
-                iconBtn,
-                passthrough && "text-[color:var(--o-accent)]",
-              )}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={() => {
-                void saveSettings({
-                  ...settings,
-                  clickThrough: !settings.clickThrough,
-                });
-              }}
-              aria-pressed={passthrough}
-              aria-label="穿透模式"
-              title="穿透模式（Ctrl+Shift+S 解除）"
-            >
-              <MousePointer2 />
-            </button>
-            <button
-              type="button"
-              className={iconBtn}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={() => {
-                void invoke("open_main").catch(() => {
-                  // Main window failed to focus; nothing actionable here.
-                });
-              }}
-              aria-label="设置"
-            >
-              <SettingsIcon />
-            </button>
-          </div>
+
+          {showBuild ? (
+            <>
+              {/* Clock + connection */}
+              <div className="flex items-center justify-between px-3.5 pt-2.5 pb-1">
+                <span className="font-mono text-[26px] font-semibold tabular-nums tracking-[0.02em] text-[color:var(--o-fg)]">
+                  {formatGameTime(snapshot.display_time)}
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-[color:var(--o-muted)]">
+                  <span
+                    className="ov-dot size-[7px] rounded-full"
+                    aria-hidden
+                  />
+                  {connText(state, settings.clientApiPort)}
+                </span>
+              </div>
+
+              <BuildPanel
+                build={activeBuild}
+                snapshot={snapshot}
+                currentTime={currentTime}
+                settings={settings}
+                onSpeakingChange={setSpeaking}
+              />
+
+              {/* Footer: voice + lead time */}
+              <div className="flex items-center justify-between border-t border-[color:var(--o-border)] px-3.5 pt-2 pb-3">
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1.5 font-mono text-[11px] [&_svg]:size-[13px]",
+                    speaking
+                      ? "text-[color:var(--o-accent)]"
+                      : "text-[color:var(--o-muted)]",
+                  )}
+                >
+                  <Volume2 />
+                  {settings.voiceEnabled
+                    ? `语音 开 · ${settings.voiceRate.toFixed(1)}×`
+                    : "语音 关"}
+                </span>
+                <span className="font-mono text-[11px] text-[color:var(--o-muted)]">
+                  提前 {leadTime}s 播报
+                </span>
+              </div>
+            </>
+          ) : (
+            <OverlayBanner state={state} port={settings.clientApiPort} />
+          )}
         </div>
 
-        {showBuild ? (
-          <>
-            {/* Clock + connection */}
-            <div className="flex items-center justify-between px-3.5 pt-2.5 pb-1">
-              <span className="font-mono text-[26px] font-semibold tabular-nums tracking-[0.02em] text-[color:var(--o-fg)]">
-                {formatGameTime(snapshot.display_time)}
-              </span>
-              <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-[color:var(--o-muted)]">
-                <span className="ov-dot size-[7px] rounded-full" aria-hidden />
-                {connText(state, settings.clientApiPort)}
-              </span>
-            </div>
-
-            <BuildPanel
-              build={activeBuild}
-              snapshot={snapshot}
-              currentTime={currentTime}
-              settings={settings}
-              onSpeakingChange={setSpeaking}
-            />
-
-            {/* Footer: voice + lead time */}
-            <div className="flex items-center justify-between border-t border-[color:var(--o-border)] px-3.5 pt-2 pb-3">
-              <span
-                className={cn(
-                  "inline-flex items-center gap-1.5 font-mono text-[11px] [&_svg]:size-[13px]",
-                  speaking
-                    ? "text-[color:var(--o-accent)]"
-                    : "text-[color:var(--o-muted)]",
-                )}
-              >
-                <Volume2 />
-                {settings.voiceEnabled
-                  ? `语音 开 · ${settings.voiceRate.toFixed(1)}×`
-                  : "语音 关"}
-              </span>
-              <span className="font-mono text-[11px] text-[color:var(--o-muted)]">
-                提前 {leadTime}s 播报
-              </span>
-            </div>
-          </>
-        ) : (
-          <OverlayBanner state={state} port={settings.clientApiPort} />
-        )}
-      </div>
-
-      {/* Auxiliary surfaces — outside the overlay card so they don't disturb
+        {/* Auxiliary surfaces — outside the overlay card so they don't disturb
           the live coaching layout. Settings, updates, and the connection
           diagnostic now live in the main window (the gear icon focuses it); the
           overlay keeps only the load hints. */}
-      {settingsError && (
-        <div className="mt-2 rounded-md bg-destructive/10 px-2.5 py-1.5 text-[13px] text-destructive">
-          无法保存设置：{settingsError}
-        </div>
-      )}
+        {settingsError && (
+          <div className="mt-2 rounded-md bg-destructive/10 px-2.5 py-1.5 text-[13px] text-destructive">
+            无法保存设置：{settingsError}
+          </div>
+        )}
 
-      {needsInstallHint && !hintDismissed && (
-        <div className="mt-2 flex items-center gap-2 rounded-md bg-warning/10 px-2.5 py-1.5 text-[12px] text-warning">
-          <span>未检测到中文语音，请在系统中安装中文语音包以启用语音播报</span>
-          <button
-            type="button"
-            className="ml-auto shrink-0 text-[15px] leading-none text-muted-foreground hover:text-foreground"
-            onClick={() => setHintDismissed(true)}
-            aria-label="关闭提示"
-          >
-            ×
-          </button>
-        </div>
-      )}
+        {needsInstallHint && !hintDismissed && (
+          <div className="mt-2 flex items-center gap-2 rounded-md bg-warning/10 px-2.5 py-1.5 text-[12px] text-warning">
+            <span>
+              未检测到中文语音，请在系统中安装中文语音包以启用语音播报
+            </span>
+            <button
+              type="button"
+              className="ml-auto shrink-0 text-[15px] leading-none text-muted-foreground hover:text-foreground"
+              onClick={() => setHintDismissed(true)}
+              aria-label="关闭提示"
+            >
+              ×
+            </button>
+          </div>
+        )}
 
-      {loadError && (
-        <div className="mt-2 rounded-md bg-destructive/10 px-2.5 py-1.5 text-[13px] text-destructive">
-          无法加载建造顺序：{loadError}
-        </div>
-      )}
-      {errors.length > 0 && (
-        <ul className="mt-2 list-none rounded-md bg-warning/10 px-2.5 py-1.5 text-[12px] text-warning">
-          {errors.map((message) => (
-            <li key={message}>{message}</li>
-          ))}
-        </ul>
-      )}
+        {loadError && (
+          <div className="mt-2 rounded-md bg-destructive/10 px-2.5 py-1.5 text-[13px] text-destructive">
+            无法加载建造顺序：{loadError}
+          </div>
+        )}
+        {errors.length > 0 && (
+          <ul className="mt-2 list-none rounded-md bg-warning/10 px-2.5 py-1.5 text-[12px] text-warning">
+            {errors.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        )}
 
-      {passthrough && (
-        <div className="mt-2 text-center font-mono text-[11px] text-muted-foreground">
-          穿透模式开启 · 按 Ctrl+Shift+S 解除
-        </div>
-      )}
+        {passthrough && (
+          <div className="mt-2 text-center font-mono text-[11px] text-muted-foreground">
+            穿透模式开启 · 按 Ctrl+Shift+S 解除
+          </div>
+        )}
+      </div>
     </main>
   );
 }
 
 export default App;
-

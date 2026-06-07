@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Overlay should have a fixed content width (design 328px) so auxiliary hints wrap and don't change the window width; only height auto-fits."}
