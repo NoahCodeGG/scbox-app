@@ -36,6 +36,7 @@ const SETTINGS: Settings = {
   clickThrough: true,
   windowX: null,
   windowY: null,
+  activeBuildOverride: null,
 };
 
 /** A close-requested event carrying a preventDefault spy. */

@@ -10,22 +10,32 @@ import { useVoiceCapability } from "./hooks/useVoiceCapability";
 import { useSettings } from "./hooks/useSettings";
 import { useWindowControls } from "./hooks/useWindowControls";
 import { useConnectionDiagnostic } from "./hooks/useConnectionDiagnostic";
-import { useUpdateCheck } from "./hooks/useUpdateCheck";
-import SettingsPanel from "./components/SettingsPanel";
 import DiagnosticPanel from "./components/DiagnosticPanel";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FALLBACK_BUILD } from "./lib/builds";
 import { identifyMatchup, parseMatchup, selectBuild } from "./lib/matchup";
 import { formatGameTime, raceLabel } from "./lib/format";
 import { upcomingStepIndices } from "./lib/schedule";
-import { BUILDS_CHANGED_EVENT } from "./lib/events";
+import { BUILDS_CHANGED_EVENT, SETTINGS_CHANGED_EVENT } from "./lib/events";
 import type { Settings } from "./hooks/useSettings";
-import type { BuildOrder } from "./types/build";
+import type { BuildOrder, StoredBuild } from "./types/build";
 import type { GameSnapshot } from "./types/sc2";
 
 /** The current connection/coaching state derived from the live snapshot. */
 type OverlayState = "live" | "waiting" | "replay" | "disconnected";
+
+/**
+ * Resolve the manually-overridden build by filename within the loaded set. A
+ * null override (auto) or a filename no longer present yields null so the caller
+ * falls back to the matchup auto-selection.
+ */
+function resolveOverride(
+  stored: StoredBuild[],
+  override: string | null,
+): BuildOrder | null {
+  if (override === null) return null;
+  return stored.find((s) => s.filename === override)?.build ?? null;
+}
 
 function overlayState(snapshot: GameSnapshot): OverlayState {
   if (!snapshot.connected) return "disconnected";
@@ -252,16 +262,15 @@ function OverlayBanner({ state, port }: { state: OverlayState; port: number }) {
 function App() {
   const { snapshot, refetch } = useGameSnapshot();
   const currentTime = useInterpolatedClock(snapshot);
-  const { builds, errors, loadError, reload } = useBuildOrders();
+  const { builds, stored, errors, loadError, reload } = useBuildOrders();
   const { needsInstallHint } = useVoiceCapability();
-  const { settings, saveSettings, error: settingsError } = useSettings();
+  const { settings, saveSettings, reload: reloadSettings, error: settingsError } =
+    useSettings();
   const [hintDismissed, setHintDismissed] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [darkTheme, setDarkTheme] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const { showDiagnostic, openDiagnostic, closeDiagnostic } =
     useConnectionDiagnostic(snapshot.connected);
-  const update = useUpdateCheck();
 
   // Apply window position, click-through, and listen for global shortcut.
   useWindowControls({ settings, saveSettings });
@@ -276,7 +285,7 @@ function App() {
     wasInGameRef.current = snapshot.in_game;
   }, [snapshot.in_game, reload]);
 
-  // Reload immediately when the editor window saves/deletes a build, so the
+  // Reload immediately when the main window saves/deletes a build, so the
   // overlay reflects edits without waiting for the next game or a manual reload.
   useEffect(() => {
     const unlisten = listen(BUILDS_CHANGED_EVENT, () => reload());
@@ -285,16 +294,29 @@ function App() {
     };
   }, [reload]);
 
-  // Re-pick the active build for the detected matchup. When live with a known
-  // matchup, select by my/opponent race; otherwise guide with the first loaded
-  // build. Either path falls back to the bundled build when nothing loaded.
+  // Reload settings live when the main window saves them (Q4): click-through,
+  // voice, lead-time, and the active-build override all take effect at once.
+  useEffect(() => {
+    const unlisten = listen(SETTINGS_CHANGED_EVENT, () => {
+      void reloadSettings();
+    });
+    return () => {
+      void unlisten.then((off) => off());
+    };
+  }, [reloadSettings]);
+
+  // The active build = the manual override (looked up by filename in the loaded
+  // set) when set, else the matchup auto-selection (Q2). When live with a known
+  // matchup, auto-select by race; otherwise guide with the first loaded build.
+  // Either path falls back to the bundled build when nothing loaded.
   const matchup = snapshot.in_game ? identifyMatchup(snapshot.players) : null;
-  const selected = matchup
+  const overridden = resolveOverride(stored, settings.activeBuildOverride);
+  const autoSelected = matchup
     ? selectBuild(builds, matchup.myRace, matchup.oppRace)
     : builds.length > 0
       ? builds[0]
       : null;
-  const activeBuild: BuildOrder = selected ?? FALLBACK_BUILD;
+  const activeBuild: BuildOrder = overridden ?? autoSelected ?? FALLBACK_BUILD;
 
   const state = overlayState(snapshot);
   const showBuild = state === "live";
@@ -371,9 +393,12 @@ function App() {
             <button
               type="button"
               className={iconBtn}
-              onClick={() => setSettingsOpen((open) => !open)}
+              onClick={() => {
+                void invoke("open_main").catch(() => {
+                  // Main window failed to focus; nothing actionable here.
+                });
+              }}
               aria-label="设置"
-              aria-expanded={settingsOpen}
             >
               <SettingsIcon />
             </button>
@@ -427,46 +452,20 @@ function App() {
       </div>
 
       {/* Auxiliary surfaces — outside the overlay card so they don't disturb
-          the live coaching layout, but preserved from the prior behavior. */}
-      {update.available && update.version && (
-        <div className="mt-2 flex items-center gap-2 rounded-md bg-success/10 px-2.5 py-1.5 text-[12px] text-success">
-          <span>新版本 v{update.version} 可用</span>
-          <Button
-            type="button"
-            size="xs"
-            className="ml-auto"
-            onClick={() => {
-              void update.install();
-            }}
-            disabled={update.busy}
-          >
-            {update.busy ? "更新中…" : "更新"}
-          </Button>
-        </div>
-      )}
-
-      {settingsOpen && (
-        <div className="mt-2">
-          <SettingsPanel
-            settings={settings}
-            onSave={saveSettings}
-            onClose={() => setSettingsOpen(false)}
-            onCheckUpdate={update.check}
-            updateBusy={update.busy}
-            updateAvailable={update.available}
-            updateVersion={update.version}
-            updateUpToDate={update.upToDate}
-            updateError={update.error}
-          />
-        </div>
-      )}
-
+          the live coaching layout. Settings + updates now live in the main
+          window (the gear icon focuses it); the overlay keeps only the
+          connection diagnostic + load hints. */}
       <DiagnosticPanel
         isOpen={showDiagnostic}
         currentPort={settings.clientApiPort}
         status={snapshot.status}
         onClose={closeDiagnostic}
-        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenSettings={() => {
+          // Settings live in the main window now; focus it to change the port.
+          void invoke("open_main").catch(() => {
+            // Main window failed to focus; nothing actionable here.
+          });
+        }}
         onRetry={refetch}
       />
 

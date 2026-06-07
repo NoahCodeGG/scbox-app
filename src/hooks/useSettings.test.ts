@@ -9,6 +9,13 @@ vi.mock("@tauri-apps/api/core", () => ({
   invoke: invokeMock,
 }));
 
+const { emitMock } = vi.hoisted(() => ({
+  emitMock: vi.fn(() => Promise.resolve()),
+}));
+vi.mock("@tauri-apps/api/event", () => ({
+  emit: emitMock,
+}));
+
 const DEFAULT_SETTINGS: Settings = {
   clientApiPort: 6119,
   leadTimeSecOverride: null,
@@ -17,11 +24,13 @@ const DEFAULT_SETTINGS: Settings = {
   clickThrough: false,
   windowX: null,
   windowY: null,
+  activeBuildOverride: null,
 };
 
 describe("useSettings", () => {
   beforeEach(() => {
     resetTauriMocks();
+    emitMock.mockClear();
   });
 
   it("loads settings on mount and normalizes them", async () => {
@@ -72,6 +81,8 @@ describe("useSettings", () => {
     expect(result.current.settings).toEqual(expected);
     expect(result.current.settings.voiceRate).toBe(2.0); // clamped
     expect(result.current.error).toBeNull();
+    // A successful save notifies other windows to reload settings live.
+    expect(emitMock).toHaveBeenCalledWith("settings://changed");
   });
 
   it("sets error when the save command rejects", async () => {
@@ -86,5 +97,39 @@ describe("useSettings", () => {
     });
 
     expect(result.current.error).toBe("save boom");
+  });
+
+  it("reloads settings from disk on demand", async () => {
+    invokeMock.mockResolvedValueOnce(DEFAULT_SETTINGS); // initial load
+    const { result } = renderHook(() => useSettings());
+    await waitFor(() => expect(invokeMock).toHaveBeenCalledWith("load_settings"));
+
+    const updated: Settings = {
+      ...DEFAULT_SETTINGS,
+      activeBuildOverride: "tvp.json",
+      clickThrough: true,
+    };
+    invokeMock.mockResolvedValueOnce(updated); // reload
+
+    await act(async () => {
+      await result.current.reload();
+    });
+
+    expect(result.current.settings).toEqual(normalizeSettings(updated));
+    expect(result.current.error).toBeNull();
+  });
+
+  it("sets error when reload rejects", async () => {
+    invokeMock.mockResolvedValueOnce(DEFAULT_SETTINGS); // initial load
+    const { result } = renderHook(() => useSettings());
+    await waitFor(() => expect(invokeMock).toHaveBeenCalledWith("load_settings"));
+
+    invokeMock.mockRejectedValueOnce(new Error("reload boom"));
+
+    await act(async () => {
+      await result.current.reload();
+    });
+
+    expect(result.current.error).toBe("reload boom");
   });
 });

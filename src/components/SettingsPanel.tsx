@@ -14,8 +14,8 @@ interface SettingsPanelProps {
   settings: Settings;
   /** Persist edited settings (normalization happens in the hook). */
   onSave: (next: Settings) => void;
-  /** Close the panel without further action. */
-  onClose: () => void;
+  /** Optional close callback (overlay popover used this; the page is a no-op). */
+  onClose?: () => void;
   /** Trigger a manual update check (lifted to App so there is one source). */
   onCheckUpdate: () => Promise<void>;
   /** True while an update check/install is in flight. */
@@ -89,7 +89,7 @@ function SettingsPanel({
 
   const submit = (): void => {
     onSave(draft);
-    onClose();
+    onClose?.();
   };
 
   const statusText = updateStatusText({
@@ -112,15 +112,6 @@ function SettingsPanel({
             改动持久化后即时生效
           </p>
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          onClick={onClose}
-          aria-label="关闭设置"
-        >
-          ×
-        </Button>
       </header>
 
       <Card className="gap-0 overflow-hidden py-0">

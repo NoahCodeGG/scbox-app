@@ -54,6 +54,19 @@ export function normalizeLeadTimeOverride(
 }
 
 /**
+ * Normalize the active-build override: `null` (auto matchup selection) is
+ * preserved, an explicit non-empty filename is kept, and an empty string or
+ * `undefined` coerces to `null`.
+ */
+export function normalizeActiveBuildOverride(
+  override: string | null | undefined,
+): string | null {
+  if (override === null || override === undefined) return null;
+  const trimmed = override.trim();
+  return trimmed === "" ? null : trimmed;
+}
+
+/**
  * Produce a fully-valid `Settings` from a possibly-out-of-range one. Applied
  * after loading (defending against a hand-edited settings.json) and before
  * saving (defending against UI input).
@@ -67,5 +80,6 @@ export function normalizeSettings(raw: Settings): Settings {
     clickThrough: raw.clickThrough,
     windowX: raw.windowX,
     windowY: raw.windowY,
+    activeBuildOverride: normalizeActiveBuildOverride(raw.activeBuildOverride),
   };
 }

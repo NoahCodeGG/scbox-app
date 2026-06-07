@@ -62,6 +62,9 @@ pub struct Settings {
     /// Persisted window Y position (logical pixels). `None` uses Tauri's default.
     #[serde(default)]
     pub window_y: Option<f64>,
+    /// Manually-chosen active build filename; `None` uses matchup auto-select.
+    #[serde(default)]
+    pub active_build_override: Option<String>,
 }
 
 impl Default for Settings {
@@ -74,6 +77,7 @@ impl Default for Settings {
             click_through: false,
             window_x: None,
             window_y: None,
+            active_build_override: None,
         }
     }
 }
@@ -157,6 +161,7 @@ mod tests {
         assert!(!s.click_through);
         assert_eq!(s.window_x, None);
         assert_eq!(s.window_y, None);
+        assert_eq!(s.active_build_override, None);
     }
 
     #[test]
@@ -169,6 +174,7 @@ mod tests {
         assert!(!s.click_through);
         assert_eq!(s.window_x, None);
         assert_eq!(s.window_y, None);
+        assert_eq!(s.active_build_override, None);
     }
 
     #[test]
@@ -180,7 +186,8 @@ mod tests {
             "voiceRate": 1.5,
             "clickThrough": true,
             "windowX": 100.0,
-            "windowY": 200.0
+            "windowY": 200.0,
+            "activeBuildOverride": "tvp.json"
         }"#;
         let s = parse_settings(json).unwrap();
         assert_eq!(s.client_api_port, 5000);
@@ -190,6 +197,7 @@ mod tests {
         assert!(s.click_through);
         assert_eq!(s.window_x, Some(100.0));
         assert_eq!(s.window_y, Some(200.0));
+        assert_eq!(s.active_build_override, Some("tvp.json".to_string()));
     }
 
     #[test]
@@ -219,6 +227,7 @@ mod tests {
             click_through: true,
             window_x: Some(150.0),
             window_y: Some(250.0),
+            active_build_override: Some("tvz.json".to_string()),
         };
         let json = serialize_settings(&original).unwrap();
         let parsed = parse_settings(&json).unwrap();

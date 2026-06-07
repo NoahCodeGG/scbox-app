@@ -67,6 +67,7 @@ describe("normalizeSettings", () => {
     clickThrough: false,
     windowX: null,
     windowY: null,
+    activeBuildOverride: null,
   };
 
   it("passes a valid settings object through unchanged", () => {
@@ -82,6 +83,7 @@ describe("normalizeSettings", () => {
       clickThrough: true,
       windowX: 100,
       windowY: 200,
+      activeBuildOverride: "  ",
     });
     expect(repaired).toEqual({
       clientApiPort: 6119,
@@ -91,6 +93,14 @@ describe("normalizeSettings", () => {
       clickThrough: true,
       windowX: 100,
       windowY: 200,
+      activeBuildOverride: null,
     });
+  });
+
+  it("preserves a non-empty active build override", () => {
+    expect(
+      normalizeSettings({ ...valid, activeBuildOverride: " tvp.json " })
+        .activeBuildOverride,
+    ).toBe("tvp.json");
   });
 });
