@@ -5,7 +5,7 @@
 // change — transport is plain clipboard/text JSON (see the task PRD, Q1–Q3).
 
 import { validateBuild, type DraftBuild, type DraftStep } from "./buildValidation";
-import type { BuildOrder, BuildStep } from "../types/build";
+import type { BuildOrder } from "../types/build";
 
 /** Result of parsing imported text — mirrors `validateBuild`'s shape. */
 export type ImportResult =
@@ -14,19 +14,15 @@ export type ImportResult =
 
 /**
  * Serialize a build to pretty (2-space) JSON containing exactly the on-disk
- * contract fields — matchup, race, leadTimeSec, and each step's time/say (plus
- * supply only when defined). Never leaks loader metadata such as `filename`.
+ * contract fields — matchup, race, leadTimeSec, and each step's time/say. Never
+ * leaks loader metadata such as `filename`.
  */
 export function exportBuildJson(build: BuildOrder): string {
   const clean = {
     matchup: build.matchup,
     race: build.race,
     leadTimeSec: build.leadTimeSec,
-    steps: build.steps.map((step) => {
-      const out: BuildStep = { time: step.time, say: step.say };
-      if (step.supply !== undefined) out.supply = step.supply;
-      return out;
-    }),
+    steps: build.steps.map((step) => ({ time: step.time, say: step.say })),
   };
   return JSON.stringify(clean, null, 2);
 }
@@ -54,7 +50,6 @@ function toDraftStep(value: unknown): DraftStep {
   return {
     time: toFieldString(obj.time),
     say: toFieldString(obj.say),
-    supply: toFieldString(obj.supply),
   };
 }
 
@@ -65,7 +60,7 @@ function toDraftStep(value: unknown): DraftStep {
  * 3. If `steps` is present it must be an array (missing → treated as empty).
  * 4. Coerce fields to a `DraftBuild` and delegate to `validateBuild`, reusing
  *    every existing rule (required matchup/race, numeric/non-negative time,
- *    supply checks, ascending sort).
+ *    ascending sort).
  */
 export function parseImportedBuild(text: string): ImportResult {
   let parsed: unknown;

@@ -4,7 +4,6 @@ import { emit } from "@tauri-apps/api/event";
 import { Plus, RotateCw, Save, Trash2 } from "lucide-react";
 import { useBuildOrders } from "../hooks/useBuildOrders";
 import { raceLabel } from "../lib/format";
-import { supplyToTime } from "../lib/supplyTime";
 import { generateBuildFilename } from "../lib/buildFilename";
 import { exportBuildJson, parseImportedBuild } from "../lib/buildTransfer";
 import {
@@ -59,7 +58,7 @@ function normalizeRace(race: string): AuthorRace {
 }
 
 function emptyStep(): DraftStep {
-  return { time: "", say: "", supply: "" };
+  return { time: "", say: "" };
 }
 
 /** Editor form fields, excluding the derived `matchup`. */
@@ -83,7 +82,6 @@ function toForm(build: BuildOrder): EditorForm {
     steps: build.steps.map((step) => ({
       time: String(step.time),
       say: step.say,
-      supply: step.supply === undefined ? "" : String(step.supply),
     })),
   };
 }
@@ -120,7 +118,6 @@ function formToJson(form: EditorForm): string {
     steps: form.steps.map((step) => ({
       time: step.time,
       say: step.say,
-      ...(step.supply.trim() !== "" ? { supply: step.supply } : {}),
     })),
   };
   return JSON.stringify(lenient, null, 2);
@@ -146,7 +143,7 @@ function FieldLabel({
 
 /**
  * Build-order editor, rendered in its own `editor` window (see `main.tsx` label
- * routing). Provides CRUD over builds and steps, a supply→time helper, a live
+ * routing). Provides CRUD over builds and steps, a live
  * JSON preview, and persists via the `save_build_order` / `delete_build_order`
  * Rust commands. After a successful write it emits `BUILDS_CHANGED_EVENT` so the
  * overlay reloads without a restart.
@@ -262,18 +259,6 @@ export default function BuildEditor() {
     setForm((prev) => ({
       ...prev,
       steps: prev.steps.filter((_, i) => i !== index),
-    }));
-  }
-
-  function estimateTime(index: number): void {
-    setForm((prev) => ({
-      ...prev,
-      steps: prev.steps.map((step, i) => {
-        if (i !== index) return step;
-        const supply = Number(step.supply.trim());
-        if (step.supply.trim() === "" || !Number.isFinite(supply)) return step;
-        return { ...step, time: String(supplyToTime(supply)) };
-      }),
     }));
   }
 
@@ -473,29 +458,8 @@ export default function BuildEditor() {
               {form.steps.map((step, index) => (
                 <li
                   key={index}
-                  className="grid grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border bg-card p-2"
+                  className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border bg-card p-2"
                 >
-                  <div className="flex items-center gap-1">
-                    <Input
-                      className="h-8 w-16 font-mono text-[13px]"
-                      value={step.supply}
-                      placeholder="人口"
-                      inputMode="numeric"
-                      onChange={(e) =>
-                        updateStep(index, "supply", e.currentTarget.value)
-                      }
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="px-2 font-mono text-[12px]"
-                      onClick={() => estimateTime(index)}
-                      title="按人口估算时间"
-                    >
-                      估算→
-                    </Button>
-                  </div>
                   <div className="flex items-center gap-1">
                     <Input
                       className="h-8 w-16 font-mono text-[13px]"

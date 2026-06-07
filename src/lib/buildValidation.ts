@@ -1,5 +1,5 @@
 // Pure validation + normalization for the build editor. The editor holds form
-// fields as strings (time/supply/leadTime) while the user types; this helper is
+// fields as strings (time/leadTime) while the user types; this helper is
 // the single boundary that turns a draft into a validated, normalized
 // `BuildOrder` ready to persist — or an error message to show. Per the cross-
 // layer guide, validation happens once, here, before crossing into Rust.
@@ -10,8 +10,6 @@ import type { BuildOrder, BuildStep } from "../types/build";
 export interface DraftStep {
   time: string;
   say: string;
-  /** Empty string means "no supply recorded". */
-  supply: string;
 }
 
 /** A build as held by the editor form. */
@@ -41,7 +39,7 @@ function parseNonNegative(raw: string, label: string): number | string {
  * Validate and normalize a draft build:
  * - `matchup` / `race` required (trimmed).
  * - `leadTimeSec` a non-negative number.
- * - each step: `say` required, `time` a non-negative number, `supply` optional.
+ * - each step: `say` required, `time` a non-negative number.
  * - steps sorted ascending by `time` (the scheduler expects ascending order).
  *
  * Returns the normalized `BuildOrder` on success, or the first error found.
@@ -69,18 +67,7 @@ export function validateBuild(draft: DraftBuild): ValidationResult {
     const time = parseNonNegative(draftStep.time, `${label}的时间`);
     if (typeof time === "string") return { ok: false, error: time };
 
-    const step: BuildStep = { time, say };
-
-    const rawSupply = draftStep.supply.trim();
-    if (rawSupply !== "") {
-      const supply = Number(rawSupply);
-      if (!Number.isFinite(supply) || supply < 0) {
-        return { ok: false, error: `${label}的人口数无效` };
-      }
-      step.supply = supply;
-    }
-
-    steps.push(step);
+    steps.push({ time, say });
   }
 
   // Auto-sort ascending by time (stable) so entry order doesn't matter.

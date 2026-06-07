@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "BuildStep 是 TS↔Rust 跨层契约，删除 supply 需同步两端字段并保持 serde 兼容"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "修改 BuildStep / DraftStep 类型，遵循类型安全规范"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "BuildEditor 组件移除人口输入框与估算按钮"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "改动需满足前端质量基线（测试/lint/typecheck）"}

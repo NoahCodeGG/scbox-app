@@ -8,12 +8,6 @@ export interface BuildStep {
   time: number;
   /** Text spoken via Web Speech when the step is due. */
   say: string;
-  /**
-   * Optional SC2 supply count this step is authored at (how builds are normally
-   * remembered). Used by the editor's supply→time helper and shown on re-edit;
-   * not consumed by scheduling. Omitted on disk when unset.
-   */
-  supply?: number;
 }
 
 /** A full build order for one matchup. */

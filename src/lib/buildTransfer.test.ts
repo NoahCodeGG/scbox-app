@@ -8,7 +8,7 @@ function build(overrides: Partial<BuildOrder> = {}): BuildOrder {
     race: "Terran",
     leadTimeSec: 4,
     steps: [
-      { time: 17, say: "14 补给站", supply: 14 },
+      { time: 17, say: "14 补给站" },
       { time: 30, say: "兵营" },
     ],
     ...overrides,
@@ -21,13 +21,12 @@ describe("exportBuildJson", () => {
     expect(json).toBe(JSON.stringify(build(), null, 2));
   });
 
-  it("omits supply when undefined and never leaks filename", () => {
+  it("never leaks filename and emits only time/say steps", () => {
     const json = exportBuildJson(build());
     const parsed = JSON.parse(json) as Record<string, unknown>;
     expect("filename" in parsed).toBe(false);
     const steps = parsed.steps as Array<Record<string, unknown>>;
-    expect("supply" in steps[0]).toBe(true);
-    expect("supply" in steps[1]).toBe(false);
+    expect(Object.keys(steps[0]).sort()).toEqual(["say", "time"]);
   });
 
   it("drops any extra keys present on the source object", () => {
@@ -43,7 +42,7 @@ describe("exportBuildJson", () => {
 });
 
 describe("parseImportedBuild", () => {
-  it("round-trips an exported build (with and without supply)", () => {
+  it("round-trips an exported build", () => {
     const json = exportBuildJson(build());
     const result = parseImportedBuild(json);
     expect(result.ok).toBe(true);
@@ -125,17 +124,19 @@ describe("parseImportedBuild", () => {
     if (!result.ok) expect(result.error).toContain("不能为负数");
   });
 
-  it("rejects an invalid supply", () => {
+  it("ignores a legacy supply field on imported steps", () => {
     const result = parseImportedBuild(
       JSON.stringify({
         matchup: "TvP",
         race: "Terran",
         leadTimeSec: 4,
-        steps: [{ time: 17, say: "补给站", supply: -1 }],
+        steps: [{ time: 17, say: "补给站", supply: 14 }],
       }),
     );
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("人口数无效");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.build.steps[0]).toEqual({ time: 17, say: "补给站" });
+    }
   });
 
   it("treats missing steps as an empty build", () => {

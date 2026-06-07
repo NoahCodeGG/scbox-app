@@ -6,7 +6,7 @@ function draft(overrides: Partial<DraftBuild> = {}): DraftBuild {
     matchup: "TvP",
     race: "Terran",
     leadTimeSec: "4",
-    steps: [{ time: "17", say: "14 补给站", supply: "14" }],
+    steps: [{ time: "17", say: "14 补给站" }],
     ...overrides,
   };
 }
@@ -24,19 +24,7 @@ describe("validateBuild", () => {
       expect(result.build.steps[0]).toEqual({
         time: 17,
         say: "14 补给站",
-        supply: 14,
       });
-    }
-  });
-
-  it("omits supply when the field is blank", () => {
-    const result = validateBuild(
-      draft({ steps: [{ time: "30", say: "兵营", supply: "" }] }),
-    );
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.build.steps[0].supply).toBeUndefined();
-      expect("supply" in result.build.steps[0]).toBe(false);
     }
   });
 
@@ -44,9 +32,9 @@ describe("validateBuild", () => {
     const result = validateBuild(
       draft({
         steps: [
-          { time: "40", say: "精炼厂", supply: "" },
-          { time: "17", say: "补给站", supply: "" },
-          { time: "30", say: "兵营", supply: "" },
+          { time: "40", say: "精炼厂" },
+          { time: "17", say: "补给站" },
+          { time: "30", say: "兵营" },
         ],
       }),
     );
@@ -63,27 +51,18 @@ describe("validateBuild", () => {
 
   it("rejects an empty step say", () => {
     const result = validateBuild(
-      draft({ steps: [{ time: "10", say: "  ", supply: "" }] }),
+      draft({ steps: [{ time: "10", say: "  " }] }),
     );
     expect(result.ok).toBe(false);
   });
 
   it("rejects negative or non-numeric time", () => {
     expect(
-      validateBuild(draft({ steps: [{ time: "-5", say: "x", supply: "" }] }))
-        .ok,
+      validateBuild(draft({ steps: [{ time: "-5", say: "x" }] })).ok,
     ).toBe(false);
     expect(
-      validateBuild(draft({ steps: [{ time: "abc", say: "x", supply: "" }] }))
-        .ok,
+      validateBuild(draft({ steps: [{ time: "abc", say: "x" }] })).ok,
     ).toBe(false);
-  });
-
-  it("rejects an invalid supply value", () => {
-    const result = validateBuild(
-      draft({ steps: [{ time: "10", say: "x", supply: "-1" }] }),
-    );
-    expect(result.ok).toBe(false);
   });
 
   it("rejects non-numeric lead time", () => {

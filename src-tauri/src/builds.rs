@@ -29,10 +29,6 @@ pub struct BuildStep {
     pub time: f64,
     /// Text spoken when the step is due.
     pub say: String,
-    /// Optional SC2 supply count this step is authored at. Omitted on disk when
-    /// unset so existing files without it round-trip unchanged.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub supply: Option<f64>,
 }
 
 /// A full build order for one matchup.
@@ -337,7 +333,7 @@ mod tests {
     }
 
     #[test]
-    fn save_then_load_round_trips_including_supply() {
+    fn save_then_load_round_trips() {
         let tmp = TempDir::new();
         let dir = tmp.path().join("builds");
         let build = BuildOrder {
@@ -345,8 +341,8 @@ mod tests {
             race: "Terran".to_string(),
             lead_time_sec: 4.0,
             steps: vec![
-                BuildStep { time: 17.0, say: "depot".to_string(), supply: Some(14.0) },
-                BuildStep { time: 30.0, say: "rax".to_string(), supply: None },
+                BuildStep { time: 17.0, say: "depot".to_string() },
+                BuildStep { time: 30.0, say: "rax".to_string() },
             ],
         };
 
@@ -356,8 +352,24 @@ mod tests {
         assert_eq!(result.builds.len(), 1);
         let loaded = &result.builds[0];
         assert_eq!(loaded.filename, "tvz.json");
-        assert_eq!(loaded.build.steps[0].supply, Some(14.0));
-        assert_eq!(loaded.build.steps[1].supply, None);
+        assert_eq!(loaded.build.steps.len(), 2);
+        assert_eq!(loaded.build.steps[0].say, "depot");
+    }
+
+    #[test]
+    fn legacy_supply_field_is_ignored_on_load() {
+        let tmp = TempDir::new();
+        let with_supply = r#"{
+            "matchup": "TvZ",
+            "race": "Terran",
+            "leadTimeSec": 4,
+            "steps": [{ "time": 17, "say": "depot", "supply": 14 }]
+        }"#;
+        fs::write(tmp.path().join("legacy.json"), with_supply).unwrap();
+        let result = load_from_dir(tmp.path());
+        assert_eq!(result.builds.len(), 1);
+        assert!(result.errors.is_empty());
+        assert_eq!(result.builds[0].build.steps[0].say, "depot");
     }
 
     #[test]
