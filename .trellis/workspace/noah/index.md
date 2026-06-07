@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 16
+- **Total Sessions**: 17
 - **Last Active**: 2026-06-07
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~542 | Active |
+| `journal-1.md` | ~575 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 17 | 2026-06-07 | Coherent window lifecycle: main close=hide + reopen + quit | `ac670e3` | `main` |
 | 16 | 2026-06-07 | Overlay header text draggable (pointer-events-none) | `f05a368` | `main` |
 | 15 | 2026-06-07 | Overlay header drag region non-selectable | `2bfc400` | `main` |
 | 14 | 2026-06-07 | Soften overlay card shadow halo | `e4c40be` | `main` |

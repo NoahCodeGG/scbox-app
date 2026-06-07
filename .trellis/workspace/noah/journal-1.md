@@ -540,3 +540,36 @@ Dragging the overlay over the left header text still didn't move the window afte
 ### Next Steps
 
 - None - task complete
+
+
+## Session 17: Coherent window lifecycle: main close=hide + reopen + quit
+
+**Date**: 2026-06-07
+**Task**: Coherent window lifecycle: main close=hide + reopen + quit
+**Branch**: `main`
+
+### Summary
+
+Closing the main window destroyed it so the overlay's edit/settings buttons (open_main) couldn't reopen it; also the overlay's useWindowControls quit the app on close (leftover) and conflicted with lib.rs hiding it. Fixes: main window close=hide handler in lib.rs (mirror overlay) so open_main re-shows it (+unminimize); removed invoke(exit_app) from useWindowControls onCloseRequested (Rust handler hides the overlay; position still saved) so closing overlay hides not quits; added a 退出 button to the MainWindow sidebar (exit_app); macOS dock reopen via .build()?.run() → RunEvent::Reopen shows the hidden main window. Updated useWindowControls.test.ts to assert position-save + no exit. 168 vitest, cargo 41, coverage held, build clean. Manual macOS confirm pending.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ac670e3` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
