@@ -117,7 +117,7 @@ function MainWindow() {
             <b className="text-base font-semibold">{name ?? ""}</b>
           </div>
           <SidebarLink to="/" icon={<LayoutGrid />} label="仪表盘" />
-          <SidebarLink to="/editor" icon={<Pencil />} label="Build Order" />
+          <SidebarLink to="/editor" icon={<Pencil />} label="流程" />
           <SidebarLink to="/settings" icon={<SettingsIcon />} label="设置" />
           <div className="flex-1" />
           <span className="font-mono text-[11px] text-muted-foreground">

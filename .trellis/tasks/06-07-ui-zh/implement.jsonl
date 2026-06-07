@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "UI 文案改动，遵循组件文案/可访问性规范"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "需满足前端质量基线（typecheck/测试）"}

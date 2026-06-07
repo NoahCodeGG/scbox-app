@@ -249,7 +249,7 @@ function BuildSelectCard({
   return (
     <Card className="gap-4 py-5">
       <CardHeader className="flex-row items-center justify-between px-5">
-        <CardEyebrow>Build Order · 自动匹配</CardEyebrow>
+        <CardEyebrow>流程 · 自动匹配</CardEyebrow>
         {override !== null && (
           <Button type="button" variant="ghost" size="xs" onClick={onAuto}>
             恢复自动
@@ -258,7 +258,7 @@ function BuildSelectCard({
       </CardHeader>
       <CardContent className="px-5">
         {stored.length === 0 ? (
-          <p className="text-sm text-muted-foreground">尚未加载任何 build。</p>
+          <p className="text-sm text-muted-foreground">尚未加载任何流程。</p>
         ) : (
           <div className="flex flex-col gap-2">
             {stored.map((s) => {
@@ -435,7 +435,7 @@ function Dashboard() {
         <div>
           <h1 className="text-[26px] font-semibold tracking-tight">仪表盘</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            对局状态 · build order 已就绪
+            对局状态 · 流程已就绪
           </p>
         </div>
         <Button

@@ -369,7 +369,7 @@ export default function BuildEditor() {
         <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
-              Build Order 编辑器
+              流程编辑器
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               可视化编辑步骤 · 自动生成 JSON · 保存到 builds 目录
@@ -477,7 +477,7 @@ export default function BuildEditor() {
               </div>
             )}
             <div className="mb-4 flex flex-col gap-1.5">
-              <FieldLabel htmlFor="editor-name">name · 名称</FieldLabel>
+              <FieldLabel htmlFor="editor-name">名称</FieldLabel>
               <Input
                 id="editor-name"
                 className="w-full text-[14px]"
@@ -488,7 +488,7 @@ export default function BuildEditor() {
             </div>
             <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="flex flex-col gap-1.5">
-                <FieldLabel>race</FieldLabel>
+                <FieldLabel>种族</FieldLabel>
                 <Select value={form.race} onValueChange={(v) => updateRace(v as AuthorRace)}>
                   <SelectTrigger className="w-full font-mono text-[13px]">
                     <SelectValue />
@@ -503,7 +503,7 @@ export default function BuildEditor() {
                 </Select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <FieldLabel>opponent</FieldLabel>
+                <FieldLabel>对手</FieldLabel>
                 <Select
                   value={form.opponent}
                   onValueChange={(v) => updateOpponent(v as RaceLetter)}
@@ -521,7 +521,7 @@ export default function BuildEditor() {
                 </Select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <FieldLabel htmlFor="editor-lead">leadTimeSec</FieldLabel>
+                <FieldLabel htmlFor="editor-lead">提前播报秒数</FieldLabel>
                 <Input
                   id="editor-lead"
                   inputMode="decimal"
@@ -534,7 +534,7 @@ export default function BuildEditor() {
 
             <div className="mb-3 flex items-center justify-between">
               <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">
-                步骤 · steps
+                步骤
               </span>
               <span className="font-mono text-[12px] tabular-nums text-muted-foreground">
                 对阵 {raceNameToLetter(form.race)}v{form.opponent} ·{" "}

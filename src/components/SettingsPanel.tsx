@@ -229,7 +229,7 @@ function SettingsPanel({
               提前播报时间
             </Label>
             <p className="text-[11px] leading-tight text-muted-foreground">
-              覆盖 build order 自带的 leadTimeSec，留空用 build 设定。
+              覆盖流程自带的提前播报秒数，留空用流程设定。
             </p>
             <div className="flex items-center gap-2">
               <Input

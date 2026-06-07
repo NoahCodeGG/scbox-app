@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "SCBox Assistant",
+        "title": "SCBox 助手",
         "width": 1000,
         "height": 680,
         "minWidth": 800,
@@ -27,7 +27,7 @@
       },
       {
         "label": "overlay",
-        "title": "SCBox Overlay",
+        "title": "SCBox 悬浮窗",
         "width": 344,
         "height": 340,
         "alwaysOnTop": true,
