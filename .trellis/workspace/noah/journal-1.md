@@ -903,3 +903,36 @@ Enabling passthrough collapsed the overlay into a thin scrollbar sliver: the con
 ### Next Steps
 
 - None - task complete
+
+
+## Session 28: Overlay fixed content width (no width fluctuation)
+
+**Date**: 2026-06-07
+**Task**: Overlay fixed content width (no width fluctuation)
+**Branch**: `main`
+
+### Summary
+
+Toggling the overlay passthrough button changed the window width each click: the 穿透模式开启 hint (and other error/voice hints) were wider than the card, and the content-fit ResizeObserver measures the full <main> width, so showing/hiding a hint widened/narrowed the window. Fix: wrapped the overlay card + all auxiliary surfaces in a fixed w-[328px] column (mockup design width) inside <main className=p-2>; contentRef stays on <main> (offsetWidth constant 344). Hints now wrap within 328px; only height auto-fits, width is stable. Layout-only reparent; no behavior/IPC/type changes. 183 vitest, cargo 41, coverage held, build green. Manual macOS confirm pending.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `e3d7556` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
