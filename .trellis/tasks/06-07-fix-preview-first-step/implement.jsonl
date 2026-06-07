@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "测试/typecheck 基线"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "新增纯函数类型/边界"}

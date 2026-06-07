@@ -47,6 +47,24 @@ export function initialSpokenSet(
 }
 
 /**
+ * "Already-spoken" set for the Dashboard step preview at the given display time.
+ *
+ * Short-circuits to an empty set when `displayTime <= 0` (game not started /
+ * not connected): otherwise `initialSpokenSet` would pre-mark any step whose
+ * trigger time (`time - leadTimeSec`) is non-positive — e.g. a time-0 step with
+ * the default 4s lead computes `0 >= -4` and is wrongly treated as spoken, so
+ * the preview would skip the opening step(s). Once the clock is running
+ * (`displayTime > 0`) it defers to `initialSpokenSet` for normal behavior.
+ */
+export function previewSpokenSet(
+  order: BuildOrder,
+  displayTime: number,
+): Set<number> {
+  if (displayTime <= 0) return new Set<number>();
+  return initialSpokenSet(order, displayTime);
+}
+
+/**
  * The next upcoming (not-yet-spoken) step's index, or `null` if all steps for
  * this order have been spoken. Returns the lowest such index.
  */

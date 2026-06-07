@@ -4,6 +4,7 @@ import {
   dueStepIndices,
   initialSpokenSet,
   nextStepIndex,
+  previewSpokenSet,
   triggerTime,
   upcomingStepIndices,
 } from "./schedule";
@@ -65,6 +66,43 @@ describe("initialSpokenSet (late-connect backlog suppression)", () => {
     expect(dueStepIndices(order, 30, seeded)).toEqual([]);
     // Only the genuinely-upcoming step fires once its trigger arrives.
     expect(dueStepIndices(order, 36, seeded)).toEqual([2]);
+  });
+});
+
+describe("previewSpokenSet (Dashboard preview clock=0 short-circuit)", () => {
+  // A build whose opening step is at time 0 — the regression this guards.
+  const previewOrder: BuildOrder = {
+    matchup: "TvX",
+    race: "Terran",
+    name: "preview",
+    leadTimeSec: 4,
+    steps: [
+      { time: 0, say: "出兵营" }, // trigger at -4
+      { time: 11, say: "补给站" }, // trigger at 7
+    ],
+  };
+
+  it("returns an empty set when the clock is 0 (game not started)", () => {
+    expect([...previewSpokenSet(previewOrder, 0)]).toEqual([]);
+  });
+
+  it("does not pre-mark a time-0 step as spoken at clock 0", () => {
+    expect(previewSpokenSet(previewOrder, 0).has(0)).toBe(false);
+  });
+
+  it("returns an empty set for any non-positive clock", () => {
+    expect([...previewSpokenSet(previewOrder, -5)]).toEqual([]);
+  });
+
+  it("matches initialSpokenSet once the clock is running", () => {
+    // Clock 20: triggers -4 and 7 both passed → both steps spoken.
+    expect([...previewSpokenSet(previewOrder, 20)].sort()).toEqual(
+      [...initialSpokenSet(previewOrder, 20)].sort(),
+    );
+    // Mid-build with the existing 17/30/40 order: only step 0's trigger passed.
+    expect([...previewSpokenSet(order, 20)].sort()).toEqual(
+      [...initialSpokenSet(order, 20)].sort(),
+    );
   });
 });
 

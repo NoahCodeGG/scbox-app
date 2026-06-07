@@ -9,7 +9,7 @@ import { useSettings } from "../hooks/useSettings";
 import { useConnectionDiagnostic } from "../hooks/useConnectionDiagnostic";
 import { identifyMatchup, matchupMatches, raceCodeToLetter, selectBuild } from "../lib/matchup";
 import { formatGameTime } from "../lib/format";
-import { upcomingStepIndices } from "../lib/schedule";
+import { previewSpokenSet, upcomingStepIndices } from "../lib/schedule";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -375,10 +375,9 @@ function PreviewSteps({
 }) {
   // Mark every step whose trigger time already passed as "spoken" so the
   // preview tracks the live clock, mirroring the overlay's selection logic.
-  const spoken = new Set<number>();
-  for (let i = 0; i < build.steps.length; i += 1) {
-    if (clock >= build.steps[i].time - build.leadTimeSec) spoken.add(i);
-  }
+  // At clock <= 0 (not started) nothing is pre-marked, so the preview starts
+  // from the very first step.
+  const spoken = previewSpokenSet(build, clock);
   const upcoming = upcomingStepIndices(build, spoken, 4);
 
   if (upcoming.length === 0) {
