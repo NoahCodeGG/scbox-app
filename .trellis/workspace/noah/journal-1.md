@@ -606,3 +606,36 @@ The user migrated shadcn primitives from Radix (radix-ui) to Base UI (@base-ui/r
 ### Next Steps
 
 - None - task complete
+
+
+## Session 19: Sidebar real icon + name; footer version-only
+
+**Date**: 2026-06-07
+**Task**: Sidebar real icon + name; footer version-only
+**Branch**: `main`
+
+### Summary
+
+Sidebar branding: copied the real logo to src/assets/logo.png (bundled import), replaced the 'SC' text badge with the logo img + name 'SCBox Assistant' at the top; footer now shows only the version (dropped the duplicated product name) since the top shows the name. No IPC/type/behavior changes; useAppVersion unchanged. 168 vitest, cargo 41, coverage held, build green (logo bundled).
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9513da0` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
