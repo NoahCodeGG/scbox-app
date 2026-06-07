@@ -370,7 +370,7 @@ function App() {
           data-tauri-drag-region
           className="flex cursor-grab select-none items-center justify-between border-b border-[color:var(--o-border)] bg-[color:var(--o-raise)] px-3 py-2 active:cursor-grabbing"
         >
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="pointer-events-none flex min-w-0 items-center gap-2">
             <span className="font-mono text-[12px] tracking-[1px] text-[color:var(--o-muted)]">
               ⠿
             </span>

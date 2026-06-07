@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Drag-region rule: Tauri only drags when the mousedown target itself has the attribute; decorative children need pointer-events-none so the bar is the target."}

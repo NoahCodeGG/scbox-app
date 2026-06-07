@@ -59,6 +59,10 @@ names/casing. In particular for the overlay:
 - The drag bar MUST be `select-none` (`user-select: none`, inherits to child
   text spans) so dragging over its grip/matchup/race text starts the window
   drag instead of selecting text.
+- Tauri only drags when the mousedown target element itself has
+  `data-tauri-drag-region` (it does NOT walk up to ancestors), so the
+  decorative left text container in the bar needs `pointer-events-none` to let
+  the mousedown fall through to the bar and fire the drag.
 - Keep `useInterpolatedClock` / `useBuildOrderVoice` / countdown math intact;
   any firing/speaking animation must be presentational only (never mutate the
   spoken set or the clock).
