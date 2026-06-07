@@ -804,3 +804,36 @@ Dark mode was inconsistent: main window used shadcn neutral grayscale, overlay u
 ### Next Steps
 
 - None - task complete
+
+
+## Session 25: Editable JSON pane replaces import/export
+
+**Date**: 2026-06-07
+**Task**: Editable JSON pane replaces import/export
+**Branch**: `main`
+
+### Summary
+
+Replaced the low-value copy/paste import/export panel (BuildTransferPanel) with a two-way editable JSON pane. BuildJsonPreview → BuildJsonEditor (controlled textarea, valid/invalid header, 复制 button). BuildEditor keeps FORM canonical: JSON→form via parseImportedBuild on each change (invalid isolated, form untouched); form→JSON regenerated only when the pane isn't focused (gate prevents cursor-jump + sync loop), via exportBuildJson when valid else a lenient stringify so it always renders. Copy is best-effort navigator.clipboard. Deleted BuildTransferPanel.tsx/.css; kept buildTransfer.ts + test (reused). Save/delete/persistence unchanged. 183 vitest, cargo 41, coverage held, build green. Manual macOS confirm pending.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1077148` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

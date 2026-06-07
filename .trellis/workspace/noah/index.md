@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 24
+- **Total Sessions**: 25
 - **Last Active**: 2026-06-07
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~806 | Active |
+| `journal-1.md` | ~839 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 25 | 2026-06-07 | Editable JSON pane replaces import/export | `1077148` | `main` |
 | 24 | 2026-06-07 | Unify app dark theme with overlay dark-glass | `3dd150d` | `main` |
 | 23 | 2026-06-07 | Allow main window dragging (capability) | `0f53d07` | `main` |
 | 22 | 2026-06-07 | Themed overlay titlebar (main window) | `0e1a4a6` | `main` |
