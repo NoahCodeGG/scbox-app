@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 15
+- **Total Sessions**: 16
 - **Last Active**: 2026-06-07
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~509 | Active |
+| `journal-1.md` | ~542 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 16 | 2026-06-07 | Overlay header text draggable (pointer-events-none) | `f05a368` | `main` |
 | 15 | 2026-06-07 | Overlay header drag region non-selectable | `2bfc400` | `main` |
 | 14 | 2026-06-07 | Soften overlay card shadow halo | `e4c40be` | `main` |
 | 13 | 2026-06-07 | Move connection diagnostic from overlay to dashboard | `c383464` | `main` |

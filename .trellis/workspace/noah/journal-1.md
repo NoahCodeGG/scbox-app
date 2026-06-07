@@ -507,3 +507,36 @@ Dragging the overlay over the left header text (grip/matchup/race) selected text
 ### Next Steps
 
 - None - task complete
+
+
+## Session 16: Overlay header text draggable (pointer-events-none)
+
+**Date**: 2026-06-07
+**Task**: Overlay header text draggable (pointer-events-none)
+**Branch**: `main`
+
+### Summary
+
+Dragging the overlay over the left header text still didn't move the window after the select-none fix. Root cause: Tauri 2 data-tauri-drag-region only drags when the mousedown TARGET element itself has the attribute (no ancestor walk); the text spans are children without it. Fix: add pointer-events-none to the decorative left text container in App.tsx so the mousedown falls through to the drag-region bar. Right-side buttons keep pointer events + stopPropagation. Noted the rule in ui-system.md. CSS-only; 168 vitest, cargo 41, coverage held, build green.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f05a368` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
