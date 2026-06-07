@@ -1068,3 +1068,36 @@ build 加载改为编译期嵌入的只读默认(include_dir)+app-data 可写用
 ### Next Steps
 
 - None - task complete
+
+
+## Session 33: 修复中文 build 文件名生成
+
+**Date**: 2026-06-07
+**Task**: 修复中文 build 文件名生成
+**Branch**: `main`
+
+### Summary
+
+slugify 改为 Unicode-aware(保留 CJK 字母数字，仅折叠非字母数字为连字符)，修复纯中文 build 名被清空回退 build.json 及互相撞名问题；新增中文/混合/去重测试。194 测试全绿。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `cdbe761` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
