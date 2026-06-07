@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "Verify only allow-start-dragging was added to the main capability (no over-grant)."}

@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "Main window's drag region needs core:window:allow-start-dragging on its capability (least-privilege)."}
