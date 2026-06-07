@@ -4,7 +4,6 @@ import {
   availableMonitors,
 } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
-import { invoke } from "@tauri-apps/api/core";
 import type { Settings } from "./useSettings";
 
 interface UseWindowControlsOptions {
@@ -109,8 +108,9 @@ export function useWindowControls({
           console.error("Failed to persist window position:", e);
         }
 
-        // Exit the app after save completes (or fails).
-        await invoke('exit_app');
+        // Do NOT exit the app here. This hook runs in the OVERLAY window; the
+        // Rust close handler (src-tauri/src/lib.rs) hides the overlay so it can
+        // be relaunched from the dashboard. Quitting is the 退出 button / Cmd+Q.
       });
     })();
 

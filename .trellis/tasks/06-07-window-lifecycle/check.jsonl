@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/tauri/multi-window.md", "reason": "Verify the main/overlay close=hide + reopen + quit lifecycle is coherent (no destroyed-window dead ends, no double handlers)."}
+{"file": ".trellis/spec/frontend/hook-testing.md", "reason": "Verify useWindowControls test updated to the no-exit-on-close behavior and still asserts position save."}

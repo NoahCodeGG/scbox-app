@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/tauri/index.md", "reason": "Window lifecycle: main + overlay close=hide handlers in lib.rs setup; macOS reopen; quit via exit_app. Keep lib.rs thin."}
+{"file": ".trellis/spec/tauri/multi-window.md", "reason": "The close=hide-to-stay-reusable pattern (already documented for the editor/overlay) now applies to the main window too; reopen + quit lifecycle."}
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Overlay close behavior (no exit) + the 退出 affordance in the main window shell."}
+{"file": ".trellis/spec/frontend/hook-testing.md", "reason": "useWindowControls test asserts exit_app on close; it must be updated to assert hide/no-exit per the new lifecycle."}

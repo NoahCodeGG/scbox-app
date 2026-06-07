@@ -92,7 +92,7 @@ describe("useWindowControls", () => {
     expect(saveSettings).toHaveBeenCalledWith({ ...SETTINGS, clickThrough: false });
   });
 
-  it("persists logical position and exits the app on close-requested", async () => {
+  it("persists logical position and does NOT exit the app on close-requested", async () => {
     const saveSettings = vi.fn(() => Promise.resolve());
     let closeHandler: ((e: CloseEvent) => Promise<void>) | null = null;
     onCloseRequestedMock.mockImplementation(
@@ -130,10 +130,11 @@ describe("useWindowControls", () => {
       windowX: 100,
       windowY: 150,
     });
-    expect(invokeMock).toHaveBeenCalledWith("exit_app");
+    // The overlay close must NOT quit the app — Rust hides the window instead.
+    expect(invokeMock).not.toHaveBeenCalledWith("exit_app");
   });
 
-  it("still exits the app when no monitor matches the position", async () => {
+  it("does NOT exit the app when no monitor matches the position", async () => {
     const saveSettings = vi.fn(() => Promise.resolve());
     let closeHandler: ((e: CloseEvent) => Promise<void>) | null = null;
     onCloseRequestedMock.mockImplementation(
@@ -151,11 +152,13 @@ describe("useWindowControls", () => {
       await Promise.resolve();
     });
 
+    const preventDefault = vi.fn();
     await act(async () => {
-      await closeHandler!({ preventDefault: vi.fn() });
+      await closeHandler!({ preventDefault });
     });
 
+    expect(preventDefault).toHaveBeenCalledTimes(1);
     expect(saveSettings).not.toHaveBeenCalled();
-    expect(invokeMock).toHaveBeenCalledWith("exit_app");
+    expect(invokeMock).not.toHaveBeenCalledWith("exit_app");
   });
 });

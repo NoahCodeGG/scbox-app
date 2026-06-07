@@ -4,13 +4,15 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
-import { LayoutGrid, Pencil, Settings as SettingsIcon } from "lucide-react";
+import { LayoutGrid, LogOut, Pencil, Settings as SettingsIcon } from "lucide-react";
+import { invoke } from "@tauri-apps/api/core";
 import { useAppVersion } from "../hooks/useAppVersion";
 import { useSettings } from "../hooks/useSettings";
 import { useUpdateCheck } from "../hooks/useUpdateCheck";
 import BuildEditor from "./BuildEditor";
 import Dashboard from "./Dashboard";
 import SettingsPanel from "./SettingsPanel";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /** Sidebar nav link with active-state styling, mirroring the dashboard mockup. */
@@ -94,6 +96,19 @@ function MainWindow() {
           <SidebarLink to="/editor" icon={<Pencil />} label="Build Order" />
           <SidebarLink to="/settings" icon={<SettingsIcon />} label="设置" />
           <div className="flex-1" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="justify-start text-muted-foreground hover:text-foreground"
+            onClick={() => {
+              void invoke("exit_app").catch((e: unknown) => {
+                console.error("Failed to exit app:", e);
+              });
+            }}
+          >
+            <LogOut />
+            退出
+          </Button>
           <span className="font-mono text-[11px] text-muted-foreground">
             SCBox Assistant{version ? ` v${version}` : ""}
           </span>

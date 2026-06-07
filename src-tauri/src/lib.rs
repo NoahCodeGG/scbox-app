@@ -144,6 +144,7 @@ fn open_main(app: tauri::AppHandle) -> Result<(), String> {
     let window = app
         .get_webview_window("main")
         .ok_or_else(|| "main window not found".to_string())?;
+    let _ = window.unminimize();
     window.show().map_err(|e| format!("cannot show main: {e}"))?;
     window
         .set_focus()
@@ -209,6 +210,21 @@ pub fn run() {
                 });
             }
 
+            // Keep the MAIN window reusable: closing it should hide it (so a
+            // later `open_main` — e.g. the overlay's 编辑/设置 buttons or a macOS
+            // dock click — can re-show it) rather than destroy it, which would
+            // make `get_webview_window("main")` return None. The app does not
+            // quit when main closes; quit goes through the 退出 button / Cmd+Q.
+            if let Some(main) = app.get_webview_window("main") {
+                let main_for_event = main.clone();
+                main.on_window_event(move |event| {
+                    if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                        api.prevent_close();
+                        let _ = main_for_event.hide();
+                    }
+                });
+            }
+
             // Restore the OVERLAY window position from saved settings (if
             // available) to avoid a visible jump from the default position. The
             // overlay starts hidden (tauri.conf.json visible: false) and is shown
@@ -261,6 +277,21 @@ pub fn run() {
             });
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app_handle, event| {
+            // macOS: clicking the dock icon when all windows are hidden fires
+            // `Reopen`. Re-show + focus the main window so a user who closed
+            // (hid) it can always get it back. No-op on other platforms.
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { .. } = event {
+                if let Some(main) = app_handle.get_webview_window("main") {
+                    let _ = main.unminimize();
+                    let _ = main.show();
+                    let _ = main.set_focus();
+                }
+            }
+            // Silence unused warnings on non-macOS where the arm is compiled out.
+            let _ = (app_handle, &event);
+        });
 }
