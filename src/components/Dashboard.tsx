@@ -260,7 +260,7 @@ function BuildSelectCard({
         {stored.length === 0 ? (
           <p className="text-sm text-muted-foreground">尚未加载任何流程。</p>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex max-h-80 flex-col gap-2 overflow-y-auto pr-1">
             {stored.map((s) => {
               const active =
                 override !== null

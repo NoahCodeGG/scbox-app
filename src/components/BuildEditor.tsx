@@ -432,7 +432,7 @@ export default function BuildEditor() {
                 暂无建造顺序
               </p>
             ) : (
-              <ul className="flex flex-col gap-1.5">
+              <ul className="flex max-h-[calc(100vh-180px)] flex-col gap-1.5 overflow-y-auto pr-1">
                 {stored.map(({ filename, build, readOnly }) => {
                   const selected = filename === selectedFilename;
                   return (
