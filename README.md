@@ -11,10 +11,11 @@
 - **🎯 自动同步游戏时钟** — 通过 SC2 Client API（`127.0.0.1:6119`）实时读取游戏状态，无需手动计时
 - **🗣️ 多层语音播报** — 跨平台语音支持（Web Speech → 原生 TTS → 安装提示），中文语音自动回退
 - **📊 精确时间插值** — ~100ms 粒度的平滑倒计时，暂停时冻结，亚秒级提示精度
-- **🎮 自动对阵识别** — 根据你的种族和对手种族自动选择对应的 build order
-- **📝 运行时可编辑** — build order 保存在用户目录，随时编辑 JSON 无需重新编译
-- **🪟 智能悬浮窗** — 可拖动定位、可选穿透模式（不抢游戏焦点）、显示未来 3 步、全局快捷键逃生
-- **⚙️ 灵活配置** — 提前播报时间、API 端口、语音开关/速度、窗口位置全部可调
+- **🎮 自动对阵识别** — 根据你的种族和对手种族自动选择对应的 build order，流程列表按当前对阵过滤并提供完整步骤预览
+- **📝 52 个内置 build** — 随版本更新下发的只读默认流程，可一键「复制为我的流程」或新建生成可编辑副本（存于用户目录）
+- **🪟 智能悬浮窗** — 可拖动定位、可选穿透模式（不抢游戏焦点）、显示未来 3 步、可自定义全局快捷键逃生
+- **⚙️ 灵活配置** — 提前播报时间、API 端口、语音开关/速度、主题、窗口位置全部可调
+- **🔄 自动更新** — 启动时及设置内「检查更新」自动获取签名新版本
 
 ---
 
@@ -22,13 +23,19 @@
 
 ### Windows（推荐）
 
-1. 从 [GitHub Actions](https://github.com/NoahCodeGG/scbox-app/actions/workflows/build-windows.yml) 下载最新的 `scbox-app-windows` artifact（包含 `.msi` 和 `.exe` 安装包）
-2. 解压后运行安装程序
-3. ⚠️ **首次运行会有 Windows SmartScreen 警告**（未签名），点击「更多信息 → 仍要运行」
+1. 从 [GitHub Releases](https://github.com/NoahCodeGG/scbox-app/releases/latest) 下载最新的 `.msi` 或 `.exe` 安装包（已签名 + 支持自动更新）
+2. 运行安装程序
+3. 开发构建可在 [GitHub Actions（ci.yml）](https://github.com/NoahCodeGG/scbox-app/actions/workflows/ci.yml) 获取
 
-### macOS / Linux
+### macOS
 
-目前 CI 仅构建 Windows 包。本地开发运行：
+`release.yml` 现也构建 macOS `.dmg`（**Apple Silicon / 未公证**）。首次打开需右键「打开」，或执行：
+
+```bash
+xattr -dr com.apple.quarantine /Applications/scbox-app.app
+```
+
+### 本地开发（macOS / Linux / Windows）
 
 ```bash
 # 安装依赖
@@ -57,21 +64,24 @@ pnpm tauri build
 
 ### 2️⃣ 准备 Build Order
 
-首次运行后，应用会在用户目录生成默认 build order：
+应用内置 52 个只读默认 build（随版本更新下发），无需手动准备即可使用。要定制，请在主窗口左侧导航「流程」页：
+
+- 选中某个只读默认流程，点击「复制为我的流程」生成可编辑副本
+- 或直接新建一个流程
+
+用户的可编辑 build 保存在用户目录：
 
 **Windows:** `%APPDATA%\com.scbox-app.app\builds\`  
 **macOS:** `~/Library/Application Support/com.scbox-app.app/builds/`
 
-你可以：
-- 编辑现有的 `terran-standard.json`（示例文件）
-- 添加新的 JSON 文件（如 `tvp-3cc.json`）
-- 点击 overlay 的「重载」按钮或开始新一局时自动重载
+应用永远不会覆盖你的用户 build；开始新一局时会自动重载。
 
-**Build Order JSON 格式：**
+**Build Order JSON 格式：**（示例文件名如 `tvz-两船兵.json`）
 
 ```json
 {
-  "matchup": "TvP",
+  "name": "TvZ 两船兵",
+  "matchup": "TvZ",
   "race": "Terran",
   "leadTimeSec": 4,
   "steps": [
@@ -82,14 +92,15 @@ pnpm tauri build
 }
 ```
 
+- `name`: 人类可读的流程名称
 - `matchup`: 对阵匹配（如 `TvP`、`TvZ`、`TvX` = 任意对手）
 - `race`: 你的种族（`Terran` / `Protoss` / `Zerg`）
 - `leadTimeSec`: 提前几秒播报（可在设置中覆盖）
-- `steps`: 时间点（游戏秒数）+ 播报内容
+- `steps`: 时间点（游戏秒数）+ 播报内容；编辑器以 **mm:ss** 输入，磁盘仍存为秒（number）
 
 ### 3️⃣ 配置设置
 
-点击悬浮窗右上角的 **⚙ 齿轮**打开设置面板：
+在主窗口左侧导航点击 **设置**（仪表盘 / 流程 / 设置）打开设置面板：
 
 | 设置项 | 说明 | 默认值 |
 |--------|------|--------|
@@ -99,11 +110,15 @@ pnpm tauri build
 | **语音播报** | 开关语音提示 | 开启 |
 | **语音速度** | 播报速度（0.5–2.0） | 1.0 |
 | **穿透模式** | 点击穿透到游戏（不抢焦点） | 关闭 |
+| **穿透快捷键** | 解除穿透的全局快捷键（可自定义） | `Ctrl+Shift+S` |
+| **主题** | 界面主题（深色 / 浅色 / 跟随系统） | 跟随系统 |
+
+设置面板内还提供 **「检查更新」** 按钮，可手动触发自动更新检查（应用启动时也会自动检查）。
 
 ### 4️⃣ 悬浮窗操作
 
 - **拖动：** 鼠标拖动窗口顶部条移动位置
-- **穿透模式：** 开启后窗口变透明点击，**按 `Ctrl+Shift+S` 解除**（防锁死）
+- **穿透模式：** 开启后窗口变透明点击，**按穿透快捷键解除**（默认 `Ctrl+Shift+S`，可在设置自定义，防锁死）
 - **多步显示：** 同时显示接下来 3 步，最近的高亮 + 倒计时，后两步灰显
 
 ---
@@ -115,20 +130,22 @@ pnpm tauri build
 - **前端:** React 18 + TypeScript + Vite
 - **桌面:** Tauri 2（Rust + WebView2/WKWebView）
 - **测试:** Vitest（前端单元测试）+ cargo test（Rust）
-- **CI/CD:** GitHub Actions（Windows 构建）
+- **自动更新:** tauri-plugin-updater（启动 + 手动检查）
+- **CI/CD:** GitHub Actions — `ci.yml`（push/PR 测试+构建）+ `release.yml`（tag 触发签名发布 + 自动更新，Win+Mac）
 
 ### 项目结构
 
 ```
 scbox-app/
 ├── src/                    # React 前端代码
-│   ├── components/         # UI 组件（SettingsPanel 等）
+│   ├── components/         # UI 组件（SettingsPanel、流程编辑器页 等）
 │   ├── hooks/             # React hooks（useGameSnapshot, useBuildOrderVoice 等）
 │   ├── lib/               # 纯函数逻辑（schedule, clock, matchup, speech）
 │   ├── types/             # TypeScript 类型定义
 │   └── App.tsx            # 主应用（悬浮窗）
 ├── src-tauri/             # Tauri 后端（Rust）
 │   ├── src/
+│   │   ├── data/builds/   # 内置默认 build（编译期只读嵌入）
 │   │   ├── builds.rs      # Build order 磁盘 IO
 │   │   ├── sc2.rs         # SC2 Client API 轮询
 │   │   ├── settings.rs    # 用户设置持久化
@@ -180,9 +197,9 @@ pnpm tauri build       # 输出到 src-tauri/target/release/bundle/
 
 ## 📋 已知问题
 
-- **拖动失效（修复中）** — 部分环境下拖动条不响应，将在下一版本修复
 - **多屏位置** — 多显示器时窗口位置持久化可能不准确
 - **Windows 语音** — 需要系统安装中文语音包，否则无声（会提示）
+- **macOS 未公证** — 应用未经 Apple 公证，首次打开需右键「打开」或 `xattr -dr com.apple.quarantine` 绕过 Gatekeeper
 
 ---
 
