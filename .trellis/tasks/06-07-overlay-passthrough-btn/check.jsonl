@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Verify the new overlay button is clickable (stopPropagation), toggles clickThrough via saveSettings, and shows active state."}

@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Overlay header button follows the drag-region opt-out rule (onMouseDown stopPropagation) + overlay token styling."}

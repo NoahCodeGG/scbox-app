@@ -2,7 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
-import { Pencil, RotateCw, Settings as SettingsIcon, Volume2 } from "lucide-react";
+import {
+  MousePointer2,
+  Pencil,
+  RotateCw,
+  Settings as SettingsIcon,
+  Volume2,
+} from "lucide-react";
 import { useGameSnapshot } from "./hooks/useGameSnapshot";
 import { useBuildOrders } from "./hooks/useBuildOrders";
 import { useBuildOrderVoice } from "./hooks/useBuildOrderVoice";
@@ -405,6 +411,25 @@ function App() {
               aria-label="编辑建造顺序"
             >
               <Pencil />
+            </button>
+            <button
+              type="button"
+              className={cn(
+                iconBtn,
+                passthrough && "text-[color:var(--o-accent)]",
+              )}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={() => {
+                void saveSettings({
+                  ...settings,
+                  clickThrough: !settings.clickThrough,
+                });
+              }}
+              aria-pressed={passthrough}
+              aria-label="穿透模式"
+              title="穿透模式（Ctrl+Shift+S 解除）"
+            >
+              <MousePointer2 />
             </button>
             <button
               type="button"
