@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 28
+- **Total Sessions**: 29
 - **Last Active**: 2026-06-07
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~938 | Active |
+| `journal-1.md` | ~971 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 29 | 2026-06-07 | Fix overlay resize feedback-loop sliver | `a2187c6` | `main` |
 | 28 | 2026-06-07 | Overlay fixed content width (no width fluctuation) | `e3d7556` | `main` |
 | 27 | 2026-06-07 | Overlay resize measures full content (passthrough sliver) | `8687f9d` | `main` |
 | 26 | 2026-06-07 | Overlay click-through toggle button | `e585d7d` | `main` |

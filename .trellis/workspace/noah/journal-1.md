@@ -936,3 +936,36 @@ Toggling the overlay passthrough button changed the window width each click: the
 ### Next Steps
 
 - None - task complete
+
+
+## Session 29: Fix overlay resize feedback-loop sliver
+
+**Date**: 2026-06-07
+**Task**: Fix overlay resize feedback-loop sliver
+**Branch**: `main`
+
+### Summary
+
+Passthrough collapsed the overlay into a scrollbar sliver even after the fixed-width column fix. Real root cause: the content-fit ResizeObserver measured <main> (display:block → offsetWidth = window inner width minus scrollbar). When the hint briefly overflowed, a scrollbar appeared → <main>.offsetWidth shrank ~15px → setSize shrank the window → still overflowed → runaway shrink to a sliver. Fix: moved contentRef to the inner w-[328px] column (intrinsic width, scrollbar-immune) and added +16 (the <main> p-2) → constant 344 width, no feedback. Added overflow:hidden to html/body/#root (overlay never scrolls; main window scrolls inside its own overflow-auto container, verified). Measurement+CSS only. 183 vitest, cargo 41, coverage held, build green. Manual macOS confirm pending.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a2187c6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
