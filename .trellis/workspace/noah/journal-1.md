@@ -375,3 +375,36 @@ Corrected the window model to match the prototype. Main window is now a normal d
 ### Next Steps
 
 - None - task complete
+
+
+## Session 12: Frameless transparent overlay + clickable buttons
+
+**Date**: 2026-06-07
+**Task**: Frameless transparent overlay + clickable buttons
+**Branch**: `main`
+
+### Summary
+
+Fixed the overlay window: it was showing full macOS chrome + a big empty white area, and the top-bar icon buttons didn't respond. Made the overlay window decorations:false + transparent:true + shadow:false (+ app.macOSPrivateApi:true and tauri macos-private-api cargo feature, required for macOS transparency) so only the rounded card shows. Made the shared page background transparent (html/body/#root) and gave MainWindow an opaque bg (bg-secondary) so the main window is unaffected. Added content-fit sizing: a ResizeObserver on .overlay-card calls getCurrentWindow().setSize so the window hugs the card across states (waiting/live/dark), with core:window:allow-set-size added to the overlay capability. Fixed dead buttons: the icon buttons were children of the data-tauri-drag-region bar (macOS drag swallows mousedown) — added onMouseDown stopPropagation to all 5 buttons so clicks fire while the bar still drags. No IPC/type changes. 168 vitest, cargo 41, coverage held, build ok. MANUAL TODO: macOS run-through to confirm only-card render + buttons + drag.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `e8f6556` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
