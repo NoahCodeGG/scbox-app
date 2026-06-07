@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 36
+- **Total Sessions**: 37
 - **Last Active**: 2026-06-07
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1221 | Active |
+| `journal-1.md` | ~1254 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 37 | 2026-06-07 | README 精准更新 | `49752bf` | `main` |
 | 36 | 2026-06-07 | 发布准备：通用 CI 化 | `8889596` | `main` |
 | 35 | 2026-06-07 | Dashboard 流程列表/步骤预览交互优化 | `7f0c657`, `65b314c`, `8f60cce`, `7b6533b`, `0ac2d58`, `3a36ee8`, `32fb476`, `1221917` | `main` |
 | 34 | 2026-06-07 | 批量录入内置默认流程 + mm:ss 输入 + UI 中文化 | `91079e0`, `fc5ddc9`, `bbb382c`, `2a905f4`, `dcd71ba`, `654bc77`, `58808a2`, `933ea3a`, `fe24d6f`, `76a942f`, `09c119e`, `06f2193`, `edccd54` | `main` |
