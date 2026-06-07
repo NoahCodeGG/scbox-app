@@ -131,38 +131,43 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Global dark theme = the overlay dark-glass palette (cyan accent), single-
+   sourced from the `--ov-*` tokens in `:root`. This keeps the main window
+   (dashboard/editor/settings) visually consistent with the overlay in dark
+   mode. Do not duplicate hex where an `--ov-*` token exists; the few literals
+   (`--primary-foreground` teal, `--destructive` red) have no token. */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: var(--ov-dark-surface);
+  --foreground: var(--ov-dark-fg);
+  --card: var(--ov-dark-raise);
+  --card-foreground: var(--ov-dark-fg);
+  --popover: var(--ov-dark-raise);
+  --popover-foreground: var(--ov-dark-fg);
+  --primary: var(--ov-accent-cyan);
+  --primary-foreground: #06222a;
+  --secondary: var(--ov-dark-raise);
+  --secondary-foreground: var(--ov-dark-fg);
+  --muted: var(--ov-dark-raise);
+  --muted-foreground: var(--ov-dark-muted);
+  --accent: var(--ov-dark-raise);
+  --accent-foreground: var(--ov-dark-fg);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --border: var(--ov-dark-border);
+  --input: var(--ov-dark-border);
+  --ring: var(--ov-accent-cyan);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: var(--ov-dark-surface);
+  --sidebar-foreground: var(--ov-dark-fg);
+  --sidebar-primary: var(--ov-accent-cyan);
+  --sidebar-primary-foreground: #06222a;
+  --sidebar-accent: var(--ov-dark-raise);
+  --sidebar-accent-foreground: var(--ov-dark-fg);
+  --sidebar-border: var(--ov-dark-border);
+  --sidebar-ring: var(--ov-accent-cyan);
 }
 
 @layer base {

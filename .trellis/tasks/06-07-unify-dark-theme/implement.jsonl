@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "The global .dark palette becomes the overlay dark-glass (cyan), single-sourced from --ov-*; update the dark-theme note + token mapping."}

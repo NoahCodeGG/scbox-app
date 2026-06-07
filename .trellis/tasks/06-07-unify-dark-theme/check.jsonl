@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Verify the dark palette is single-sourced from --ov-*, matches the overlay, and contrast is legible; spec updated."}

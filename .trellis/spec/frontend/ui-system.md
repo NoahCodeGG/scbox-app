@@ -51,7 +51,15 @@ overlay manage their own webview's `<html>`). For `"system"` the hook follows
 
 - The dark variant is the standard global `@custom-variant dark (&:is(.dark *))`
   in `index.css`; the shadcn `.dark { --... }` palette activates the whole main
-  window (dashboard/editor/settings).
+  window (dashboard/editor/settings). That palette IS the overlay dark-glass
+  look (cyan accent), single-sourced from the `:root` `--ov-*` tokens: every
+  `.dark` shadcn token references an `--ov-*` var (`--background`→
+  `--ov-dark-surface`, `--card/--popover/--secondary/--muted/--accent`→
+  `--ov-dark-raise`, fg→`--ov-dark-fg`, `--primary/--ring`→`--ov-accent-cyan`
+  with `--primary-foreground: #06222a`, `--border/--input`→`--ov-dark-border`).
+  So the main window and the overlay share the same dark surfaces + cyan accent.
+  When changing dark surfaces/accent, edit the `--ov-*` source in `:root`, not
+  the `.dark` block.
 - The overlay's dark-glass follows the SAME global theme: `.dark .overlay-card`
   flips the `--ov-*` cyan tokens (the overlay no longer has its own Moon toggle
   or local `theme-dark` state).
