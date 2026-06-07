@@ -387,7 +387,7 @@ function PreviewSteps({
   }, [nextIdx, clock]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pr-1">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pr-1">
       {build.steps.map((step, idx) => {
         const next = idx === nextIdx;
         const isSpoken = spoken.has(idx);
@@ -397,7 +397,7 @@ function PreviewSteps({
             ref={next ? nextRef : null}
             className={cn(
               "grid grid-cols-[54px_1fr_auto] items-center gap-3 border-t py-2.5 text-sm first:border-t-0",
-              next && "-mx-3 rounded-lg border-t-0 bg-primary/5 px-3",
+              next && "rounded-md border-t-0 bg-primary/5",
             )}
           >
             <span
@@ -414,7 +414,7 @@ function PreviewSteps({
             </span>
             <span
               className={cn(
-                "truncate font-medium",
+                "min-w-0 truncate font-medium",
                 isSpoken && !next && "text-muted-foreground",
               )}
             >
