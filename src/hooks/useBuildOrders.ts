@@ -4,7 +4,7 @@ import type { BuildOrder, LoadResult, StoredBuild } from "../types/build";
 import { FALLBACK_BUILD } from "../lib/builds";
 
 /** Filename used for the in-memory fallback's `StoredBuild` wrapper. */
-const FALLBACK_FILENAME = "tvz-two-medivac.json";
+const FALLBACK_FILENAME = "tvz-两船兵.json";
 
 /** UI state surfaced by the build-order loader hook. */
 export interface BuildOrdersState {

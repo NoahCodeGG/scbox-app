@@ -3,7 +3,7 @@
 // unit-testable in the node test env.
 
 import type { BuildOrder } from "../types/build";
-import tvzTwoMedivac from "../data/builds/tvz-two-medivac.json";
+import tvzTwoMedivac from "../data/builds/tvz-两船兵.json";
 
 /**
  * The bundled default build, used ONLY as an in-memory fallback when the Rust

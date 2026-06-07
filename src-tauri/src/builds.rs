@@ -349,7 +349,7 @@ mod tests {
         assert!(!builds.is_empty(), "expected at least one embedded default");
         assert!(builds.iter().all(|b| b.read_only));
         // The shipped TvZ default is present.
-        assert!(builds.iter().any(|b| b.filename == "tvz-two-medivac.json"));
+        assert!(builds.iter().any(|b| b.filename == "tvz-两船兵.json"));
     }
 
     #[test]
@@ -384,13 +384,13 @@ mod tests {
     fn user_file_overrides_same_named_default() {
         let tmp = TempDir::new();
         // Shadow an embedded default by filename.
-        fs::write(tmp.path().join("tvz-two-medivac.json"), VALID_BUILD).unwrap();
+        fs::write(tmp.path().join("tvz-两船兵.json"), VALID_BUILD).unwrap();
 
         let result = load_builds(tmp.path());
         let matching: Vec<_> = result
             .builds
             .iter()
-            .filter(|b| b.filename == "tvz-two-medivac.json")
+            .filter(|b| b.filename == "tvz-两船兵.json")
             .collect();
         assert_eq!(matching.len(), 1, "no duplicate filename");
         assert!(!matching[0].read_only, "user copy wins, is writable");
