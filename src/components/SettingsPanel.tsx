@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAppVersion } from "../hooks/useAppVersion";
+import { useAppName } from "../hooks/useAppName";
 import type { Settings } from "../hooks/useSettings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -80,6 +81,7 @@ function SettingsPanel({
 }: SettingsPanelProps) {
   const [draft, setDraft] = useState<Settings>(settings);
   const version = useAppVersion();
+  const appName = useAppName();
 
   // Re-seed the draft if the persisted settings change while the panel is open
   // (e.g. an external load resolved after first render).
@@ -259,9 +261,12 @@ function SettingsPanel({
         <span className="text-[12px] text-muted-foreground">{statusText}</span>
       </div>
 
-      <footer className="text-center text-[11px] text-muted-foreground">
-        SCBox Assistant{version ? ` v${version}` : ""}
-      </footer>
+      {(appName || version) && (
+        <footer className="text-center text-[11px] text-muted-foreground">
+          {appName ?? ""}
+          {version ? ` v${version}` : ""}
+        </footer>
+      )}
     </section>
   );
 }

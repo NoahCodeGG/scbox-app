@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "New app_icon command (returns base64 data URL) follows the IPC command conventions; getName/getVersion are core:app."}
+{"file": ".trellis/spec/frontend/hook-testing.md", "reason": "useAppName + useAppIcon are new hooks under the coverage gate; test them with mocked @tauri-apps/api app/core."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Hooks + the data URL must be typed; no any; graceful null on pending/fail."}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Single-source the name/icon; remove the duplicate src/assets/logo.png."}

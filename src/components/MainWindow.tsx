@@ -1,5 +1,7 @@
 import { HashRouter, NavLink, Route, Routes } from "react-router-dom";
 import { LayoutGrid, Pencil, Settings as SettingsIcon } from "lucide-react";
+import { useAppIcon } from "../hooks/useAppIcon";
+import { useAppName } from "../hooks/useAppName";
 import { useAppVersion } from "../hooks/useAppVersion";
 import { useSettings } from "../hooks/useSettings";
 import { useUpdateCheck } from "../hooks/useUpdateCheck";
@@ -7,7 +9,6 @@ import BuildEditor from "./BuildEditor";
 import Dashboard from "./Dashboard";
 import SettingsPanel from "./SettingsPanel";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/logo.png";
 
 /** Sidebar nav link with active-state styling, mirroring the dashboard mockup. */
 function SidebarLink({
@@ -75,14 +76,16 @@ function SettingsPage() {
  */
 function MainWindow() {
   const version = useAppVersion();
+  const name = useAppName();
+  const icon = useAppIcon();
 
   return (
     <HashRouter>
       <div className="grid h-screen grid-cols-[208px_1fr] bg-secondary">
         <nav className="flex flex-col gap-2 border-r bg-card p-5">
           <div className="mb-4 flex items-center gap-2.5">
-            <img src={logo} alt="" className="size-[30px] rounded-lg" />
-            <b className="text-base font-semibold">SCBox Assistant</b>
+            <img src={icon ?? undefined} alt="" className="size-[30px] rounded-lg" />
+            <b className="text-base font-semibold">{name ?? ""}</b>
           </div>
           <SidebarLink to="/" icon={<LayoutGrid />} label="仪表盘" />
           <SidebarLink to="/editor" icon={<Pencil />} label="Build Order" />

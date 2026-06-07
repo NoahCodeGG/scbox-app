@@ -152,6 +152,18 @@ fn open_main(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/// Return the bundled app icon as a base64 PNG data URL. The bytes are embedded
+/// at compile time from the same icon set the bundle uses (`icons/128x128.png`),
+/// keeping the icon single-sourced. The frontend renders the URL directly in an
+/// `<img>`; no extra capability is needed for a custom command.
+#[tauri::command]
+fn app_icon() -> String {
+    use base64::Engine;
+    let encoded = base64::engine::general_purpose::STANDARD
+        .encode(include_bytes!("../icons/128x128.png"));
+    format!("data:image/png;base64,{encoded}")
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -171,7 +183,8 @@ pub fn run() {
             exit_app,
             open_overlay,
             hide_overlay,
-            open_main
+            open_main,
+            app_icon
         ])
         .setup(|app| {
             // Load settings early to seed shared state and restore window position.
