@@ -33,6 +33,24 @@ fn builds_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
         .join(BUILDS_SUBDIR))
 }
 
+/// (Re-)register the click-through toggle global shortcut from a Tauri
+/// accelerator string. Clears any previously-registered shortcut first so a
+/// live change (from `save_settings`) does not leave a stale binding. An invalid
+/// or unregisterable accelerator is logged and ignored — it must not break save
+/// or startup.
+fn register_clickthrough_shortcut(app: &tauri::AppHandle, accel: &str) {
+    let _ = app.global_shortcut().unregister_all();
+    let handle = app.clone();
+    if let Err(e) = app
+        .global_shortcut()
+        .on_shortcut(accel, move |_app, _shortcut, _event| {
+            let _ = handle.emit("ui://toggle-clickthrough", ());
+        })
+    {
+        eprintln!("Failed to register click-through shortcut '{accel}': {e}");
+    }
+}
+
 /// Load every build order from the app-data `builds/` dir, seeding the bundled
 /// default on first run. Returns the valid builds plus a per-file error list so
 /// the frontend can surface partial failures without crashing.
@@ -103,6 +121,10 @@ fn save_settings(
     if let Ok(mut guard) = port.lock() {
         *guard = settings.client_api_port;
     }
+
+    // Re-register the click-through shortcut so a changed accelerator takes
+    // effect live without a restart. An invalid accelerator is logged & ignored.
+    register_clickthrough_shortcut(&app, &settings.click_through_shortcut);
     Ok(())
 }
 
@@ -243,7 +265,7 @@ pub fn run() {
             // overlay starts hidden (tauri.conf.json visible: false) and is shown
             // on demand via `open_overlay`, so positioning it now is harmless. The
             // main window is a normal OS window — its position is not persisted.
-            if let Some(s) = settings {
+            if let Some(ref s) = settings {
                 if let (Some(x), Some(y)) = (s.window_x, s.window_y) {
                     if let Some(overlay) = app.get_webview_window("overlay") {
                         let logical_pos = tauri::LogicalPosition::new(x, y);
@@ -254,14 +276,15 @@ pub fn run() {
                 }
             }
 
-            // Register global shortcut to disable click-through from outside the window.
-            // The shortcut emits an event that the frontend listens for.
-            let handle = app.handle().clone();
-            if let Err(e) = app.global_shortcut().on_shortcut("CmdOrCtrl+Shift+S", move |_app, _shortcut, _event| {
-                let _ = handle.emit("ui://toggle-clickthrough", ());
-            }) {
-                eprintln!("Failed to register global shortcut: {e}");
-            }
+            // Register the global shortcut to disable click-through from outside
+            // the window, read from settings (default `CmdOrCtrl+Shift+S`). The
+            // shortcut emits an event that the frontend listens for. A change in
+            // Settings re-registers it live via `save_settings`.
+            let accel = settings
+                .as_ref()
+                .map(|s| s.click_through_shortcut.clone())
+                .unwrap_or_else(settings::default_click_through_shortcut);
+            register_clickthrough_shortcut(&app.handle(), &accel);
 
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {

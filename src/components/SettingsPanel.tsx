@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { useAppVersion } from "../hooks/useAppVersion";
 import { useAppName } from "../hooks/useAppName";
 import type { Settings } from "../hooks/useSettings";
+import {
+  DEFAULT_CLICK_THROUGH_SHORTCUT,
+  buildAccelerator,
+  formatAccelerator,
+} from "../lib/shortcut";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -69,6 +74,71 @@ function GroupHeading({ children }: { children: React.ReactNode }) {
   return (
     <div className="border-b bg-secondary px-3 py-2 font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
       {children}
+    </div>
+  );
+}
+
+interface ShortcutRecorderProps {
+  /** Current accelerator (Tauri format, e.g. `CmdOrCtrl+Shift+S`). */
+  value: string;
+  /** Called with a new accelerator string when one is recorded or reset. */
+  onChange: (accel: string) => void;
+}
+
+/**
+ * A click-to-record control for a global shortcut. Clicking enters recording
+ * mode; the next valid modifier+key `keydown` is captured (via `buildAccelerator`)
+ * and stored. Esc cancels recording; a 重置 button restores the default. The
+ * captured value is part of the draft and only persisted on Save.
+ */
+function ShortcutRecorder({ value, onChange }: ShortcutRecorderProps) {
+  const [recording, setRecording] = useState(false);
+
+  useEffect(() => {
+    if (!recording) return;
+
+    const onKeyDown = (e: KeyboardEvent): void => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.key === "Escape") {
+        setRecording(false);
+        return;
+      }
+      const accel = buildAccelerator(e);
+      // Ignore incomplete combos (pure modifier / no modifier); keep recording
+      // until a valid modifier+key chord arrives.
+      if (accel === null) return;
+      onChange(accel);
+      setRecording(false);
+    };
+
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [recording, onChange]);
+
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        type="button"
+        size="sm"
+        variant={recording ? "default" : "secondary"}
+        aria-pressed={recording}
+        className="min-w-20 font-mono"
+        onClick={() => setRecording((prev) => !prev)}
+      >
+        {recording ? "录制中…" : formatAccelerator(value)}
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        onClick={() => {
+          setRecording(false);
+          onChange(DEFAULT_CLICK_THROUGH_SHORTCUT);
+        }}
+      >
+        重置
+      </Button>
     </div>
   );
 }
@@ -227,14 +297,14 @@ function SettingsPanel({
 
       <Card className="gap-0 overflow-hidden py-0">
         <GroupHeading>悬浮窗</GroupHeading>
-        <CardContent className="px-3 py-3">
-          <div className="flex items-center justify-between gap-3">
+        <CardContent className="flex flex-col px-3 py-0">
+          <div className="flex items-center justify-between gap-3 py-3">
             <div className="flex flex-col gap-1">
               <Label htmlFor="settings-clickthrough" className="text-[13px]">
                 穿透模式
               </Label>
               <span className="font-mono text-[11px] text-warning">
-                ⚠ 开启后按 Ctrl+Shift+S 解除
+                ⚠ 开启后按 {formatAccelerator(draft.clickThroughShortcut)} 解除
               </span>
             </div>
             <Switch
@@ -242,6 +312,23 @@ function SettingsPanel({
               checked={draft.clickThrough}
               onCheckedChange={(checked) =>
                 setDraft((prev) => ({ ...prev, clickThrough: checked }))
+              }
+            />
+          </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between gap-3 py-3">
+            <div className="flex flex-col gap-1">
+              <Label className="text-[13px]">穿透快捷键</Label>
+              <span className="text-[11px] leading-tight text-muted-foreground">
+                点击录制，按下含修饰键的组合键。
+              </span>
+            </div>
+            <ShortcutRecorder
+              value={draft.clickThroughShortcut}
+              onChange={(accel) =>
+                setDraft((prev) => ({ ...prev, clickThroughShortcut: accel }))
               }
             />
           </div>

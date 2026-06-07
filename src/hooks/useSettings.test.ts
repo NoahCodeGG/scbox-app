@@ -26,6 +26,7 @@ const DEFAULT_SETTINGS: Settings = {
   windowY: null,
   activeBuildOverride: null,
   theme: "system",
+  clickThroughShortcut: "CmdOrCtrl+Shift+S",
 };
 
 describe("useSettings", () => {

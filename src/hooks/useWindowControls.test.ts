@@ -38,6 +38,7 @@ const SETTINGS: Settings = {
   windowY: null,
   activeBuildOverride: null,
   theme: "system",
+  clickThroughShortcut: "CmdOrCtrl+Shift+S",
 };
 
 /** A close-requested event carrying a preventDefault spy. */

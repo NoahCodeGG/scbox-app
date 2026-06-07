@@ -31,6 +31,8 @@ export interface Settings {
   activeBuildOverride: string | null;
   /** Global UI theme; `"system"` follows the OS appearance. */
   theme: "light" | "dark" | "system";
+  /** Global shortcut (Tauri accelerator) that toggles overlay click-through. */
+  clickThroughShortcut: string;
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -43,6 +45,7 @@ const DEFAULT_SETTINGS: Settings = {
   windowY: null,
   activeBuildOverride: null,
   theme: "system",
+  clickThroughShortcut: "CmdOrCtrl+Shift+S",
 };
 
 /** UI state surfaced by the settings hook. */

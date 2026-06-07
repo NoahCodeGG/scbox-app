@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Verify clickThroughShortcut is consistent across Rust/TS/normalize."}
+{"file": ".trellis/spec/tauri/index.md", "reason": "Verify the shortcut is registered from settings + re-registered on save without leaking duplicate registrations."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Verify the recorder/accelerator helper are typed and the setting handled; no any."}

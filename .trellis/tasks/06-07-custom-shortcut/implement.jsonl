@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Adding Settings.clickThroughShortcut is a cross-layer contract change — settings.rs serde ↔ TS ↔ normalize in lockstep."}
+{"file": ".trellis/spec/tauri/index.md", "reason": "Global shortcut registered from settings + re-registered on save (unregister_all then on_shortcut); keep lib.rs thin."}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "save_settings now also re-registers the shortcut; command conventions + error handling."}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "The shortcut recorder control + accelerator-building helper follow component/type conventions."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "buildAccelerator helper + the new setting must be typed; no any."}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Settings } from "../hooks/useSettings";
 import {
+  normalizeClickThroughShortcut,
   normalizeLeadTimeOverride,
   normalizePort,
   normalizeSettings,
@@ -70,6 +71,7 @@ describe("normalizeSettings", () => {
     windowY: null,
     activeBuildOverride: null,
     theme: "system",
+    clickThroughShortcut: "CmdOrCtrl+Shift+S",
   };
 
   it("passes a valid settings object through unchanged", () => {
@@ -87,6 +89,7 @@ describe("normalizeSettings", () => {
       windowY: 200,
       activeBuildOverride: "  ",
       theme: "bogus" as Settings["theme"],
+      clickThroughShortcut: "  ",
     });
     expect(repaired).toEqual({
       clientApiPort: 6119,
@@ -98,6 +101,7 @@ describe("normalizeSettings", () => {
       windowY: 200,
       activeBuildOverride: null,
       theme: "system",
+      clickThroughShortcut: "CmdOrCtrl+Shift+S",
     });
   });
 
@@ -119,5 +123,20 @@ describe("normalizeTheme", () => {
   it("coerces invalid or missing values to system", () => {
     expect(normalizeTheme("bogus")).toBe("system");
     expect(normalizeTheme(undefined)).toBe("system");
+  });
+});
+
+describe("normalizeClickThroughShortcut", () => {
+  it("keeps a non-empty trimmed accelerator", () => {
+    expect(normalizeClickThroughShortcut("CmdOrCtrl+Alt+P")).toBe(
+      "CmdOrCtrl+Alt+P",
+    );
+    expect(normalizeClickThroughShortcut("  Alt+T  ")).toBe("Alt+T");
+  });
+
+  it("falls back to the default for empty or non-string", () => {
+    expect(normalizeClickThroughShortcut("")).toBe("CmdOrCtrl+Shift+S");
+    expect(normalizeClickThroughShortcut("   ")).toBe("CmdOrCtrl+Shift+S");
+    expect(normalizeClickThroughShortcut(undefined)).toBe("CmdOrCtrl+Shift+S");
   });
 });

@@ -3,6 +3,7 @@
 // paths. The clamping rules are the single source of truth for the bounds.
 
 import type { Settings } from "../hooks/useSettings";
+import { DEFAULT_CLICK_THROUGH_SHORTCUT } from "./shortcut";
 
 /** Lowest valid TCP port. */
 const MIN_PORT = 1;
@@ -81,6 +82,19 @@ export function normalizeTheme(theme: Theme | string | undefined): Theme {
 }
 
 /**
+ * Normalize the click-through shortcut: a non-empty trimmed accelerator string
+ * is kept; an empty string or `undefined` (older settings.json) falls back to
+ * the default `CmdOrCtrl+Shift+S`.
+ */
+export function normalizeClickThroughShortcut(
+  shortcut: string | undefined,
+): string {
+  if (typeof shortcut !== "string") return DEFAULT_CLICK_THROUGH_SHORTCUT;
+  const trimmed = shortcut.trim();
+  return trimmed === "" ? DEFAULT_CLICK_THROUGH_SHORTCUT : trimmed;
+}
+
+/**
  * Produce a fully-valid `Settings` from a possibly-out-of-range one. Applied
  * after loading (defending against a hand-edited settings.json) and before
  * saving (defending against UI input).
@@ -96,5 +110,8 @@ export function normalizeSettings(raw: Settings): Settings {
     windowY: raw.windowY,
     activeBuildOverride: normalizeActiveBuildOverride(raw.activeBuildOverride),
     theme: normalizeTheme(raw.theme),
+    clickThroughShortcut: normalizeClickThroughShortcut(
+      raw.clickThroughShortcut,
+    ),
   };
 }
