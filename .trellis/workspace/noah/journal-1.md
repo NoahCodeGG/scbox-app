@@ -639,3 +639,36 @@ Sidebar branding: copied the real logo to src/assets/logo.png (bundled import), 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 20: Single-source app name + icon from backend
+
+**Date**: 2026-06-07
+**Task**: Single-source app name + icon from backend
+**Branch**: `main`
+
+### Summary
+
+Made app name + icon single-sourced from the Tauri backend instead of hardcoded strings + a duplicate logo asset. useAppName() (getName → productName) used in the sidebar + SettingsPanel footer (removed hardcoded 'SCBox Assistant'). New app_icon Rust command returns a base64 data URL from include_bytes!(icons/128x128.png) (added base64 crate, registered in generate_handler!); useAppIcon() renders it in the sidebar. Deleted the duplicate src/assets/logo.png. Both hooks tested (mirroring useAppVersion). Additive app_icon command only; no other contract/behavior change. 176 vitest, cargo 41, coverage held, build green.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d5e8396` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

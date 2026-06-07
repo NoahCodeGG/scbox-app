@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 19
+- **Total Sessions**: 20
 - **Last Active**: 2026-06-07
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~641 | Active |
+| `journal-1.md` | ~674 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 20 | 2026-06-07 | Single-source app name + icon from backend | `d5e8396` | `main` |
 | 19 | 2026-06-07 | Sidebar real icon + name; footer version-only | `9513da0` | `main` |
 | 18 | 2026-06-07 | Finish Base UI migration; drop Radix + Geist | `00bb530` | `main` |
 | 17 | 2026-06-07 | Coherent window lifecycle: main close=hide + reopen + quit | `ac670e3` | `main` |
