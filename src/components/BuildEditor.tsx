@@ -6,6 +6,7 @@ import { useBuildOrders } from "../hooks/useBuildOrders";
 import { raceLabel } from "../lib/format";
 import { generateBuildFilename } from "../lib/buildFilename";
 import { exportBuildJson, parseImportedBuild } from "../lib/buildTransfer";
+import { formatClockTime } from "../lib/clockTime";
 import {
   validateBuild,
   type DraftBuild,
@@ -88,7 +89,7 @@ function toForm(build: BuildOrder): EditorForm {
     name: build.name ?? "",
     leadTimeSec: String(build.leadTimeSec),
     steps: build.steps.map((step) => ({
-      time: String(step.time),
+      time: formatClockTime(step.time),
       say: step.say,
     })),
   };
@@ -549,17 +550,14 @@ export default function BuildEditor() {
                 >
                   <div className="flex items-center gap-1">
                     <Input
-                      className="h-8 w-16 font-mono text-[13px]"
+                      className="h-8 w-20 font-mono text-[13px]"
                       value={step.time}
-                      placeholder="秒"
+                      placeholder="0:00"
                       inputMode="decimal"
                       onChange={(e) =>
                         updateStep(index, "time", e.currentTarget.value)
                       }
                     />
-                    <span className="font-mono text-[11px] text-muted-foreground">
-                      s
-                    </span>
                   </div>
                   <Input
                     className="h-8 text-[14px]"

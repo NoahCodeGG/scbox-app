@@ -5,6 +5,7 @@
 // layer guide, validation happens once, here, before crossing into Rust.
 
 import type { BuildOrder, BuildStep } from "../types/build";
+import { parseClockTime } from "./clockTime";
 
 /** A step as held by the editor form (numbers kept as raw strings). */
 export interface DraftStep {
@@ -68,8 +69,10 @@ export function validateBuild(draft: DraftBuild): ValidationResult {
     const say = draftStep.say.trim();
     if (say === "") return { ok: false, error: `${label}的语音内容不能为空` };
 
-    const time = parseNonNegative(draftStep.time, `${label}的时间`);
-    if (typeof time === "string") return { ok: false, error: time };
+    const time = parseClockTime(draftStep.time);
+    if (time === null) {
+      return { ok: false, error: `${label}的时间格式应为 秒 或 mm:ss` };
+    }
 
     steps.push({ time, say });
   }

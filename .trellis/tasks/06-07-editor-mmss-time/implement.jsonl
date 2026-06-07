@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "新增 clockTime 解析/格式工具，遵循类型与边界校验"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "BuildEditor 时间输入控件改 mm:ss"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "需满足前端质量基线（测试/typecheck）"}

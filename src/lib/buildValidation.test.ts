@@ -74,6 +74,14 @@ describe("validateBuild", () => {
     expect(validateBuild(draft({ leadTimeSec: "soon" })).ok).toBe(false);
   });
 
+  it("accepts an mm:ss step time and stores it as seconds", () => {
+    const result = validateBuild(
+      draft({ steps: [{ time: "3:55", say: "x" }] }),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.build.steps[0].time).toBe(235);
+  });
+
   it("accepts a build with no steps", () => {
     const result = validateBuild(draft({ steps: [] }));
     expect(result.ok).toBe(true);

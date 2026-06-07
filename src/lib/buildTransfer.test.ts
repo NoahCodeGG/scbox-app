@@ -119,7 +119,7 @@ describe("parseImportedBuild", () => {
       }),
     );
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("必须是数字");
+    if (!result.ok) expect(result.error).toContain("mm:ss");
   });
 
   it("rejects a negative step time", () => {
@@ -133,7 +133,7 @@ describe("parseImportedBuild", () => {
       }),
     );
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("不能为负数");
+    if (!result.ok) expect(result.error).toContain("mm:ss");
   });
 
   it("ignores a legacy supply field on imported steps", () => {
