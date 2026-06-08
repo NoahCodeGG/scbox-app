@@ -33,13 +33,13 @@
 * [ ] `humanize` 有单测：`火车 x2`→`火车 2个`、`注卵.菌毯`→`注卵 菌毯`、`SCV`→`SCV`、`工蜂 x2.女王`→`工蜂 2个 女王`。
 * [ ] `useBuildOrderVoice.ts:120` 改为按优先级取播报文案。
 * [ ] 配 sayAs 的 step 朗读 sayAs；无 sayAs 的 step 朗读 humanize 结果。
-* [ ] 至少一个内置 build 文件示范 sayAs 写法。
+* [ ] 编辑器可编辑 sayAs，form↔JSON 双向同步不丢失。
 
 ## Definition of Done
 
 * humanize 单测 + 取值优先级测试
 * Lint / typecheck 通过
-* 一个内置 build 文件示范 sayAs 字段
+* 内置 build 文件保持不变（不强加 sayAs 示范）
 
 ## Out of Scope (explicit)
 
