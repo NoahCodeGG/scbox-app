@@ -59,7 +59,7 @@ function normalizeRace(race: string): AuthorRace {
 }
 
 function emptyStep(): DraftStep {
-  return { time: "", say: "" };
+  return { time: "", say: "", sayAs: "" };
 }
 
 /** Editor form fields, excluding the derived `matchup`. */
@@ -91,6 +91,7 @@ function toForm(build: BuildOrder): EditorForm {
     steps: build.steps.map((step) => ({
       time: formatClockTime(step.time),
       say: step.say,
+      sayAs: step.sayAs ?? "",
     })),
   };
 }
@@ -126,10 +127,12 @@ function formToJson(form: EditorForm): string {
     race: form.race,
     name: form.name,
     leadTimeSec: form.leadTimeSec,
-    steps: form.steps.map((step) => ({
-      time: step.time,
-      say: step.say,
-    })),
+    steps: form.steps.map((step) => {
+      const sayAs = step.sayAs.trim();
+      return sayAs === ""
+        ? { time: step.time, say: step.say }
+        : { time: step.time, say: step.say, sayAs };
+    }),
   };
   return JSON.stringify(lenient, null, 2);
 }
@@ -559,14 +562,24 @@ export default function BuildEditor() {
                       }
                     />
                   </div>
-                  <Input
-                    className="h-8 text-[14px]"
-                    value={step.say}
-                    placeholder="语音内容，如「14 补给站」"
-                    onChange={(e) =>
-                      updateStep(index, "say", e.currentTarget.value)
-                    }
-                  />
+                  <div className="flex flex-col gap-1.5">
+                    <Input
+                      className="h-8 text-[14px]"
+                      value={step.say}
+                      placeholder="语音内容，如「14 补给站」"
+                      onChange={(e) =>
+                        updateStep(index, "say", e.currentTarget.value)
+                      }
+                    />
+                    <Input
+                      className="h-8 text-[13px] text-muted-foreground"
+                      value={step.sayAs}
+                      placeholder="朗读文案（可选），如「造两辆火车」"
+                      onChange={(e) =>
+                        updateStep(index, "sayAs", e.currentTarget.value)
+                      }
+                    />
+                  </div>
                   <Button
                     type="button"
                     variant="ghost"

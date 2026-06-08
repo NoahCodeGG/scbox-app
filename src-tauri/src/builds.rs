@@ -36,8 +36,12 @@ const LEGACY_SEED_TERRAN: &str = include_str!("legacy_seed_terran.json");
 pub struct BuildStep {
     /// Target `displayTime` (seconds) for the action.
     pub time: f64,
-    /// Text spoken when the step is due.
+    /// Text shown in the UI when the step is due.
     pub say: String,
+    /// Optional spoken override. When present and non-empty, TTS reads it
+    /// verbatim instead of `say`. Absent in older files → `None`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub say_as: Option<String>,
 }
 
 /// A full build order for one matchup.
@@ -520,8 +524,8 @@ mod tests {
             name: "my tvz".to_string(),
             lead_time_sec: 4.0,
             steps: vec![
-                BuildStep { time: 17.0, say: "depot".to_string() },
-                BuildStep { time: 30.0, say: "rax".to_string() },
+                BuildStep { time: 17.0, say: "depot".to_string(), say_as: None },
+                BuildStep { time: 30.0, say: "rax".to_string(), say_as: None },
             ],
         };
 

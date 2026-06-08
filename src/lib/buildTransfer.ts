@@ -14,8 +14,8 @@ export type ImportResult =
 
 /**
  * Serialize a build to pretty (2-space) JSON containing exactly the on-disk
- * contract fields — matchup, race, name, leadTimeSec, and each step's time/say.
- * Never leaks loader metadata such as `filename`.
+ * contract fields — matchup, race, name, leadTimeSec, and each step's
+ * time/say/optional sayAs. Never leaks loader metadata such as `filename`.
  */
 export function exportBuildJson(build: BuildOrder): string {
   const clean = {
@@ -23,7 +23,11 @@ export function exportBuildJson(build: BuildOrder): string {
     race: build.race,
     name: build.name,
     leadTimeSec: build.leadTimeSec,
-    steps: build.steps.map((step) => ({ time: step.time, say: step.say })),
+    steps: build.steps.map((step) =>
+      step.sayAs !== undefined && step.sayAs !== ""
+        ? { time: step.time, say: step.say, sayAs: step.sayAs }
+        : { time: step.time, say: step.say },
+    ),
   };
   return JSON.stringify(clean, null, 2);
 }
@@ -51,6 +55,7 @@ function toDraftStep(value: unknown): DraftStep {
   return {
     time: toFieldString(obj.time),
     say: toFieldString(obj.say),
+    sayAs: toFieldString(obj.sayAs),
   };
 }
 

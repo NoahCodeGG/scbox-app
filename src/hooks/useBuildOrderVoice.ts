@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { BuildOrder, BuildStep } from "../types/build";
 import type { GameSnapshot } from "../types/sc2";
 import { cancelAll, speak } from "../lib/speech";
+import { spokenText } from "../lib/sayVoice";
 import {
   dueStepIndices,
   initialSpokenSet,
@@ -117,7 +118,7 @@ export function useBuildOrderVoice(
       spokenGuardRef.current.add(i);
       // Voice off: still advance the spoken set (so the next-step display and
       // countdown progress), just skip the audio.
-      if (voiceEnabled) speak(scheduledOrder.steps[i].say, voiceRate);
+      if (voiceEnabled) speak(spokenText(scheduledOrder.steps[i]), voiceRate);
     }
     setSpoken((prev) => {
       const next = new Set(prev);

@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "BuildStep 新增可选 voice 字段，需遵循类型安全约定（TS 可选字段写法）"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "新增 humanize 工具函数，需放在约定的目录位置"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "改动 useBuildOrderVoice hook 的播报取值逻辑"}
+{"file": ".trellis/spec/frontend/hook-testing.md", "reason": "humanize 单测 + hook 取值优先级测试"}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "Rust 侧 BuildStep 镜像结构同步加 voice 字段，serde camelCase/默认值约定"}

@@ -11,6 +11,8 @@ import { parseClockTime } from "./clockTime";
 export interface DraftStep {
   time: string;
   say: string;
+  /** Optional spoken override (empty string = unset). */
+  sayAs: string;
 }
 
 /** A build as held by the editor form. */
@@ -74,7 +76,8 @@ export function validateBuild(draft: DraftBuild): ValidationResult {
       return { ok: false, error: `${label}的时间格式应为 秒 或 mm:ss` };
     }
 
-    steps.push({ time, say });
+    const sayAs = draftStep.sayAs.trim();
+    steps.push(sayAs === "" ? { time, say } : { time, say, sayAs });
   }
 
   // Auto-sort ascending by time (stable) so entry order doesn't matter.

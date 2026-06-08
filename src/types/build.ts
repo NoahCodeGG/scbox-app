@@ -6,8 +6,14 @@
 export interface BuildStep {
   /** Target `displayTime` (seconds) for the action. */
   time: number;
-  /** Text spoken via Web Speech when the step is due. */
+  /** Text shown in the UI when the step is due. */
   say: string;
+  /**
+   * Optional spoken override. When non-empty it is read verbatim by TTS instead
+   * of `say`; absent/empty falls back to `humanize(say)`. Lets authors phrase a
+   * cue for the ear (e.g. `say` is `"火车 x2"` while `sayAs` is `"造两辆火车"`).
+   */
+  sayAs?: string;
 }
 
 /** A full build order for one matchup. */

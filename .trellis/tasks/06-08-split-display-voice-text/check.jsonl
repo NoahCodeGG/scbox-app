@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "校验代码质量（小函数、纯函数 humanize、无副作用）"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "校验 voice 可选字段的类型安全"}
+{"file": ".trellis/spec/frontend/hook-testing.md", "reason": "校验 humanize 单测与取值优先级测试覆盖"}
