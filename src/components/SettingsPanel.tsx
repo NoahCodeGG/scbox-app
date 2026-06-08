@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import { useAppVersion } from "../hooks/useAppVersion";
 import { useAppName } from "../hooks/useAppName";
 import type { Settings } from "../hooks/useSettings";
@@ -172,6 +173,7 @@ function SettingsPanel({
 
   const submit = (): void => {
     onSave(draft);
+    toast.success("已保存设置");
     onClose?.();
   };
 

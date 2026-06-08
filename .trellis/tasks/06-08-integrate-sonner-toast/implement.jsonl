@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "新增 ui/sonner 封装、改 BuildEditor/SettingsPanel/MainWindow 组件，遵循组件约定"}
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "Toaster 主题跟随、shadcn 风格与设计系统 token 一致"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "ui/sonner.tsx 放置位置约定"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "移除 BuildEditor status state 改用 toast，状态管理影响"}
+{"file": ".trellis/spec/tauri/multi-window.md", "reason": "Toaster 只挂 MainWindow 不挂 overlay，多窗渲染分流"}

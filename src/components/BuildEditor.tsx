@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
 import { Plus, RotateCw, Save, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { useBuildOrders } from "../hooks/useBuildOrders";
 import { raceLabel } from "../lib/format";
 import { generateBuildFilename } from "../lib/buildFilename";
@@ -45,9 +46,6 @@ const RACE_LABELS_ZH: Record<AuthorRace, string> = {
   Protoss: "神族 (Protoss)",
   Zerg: "虫族 (Zerg)",
 };
-
-/** Status banner shown after a save/delete attempt. */
-type Status = { kind: "success" | "error"; message: string } | null;
 
 function isAuthorRace(value: string): value is AuthorRace {
   return (AUTHOR_RACES as readonly string[]).includes(value);
@@ -168,7 +166,6 @@ export default function BuildEditor() {
   // null selection = composing a new (not-yet-saved) build.
   const [selectedFilename, setSelectedFilename] = useState<string | null>(null);
   const [form, setForm] = useState<EditorForm>(emptyForm);
-  const [status, setStatus] = useState<Status>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -233,26 +230,21 @@ export default function BuildEditor() {
   async function handleCopyJson(): Promise<void> {
     try {
       await navigator.clipboard.writeText(jsonText);
-      setStatus({ kind: "success", message: "已复制到剪贴板" });
+      toast.success("已复制到剪贴板");
     } catch {
-      setStatus({
-        kind: "error",
-        message: "复制失败，请手动选中文本并按 Cmd+C 复制",
-      });
+      toast.error("复制失败，请手动选中文本并按 Cmd+C 复制");
     }
   }
 
   function selectBuild(filename: string, build: BuildOrder): void {
     setSelectedFilename(filename);
     setForm(toForm(build));
-    setStatus(null);
     setConfirmingDelete(false);
   }
 
   function startNew(): void {
     setSelectedFilename(null);
     setForm(emptyForm());
-    setStatus(null);
     setConfirmingDelete(false);
   }
 
@@ -300,7 +292,7 @@ export default function BuildEditor() {
   async function handleSave(): Promise<void> {
     if (selectedReadOnly) return; // defaults are read-only; use "copy" instead
     if (!result.ok) {
-      setStatus({ kind: "error", message: result.error });
+      toast.error(result.error);
       return;
     }
     const filename =
@@ -308,14 +300,13 @@ export default function BuildEditor() {
       generateBuildFilename(filenameSource, existingFilenames);
 
     setBusy(true);
-    setStatus(null);
     try {
       await invoke("save_build_order", { filename, build: result.build });
       setSelectedFilename(filename);
       await notifyChanged();
-      setStatus({ kind: "success", message: `已保存：${filename}` });
+      toast.success(`已保存：${filename}`);
     } catch (e: unknown) {
-      setStatus({ kind: "error", message: `保存失败：${errorMessage(e)}` });
+      toast.error(`保存失败：${errorMessage(e)}`);
     } finally {
       setBusy(false);
     }
@@ -328,20 +319,19 @@ export default function BuildEditor() {
    */
   async function handleCopyToMine(): Promise<void> {
     if (!result.ok) {
-      setStatus({ kind: "error", message: result.error });
+      toast.error(result.error);
       return;
     }
     const filename = generateBuildFilename(filenameSource, existingFilenames);
 
     setBusy(true);
-    setStatus(null);
     try {
       await invoke("save_build_order", { filename, build: result.build });
       setSelectedFilename(filename);
       await notifyChanged();
-      setStatus({ kind: "success", message: `已复制为我的流程：${filename}` });
+      toast.success(`已复制为我的流程：${filename}`);
     } catch (e: unknown) {
-      setStatus({ kind: "error", message: `复制失败：${errorMessage(e)}` });
+      toast.error(`复制失败：${errorMessage(e)}`);
     } finally {
       setBusy(false);
     }
@@ -352,15 +342,14 @@ export default function BuildEditor() {
     const filename = selectedFilename;
 
     setBusy(true);
-    setStatus(null);
     setConfirmingDelete(false);
     try {
       await invoke("delete_build_order", { filename });
       startNew();
       await notifyChanged();
-      setStatus({ kind: "success", message: `已删除：${filename}` });
+      toast.success(`已删除：${filename}`);
     } catch (e: unknown) {
-      setStatus({ kind: "error", message: `删除失败：${errorMessage(e)}` });
+      toast.error(`删除失败：${errorMessage(e)}`);
     } finally {
       setBusy(false);
     }
@@ -612,19 +601,6 @@ export default function BuildEditor() {
                 按时间自动排序
               </span>
             </div>
-
-            {status && (
-              <div
-                className={cn(
-                  "mt-4 rounded-md border px-3 py-2 text-sm",
-                  status.kind === "success"
-                    ? "border-success/40 bg-success/5 text-success"
-                    : "border-destructive/40 bg-destructive/5 text-destructive",
-                )}
-              >
-                {status.message}
-              </div>
-            )}
 
             <div className="mt-4 flex items-center gap-2">
               {selectedReadOnly ? (

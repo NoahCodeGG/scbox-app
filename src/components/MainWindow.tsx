@@ -12,6 +12,7 @@ import { SETTINGS_CHANGED_EVENT } from "../lib/events";
 import BuildEditor from "./BuildEditor";
 import Dashboard from "./Dashboard";
 import SettingsPanel from "./SettingsPanel";
+import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
 /** Sidebar nav link with active-state styling, mirroring the dashboard mockup. */
@@ -133,6 +134,7 @@ function MainWindow() {
           </Routes>
         </main>
       </div>
+      <Toaster theme={settings.theme} />
     </HashRouter>
   );
 }
