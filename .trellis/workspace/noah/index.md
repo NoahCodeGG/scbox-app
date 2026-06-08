@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 38
+- **Total Sessions**: 39
 - **Last Active**: 2026-06-08
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1287 | Active |
+| `journal-1.md` | ~1321 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 39 | 2026-06-08 | 文案与语音播报分离（sayAs） | `9e224c6`, `8a25a04` | `main` |
 | 38 | 2026-06-08 | SCBox 链接 + 版本号单点化 | `9bac233` | `main` |
 | 37 | 2026-06-07 | README 精准更新 | `49752bf` | `main` |
 | 36 | 2026-06-07 | 发布准备：通用 CI 化 | `8889596` | `main` |

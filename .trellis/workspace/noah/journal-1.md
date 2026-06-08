@@ -1285,3 +1285,37 @@ README 致谢链接由失效的 sc2box.com 改为 B 站参考视频(去跟踪参
 ### Next Steps
 
 - None - task complete
+
+
+## Session 39: 文案与语音播报分离（sayAs）
+
+**Date**: 2026-06-08
+**Task**: 文案与语音播报分离（sayAs）
+**Branch**: `main`
+
+### Summary
+
+为 BuildStep 新增可选 sayAs 字段，分离 UI 显示与 TTS 播报：朗读优先 sayAs（trim 非空逐字读），否则 humanize(say) 兜底（xN→N个、.→空格）。TS/Rust 镜像同步（serde camelCase + skip_serializing_if，向后兼容）。流程编辑器支持编辑 sayAs，form↔JSON 双向同步不丢失。命名用 sayAs 而非 voice 以避开 TTS 发音人概念。按用户要求移除示范文件样例。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9e224c6` | (see git log) |
+| `8a25a04` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
