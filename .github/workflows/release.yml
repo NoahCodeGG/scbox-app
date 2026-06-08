@@ -30,7 +30,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        include:
+          - os: windows-latest
+            args: ""
+          - os: macos-latest
+            args: "--target aarch64-apple-darwin"
+          - os: macos-latest
+            args: "--target x86_64-apple-darwin"
 
     runs-on: ${{ matrix.os }}
 
@@ -50,6 +56,10 @@ jobs:
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Add macOS Rust targets
+        if: matrix.os == 'macos-latest'
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
 
       - name: Cache Rust build
         uses: Swatinem/rust-cache@v2
@@ -78,3 +88,4 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: "SCBox Assistant ${{ github.ref_name }}"
           releaseDraft: true
+          args: ${{ matrix.args }}
