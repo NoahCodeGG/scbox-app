@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Play, Square } from "lucide-react";
@@ -17,6 +18,10 @@ import DiagnosticPanel from "./DiagnosticPanel";
 import type { GameSnapshot, PlayerInfo } from "../types/sc2";
 import type { StoredBuild } from "../types/build";
 import type { DetectedMatchup } from "../lib/matchup";
+import {
+  OVERLAY_VISIBILITY_EVENT,
+  type OverlayVisibilityPayload,
+} from "../lib/events";
 
 /** Mono uppercase eyebrow heading matching the dashboard card mockup. */
 function CardEyebrow({ children }: { children: React.ReactNode }) {
@@ -482,6 +487,20 @@ function Dashboard() {
     });
     setOverlayShown((shown) => !shown);
   };
+
+  // Keep the launch/hide toggle in sync when the overlay hides itself (its own
+  // close button), so the button label flips back to "启动悬浮窗".
+  useEffect(() => {
+    const unlisten = listen<OverlayVisibilityPayload>(
+      OVERLAY_VISIBILITY_EVENT,
+      (event) => {
+        setOverlayShown(event.payload?.shown ?? false);
+      },
+    );
+    return () => {
+      void unlisten.then((off) => off());
+    };
+  }, []);
 
   return (
     <div className="flex h-full flex-col gap-4">

@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/tauri/multi-window.md", "reason": "overlay↔主窗口跨窗导航、show/hide、事件通信，核心约定"}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "open_main/hide_overlay 命令调用与事件 emit/listen 约定"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "改 App/MainWindow/BuildEditor/Dashboard 组件，加关闭按钮、定位入口"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "BuildEditor 新增外部 filename 定位、overlayShown 同步，状态管理"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "事件 listen 的 useEffect 清理模式"}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
 import { Plus, RotateCw, Save, Trash2 } from "lucide-react";
@@ -16,6 +16,7 @@ import {
 import { parseMatchup, raceNameToLetter, type RaceLetter } from "../lib/matchup";
 import type { BuildOrder } from "../types/build";
 import { BUILDS_CHANGED_EVENT } from "../lib/events";
+import { consumePendingEditorNav } from "../lib/pendingEditorNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -241,6 +242,23 @@ export default function BuildEditor() {
     setForm(toForm(build));
     setConfirmingDelete(false);
   }
+
+  // One-shot: when the overlay's edit button navigated us here with a target
+  // build, select it once `stored` has loaded. Consumed exactly once (the stash
+  // is cleared on read, and `navConsumedRef` guards against re-running if
+  // `stored` reloads), so manually opening the editor later starts fresh.
+  const navConsumedRef = useRef(false);
+  useEffect(() => {
+    if (navConsumedRef.current) return;
+    if (stored.length === 0) return;
+    const filename = consumePendingEditorNav();
+    navConsumedRef.current = true;
+    if (filename === null) return;
+    const match = stored.find((s) => s.filename === filename);
+    if (match) selectBuild(filename, match.build);
+    // selectBuild only calls stable state setters; safe to omit from deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stored]);
 
   function startNew(): void {
     setSelectedFilename(null);

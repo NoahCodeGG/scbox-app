@@ -1,5 +1,11 @@
 import { useEffect } from "react";
-import { HashRouter, NavLink, Route, Routes } from "react-router-dom";
+import {
+  HashRouter,
+  NavLink,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
 import { listen } from "@tauri-apps/api/event";
 import { LayoutGrid, Pencil, Settings as SettingsIcon } from "lucide-react";
 import { useAppIcon } from "../hooks/useAppIcon";
@@ -8,7 +14,12 @@ import { useAppVersion } from "../hooks/useAppVersion";
 import { useApplyTheme } from "../hooks/useApplyTheme";
 import { useSettings } from "../hooks/useSettings";
 import { useUpdateCheck } from "../hooks/useUpdateCheck";
-import { SETTINGS_CHANGED_EVENT } from "../lib/events";
+import {
+  NAVIGATE_EDITOR_EVENT,
+  SETTINGS_CHANGED_EVENT,
+  type NavigateEditorPayload,
+} from "../lib/events";
+import { setPendingEditorNav } from "../lib/pendingEditorNav";
 import BuildEditor from "./BuildEditor";
 import Dashboard from "./Dashboard";
 import SettingsPanel from "./SettingsPanel";
@@ -48,6 +59,28 @@ function SidebarLink({
 /** The build-order editor rendered as a routed page (was a separate window). */
 function EditorPage() {
   return <BuildEditor />;
+}
+
+/**
+ * Listens (inside the router, so it can call `useNavigate`) for the overlay's
+ * NAVIGATE_EDITOR_EVENT. On receipt it stashes the target build filename for the
+ * editor to consume on mount, then navigates to /editor. Renders nothing.
+ */
+function NavigationBridge() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const unlisten = listen<NavigateEditorPayload>(
+      NAVIGATE_EDITOR_EVENT,
+      (event) => {
+        setPendingEditorNav(event.payload?.filename ?? "");
+        navigate("/editor");
+      },
+    );
+    return () => {
+      void unlisten.then((off) => off());
+    };
+  }, [navigate]);
+  return null;
 }
 
 /**
@@ -100,6 +133,7 @@ function MainWindow() {
 
   return (
     <HashRouter>
+      <NavigationBridge />
       <div className="relative grid h-screen grid-cols-[208px_1fr] bg-secondary">
         {/*
           Overlay titlebar (macOS): the window content draws under the

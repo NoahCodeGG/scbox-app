@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import {
   MousePointer2,
@@ -8,6 +8,7 @@ import {
   RotateCw,
   Settings as SettingsIcon,
   Volume2,
+  X,
 } from "lucide-react";
 import { useGameSnapshot } from "./hooks/useGameSnapshot";
 import { useBuildOrders } from "./hooks/useBuildOrders";
@@ -22,7 +23,14 @@ import { FALLBACK_BUILD } from "./lib/builds";
 import { identifyMatchup, parseMatchup, selectBuild } from "./lib/matchup";
 import { formatGameTime, raceLabel } from "./lib/format";
 import { upcomingStepIndices } from "./lib/schedule";
-import { BUILDS_CHANGED_EVENT, SETTINGS_CHANGED_EVENT } from "./lib/events";
+import {
+  BUILDS_CHANGED_EVENT,
+  NAVIGATE_EDITOR_EVENT,
+  OVERLAY_VISIBILITY_EVENT,
+  SETTINGS_CHANGED_EVENT,
+  type NavigateEditorPayload,
+  type OverlayVisibilityPayload,
+} from "./lib/events";
 import type { Settings } from "./hooks/useSettings";
 import type { BuildOrder, StoredBuild } from "./types/build";
 import type { GameSnapshot } from "./types/sc2";
@@ -371,6 +379,40 @@ function App() {
       : null;
   const activeBuild: BuildOrder = overridden ?? autoSelected ?? FALLBACK_BUILD;
 
+  // Filename of the active build, used to navigate the editor to it. The
+  // override carries its filename directly; in auto mode reverse-look it up in
+  // the loaded set. Unknown (e.g. FALLBACK_BUILD) resolves to "" so the editor
+  // opens without forcing a selection.
+  const activeFilename =
+    settings.activeBuildOverride ??
+    stored.find((s) => s.build === activeBuild)?.filename ??
+    "";
+
+  // Open + focus the main window, then ask it to navigate to the editor and
+  // select the active build (cross-window, so via an app event).
+  const openEditor = (): void => {
+    void invoke("open_main")
+      .then(() => {
+        const payload: NavigateEditorPayload = { filename: activeFilename };
+        return emit(NAVIGATE_EDITOR_EVENT, payload);
+      })
+      .catch(() => {
+        // Main window failed to focus / event failed; nothing actionable here.
+      });
+  };
+
+  // Hide the overlay itself and tell the dashboard so its launch toggle syncs.
+  const hideOverlay = (): void => {
+    void invoke("hide_overlay")
+      .then(() => {
+        const payload: OverlayVisibilityPayload = { shown: false };
+        return emit(OVERLAY_VISIBILITY_EVENT, payload);
+      })
+      .catch(() => {
+        // Hide failed; leave the dashboard state unchanged.
+      });
+  };
+
   const state = overlayState(snapshot);
   const showBuild = state === "live";
   const passthrough = settings.clickThrough;
@@ -405,9 +447,15 @@ function App() {
                 ⠿
               </span>
               <MatchupLabel matchup={activeBuild.matchup} />
-              <span className="truncate text-[11px] text-[color:var(--o-muted)]">
-                {raceLabel(activeBuild.race)}
-              </span>
+              {activeBuild.name?.trim() ? (
+                <span className="truncate text-[11px] text-[color:var(--o-fg)]">
+                  {activeBuild.name}
+                </span>
+              ) : (
+                <span className="truncate text-[11px] text-[color:var(--o-muted)]">
+                  {raceLabel(activeBuild.race)}
+                </span>
+              )}
             </div>
             <div className="flex shrink-0 items-center gap-0.5">
               <button
@@ -423,11 +471,7 @@ function App() {
                 type="button"
                 className={iconBtn}
                 onMouseDown={(e) => e.stopPropagation()}
-                onClick={() => {
-                  void invoke("open_main").catch(() => {
-                    // Main window failed to focus; nothing actionable here.
-                  });
-                }}
+                onClick={openEditor}
                 aria-label="编辑建造顺序"
               >
                 <Pencil />
@@ -463,6 +507,15 @@ function App() {
                 aria-label="设置"
               >
                 <SettingsIcon />
+              </button>
+              <button
+                type="button"
+                className={iconBtn}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={hideOverlay}
+                aria-label="隐藏悬浮窗"
+              >
+                <X />
               </button>
             </div>
           </div>
