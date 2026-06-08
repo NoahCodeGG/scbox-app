@@ -1452,3 +1452,36 @@ Bug1（暗色原生滚动条白色）：index.css 给 :root 加 color-scheme:lig
 ### Next Steps
 
 - None - task complete
+
+
+## Session 44: 诊断框与仪表盘按钮暗色可见性
+
+**Date**: 2026-06-08
+**Task**: 诊断框与仪表盘按钮暗色可见性
+**Branch**: `main`
+
+### Summary
+
+诊断对话框「重试连接」「修改端口」、仪表盘隐藏悬浮窗态按钮 secondary→outline，暗色下带边框可辨；主操作保持 default 高亮。延续设置面板同类修复。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `2b92ee1` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
