@@ -11,6 +11,10 @@
 :root {
   --radius: 0.625rem;
 
+  /* Native scrollbars/form controls follow the active theme; `.dark` flips it
+     to `dark` so the OS scrollbar isn't rendered light-on-dark. */
+  color-scheme: light;
+
   /* Surfaces / text — white + neutral #f4f4f5 chrome, slate text */
   --background: oklch(1 0 0); /* #ffffff */
   --foreground: oklch(0.145 0 0); /* #111827 */
@@ -137,6 +141,7 @@
    mode. Do not duplicate hex where an `--ov-*` token exists; the few literals
    (`--primary-foreground` teal, `--destructive` red) have no token. */
 .dark {
+  color-scheme: dark;
   --background: var(--ov-dark-surface);
   --foreground: var(--ov-dark-fg);
   --card: var(--ov-dark-raise);
