@@ -1485,3 +1485,36 @@ Bug1（暗色原生滚动条白色）：index.css 给 :root 加 color-scheme:lig
 ### Next Steps
 
 - None - task complete
+
+
+## Session 45: overlay 编辑跳转/关闭按钮/标题流程名
+
+**Date**: 2026-06-08
+**Task**: overlay 编辑跳转/关闭按钮/标题流程名
+**Branch**: `main`
+
+### Summary
+
+overlay 编辑按钮跳转到当前流程编辑页（emit 导航事件+pendingEditorNav 单例规避竞态）；新增关闭按钮 invoke hide_overlay 并 emit 可见性事件同步 Dashboard 按钮；标题补显当前流程名（空回退对阵/种族）。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `34a9fa7` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

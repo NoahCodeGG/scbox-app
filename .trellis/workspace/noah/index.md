@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 44
+- **Total Sessions**: 45
 - **Last Active**: 2026-06-08
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1487 | Active |
+| `journal-1.md` | ~1520 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 45 | 2026-06-08 | overlay 编辑跳转/关闭按钮/标题流程名 | `34a9fa7` | `main` |
 | 44 | 2026-06-08 | 诊断框与仪表盘按钮暗色可见性 | `2b92ee1` | `main` |
 | 43 | 2026-06-08 | 接入 Sonner toast | `892f434` | `main` |
 | 42 | 2026-06-08 | 手动检查更新按钮 + Pre-release 更新开关 | `3013864`, `0b68248` | `main` |
