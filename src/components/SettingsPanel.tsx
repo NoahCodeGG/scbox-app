@@ -122,7 +122,7 @@ function ShortcutRecorder({ value, onChange }: ShortcutRecorderProps) {
       <Button
         type="button"
         size="sm"
-        variant={recording ? "default" : "secondary"}
+        variant={recording ? "default" : "outline"}
         aria-pressed={recording}
         className="min-w-20 font-mono"
         onClick={() => setRecording((prev) => !prev)}
@@ -132,7 +132,7 @@ function ShortcutRecorder({ value, onChange }: ShortcutRecorderProps) {
       <Button
         type="button"
         size="sm"
-        variant="ghost"
+        variant="outline"
         onClick={() => {
           setRecording(false);
           onChange(DEFAULT_CLICK_THROUGH_SHORTCUT);
@@ -347,7 +347,7 @@ function SettingsPanel({
                   key={option.value}
                   type="button"
                   size="sm"
-                  variant={draft.theme === option.value ? "default" : "secondary"}
+                  variant={draft.theme === option.value ? "default" : "outline"}
                   aria-pressed={draft.theme === option.value}
                   onClick={() =>
                     setDraft((prev) => ({ ...prev, theme: option.value }))
@@ -389,7 +389,8 @@ function SettingsPanel({
 
       <Separator />
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[12px] text-muted-foreground">{statusText}</span>
         <Button
           type="button"
           size="sm"
@@ -401,7 +402,6 @@ function SettingsPanel({
           <RefreshCw className={updateBusy ? "animate-spin" : undefined} />
           检查更新
         </Button>
-        <span className="text-[12px] text-muted-foreground">{statusText}</span>
       </div>
 
       {(appName || version) && (
