@@ -102,10 +102,10 @@ export default function DiagnosticPanel({
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="secondary" onClick={onRetry}>
+          <Button type="button" variant="outline" onClick={onRetry}>
             重试连接
           </Button>
-          <Button type="button" variant="secondary" onClick={handleOpenSettings}>
+          <Button type="button" variant="outline" onClick={handleOpenSettings}>
             修改端口
           </Button>
           <Button type="button" onClick={onClose}>

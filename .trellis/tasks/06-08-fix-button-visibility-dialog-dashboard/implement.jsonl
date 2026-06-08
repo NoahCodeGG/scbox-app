@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "改 DiagnosticPanel/Dashboard 按钮 variant，遵循组件约定"}
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "outline variant 与设计系统暗色 token 一致"}

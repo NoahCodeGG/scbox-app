@@ -494,7 +494,7 @@ function Dashboard() {
         </div>
         <Button
           type="button"
-          variant={overlayShown ? "secondary" : "default"}
+          variant={overlayShown ? "outline" : "default"}
           onClick={toggleOverlay}
         >
           {overlayShown ? <Square /> : <Play />}
