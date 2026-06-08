@@ -1617,3 +1617,36 @@ useUpdateCheck mount 自动检查此前不设 busy，设置页无检查中文案
 ### Next Steps
 
 - None - task complete
+
+
+## Session 49: 发布 v0.2.0
+
+**Date**: 2026-06-08
+**Task**: 发布 v0.2.0
+**Branch**: `main`
+
+### Summary
+
+版本 bump 0.1.0→0.2.0（package.json+Cargo.toml+Cargo.lock），打 tag v0.2.0 并 push 触发 Release workflow（构建签名 Win+Mac、生成 latest.json、创建草稿 release）。本地测试全绿（前端224/Rust46/tsc）。待用户在 GitHub publish 草稿。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `de84d10` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
