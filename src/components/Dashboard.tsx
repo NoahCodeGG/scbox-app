@@ -72,7 +72,7 @@ function ConnectionCard({
 
   return (
     <Card className="gap-4 py-5">
-      <CardHeader className="flex-row items-center justify-between px-5">
+      <CardHeader className="flex flex-row items-center justify-between px-5">
         <CardEyebrow>连接状态</CardEyebrow>
         <Button
           type="button"
@@ -278,7 +278,7 @@ function BuildSelectCard({
 }) {
   return (
     <Card className="flex h-full min-h-0 flex-col gap-4 py-5">
-      <CardHeader className="flex-row items-center justify-between px-5">
+      <CardHeader className="flex flex-row items-center justify-between px-5">
         <div className="flex items-center gap-1.5">
           <CardEyebrow>流程 · 自动匹配</CardEyebrow>
           <span

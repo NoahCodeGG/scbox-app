@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "改 Dashboard CardHeader className 修复布局，遵循组件约定"}
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "CardHeader 默认 grid 与 flex 覆盖，设计系统布局约定"}
