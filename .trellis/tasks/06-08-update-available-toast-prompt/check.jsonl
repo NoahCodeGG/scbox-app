@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "校验启动检查/toast 去重的 effect 与清理"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "校验 MainWindow 改动与 toast action"}

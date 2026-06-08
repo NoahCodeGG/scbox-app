@@ -14,6 +14,7 @@ import { useAppVersion } from "../hooks/useAppVersion";
 import { useApplyTheme } from "../hooks/useApplyTheme";
 import { useSettings } from "../hooks/useSettings";
 import { useUpdateCheck } from "../hooks/useUpdateCheck";
+import { useUpdateToast } from "../hooks/useUpdateToast";
 import {
   NAVIGATE_EDITOR_EVENT,
   SETTINGS_CHANGED_EVENT,
@@ -122,6 +123,12 @@ function MainWindow() {
   // separate useSettings instance, so reload here when it saves (the
   // SETTINGS_CHANGED event) to re-apply the theme in the shell live.
   useApplyTheme(settings.theme);
+
+  // Resident startup update check: detect a new version even when the user
+  // never opens the routed Settings page, and prompt once with a Sonner toast.
+  // The Settings page keeps its own useUpdateCheck for the inline status text.
+  useUpdateToast(settings.prereleaseUpdates);
+
   useEffect(() => {
     const unlisten = listen(SETTINGS_CHANGED_EVENT, () => {
       void reload();

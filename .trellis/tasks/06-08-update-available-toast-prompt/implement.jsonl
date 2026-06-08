@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "MainWindow 顶层启动检查 hook、toast 去重 ref/effect 模式"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "MainWindow 加更新检测+toast，Sonner action 用法"}
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "toast 提示与设计系统一致"}
+{"file": ".trellis/spec/frontend/hook-testing.md", "reason": "更新检测/toast 触发测试"}
