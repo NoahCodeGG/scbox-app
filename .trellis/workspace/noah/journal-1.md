@@ -1385,3 +1385,37 @@ Bug1（暗色原生滚动条白色）：index.css 给 :root 加 color-scheme:lig
 ### Next Steps
 
 - None - task complete
+
+
+## Session 42: 手动检查更新按钮 + Pre-release 更新开关
+
+**Date**: 2026-06-08
+**Task**: 手动检查更新按钮 + Pre-release 更新开关
+**Branch**: `main`
+
+### Summary
+
+检查更新按钮改高亮主按钮并右对齐；新增 prereleaseUpdates 设置（前后端同步）。Rust updater.rs 新命令 check_prerelease_update：GitHub Releases API 取最新含预发布 release → 运行时指定其 latest.json 为 updater endpoint → 复用 config pubkey 验签下载安装；稳定通道仍走 JS check()，挂载自动检查只探测不安装。新依赖 url + reqwest rustls-tls。另修设置面板按钮暗色可见性（ghost/secondary→outline）。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3013864` | (see git log) |
+| `0b68248` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
