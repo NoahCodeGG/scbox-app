@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Play, Square } from "lucide-react";
+import { Info, Play, Square } from "lucide-react";
 import { useGameSnapshot } from "../hooks/useGameSnapshot";
 import { useInterpolatedClock } from "../hooks/useInterpolatedClock";
 import { useBuildOrders } from "../hooks/useBuildOrders";
@@ -279,9 +279,17 @@ function BuildSelectCard({
   return (
     <Card className="flex h-full min-h-0 flex-col gap-4 py-5">
       <CardHeader className="flex-row items-center justify-between px-5">
-        <CardEyebrow>流程 · 自动匹配</CardEyebrow>
+        <div className="flex items-center gap-1.5">
+          <CardEyebrow>流程 · 自动匹配</CardEyebrow>
+          <span
+            className="inline-flex cursor-help text-muted-foreground"
+            title="精确匹配优先，vX 作为任意对手的兜底。手动选择会覆盖自动匹配并同步到悬浮窗。"
+          >
+            <Info className="size-3.5" />
+          </span>
+        </div>
         {override !== null && (
-          <Button type="button" variant="ghost" size="xs" onClick={onAuto}>
+          <Button type="button" variant="outline" size="xs" onClick={onAuto}>
             恢复自动
           </Button>
         )}
@@ -332,10 +340,6 @@ function BuildSelectCard({
             })}
           </div>
         )}
-        <p className="mt-4 text-[13px] leading-relaxed text-muted-foreground">
-          精确匹配优先，<span className="font-mono">vX</span>{" "}
-          作为任意对手的兜底。手动选择会覆盖自动匹配并同步到悬浮窗。
-        </p>
       </CardContent>
     </Card>
   );

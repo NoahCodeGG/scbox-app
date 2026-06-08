@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "改 Dashboard 流程卡片布局、Info 图标 tooltip、按钮 variant"}
+{"file": ".trellis/spec/frontend/ui-system.md", "reason": "outline variant、Info 图标与设计系统一致；原生 title tooltip"}
