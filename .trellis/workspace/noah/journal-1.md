@@ -1319,3 +1319,36 @@ README 致谢链接由失效的 sc2box.com 改为 B 站参考视频(去跟踪参
 ### Next Steps
 
 - None - task complete
+
+
+## Session 40: README 移除玩家名 + AI 开发申明
+
+**Date**: 2026-06-08
+**Task**: README 移除玩家名 + AI 开发申明
+**Branch**: `main`
+
+### Summary
+
+README 文档同步：删除设置表格中已下线的「玩家名」配置行，更正「敌我识别」描述为当前逻辑（首个 type:user 玩家为我，否则回退第一个），并在顶部简介下方新增 AI 辅助开发申明（引用块）。纯文档改动。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `30c129a` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
