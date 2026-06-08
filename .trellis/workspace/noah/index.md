@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 42
+- **Total Sessions**: 43
 - **Last Active**: 2026-06-08
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1421 | Active |
+| `journal-1.md` | ~1454 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 43 | 2026-06-08 | 接入 Sonner toast | `892f434` | `main` |
 | 42 | 2026-06-08 | 手动检查更新按钮 + Pre-release 更新开关 | `3013864`, `0b68248` | `main` |
 | 41 | 2026-06-08 | 修复暗色滚动条 + 诊断检查更新报错 | `d2955cb` | `main` |
 | 40 | 2026-06-08 | README 移除玩家名 + AI 开发申明 | `30c129a` | `main` |

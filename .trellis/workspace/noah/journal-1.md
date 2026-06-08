@@ -1419,3 +1419,36 @@ Bug1（暗色原生滚动条白色）：index.css 给 :root 加 color-scheme:lig
 ### Next Steps
 
 - None - task complete
+
+
+## Session 43: 接入 Sonner toast
+
+**Date**: 2026-06-08
+**Task**: 接入 Sonner toast
+**Branch**: `main`
+
+### Summary
+
+安装 sonner，新增 ui/sonner.tsx（theme 跟随 settings.theme，不用 next-themes）。MainWindow 挂载 Toaster，overlay 不挂。BuildEditor 移除内联 status banner 改 toast.success/error（保存/删除/复制/校验等），SettingsPanel 保存成功补 toast；检查更新持续状态仍保留内联。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `892f434` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
