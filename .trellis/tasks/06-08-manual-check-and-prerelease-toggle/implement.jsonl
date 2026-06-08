@@ -1,0 +1,6 @@
+{"file": ".trellis/tasks/06-08-manual-check-and-prerelease-toggle/research/tauri2-runtime-updater-prerelease.md", "reason": "运行时 updater + GitHub API prerelease 实现骨架与坑，核心参考"}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "新增 Rust 更新检查 command，需遵循 IPC 命令约定（注册、错误处理、camelCase）"}
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "updater/process 权限；确认 GitHub API 走 Rust 是否需额外 capability"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "改 useUpdateCheck hook 分支调用 prerelease 命令"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "SettingsPanel 手动按钮高亮 + Pre-release Switch"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "settings 新增 prereleaseUpdates 字段类型同步"}

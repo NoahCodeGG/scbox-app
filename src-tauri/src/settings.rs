@@ -80,6 +80,9 @@ pub struct Settings {
     /// Global shortcut (Tauri accelerator) that toggles overlay click-through.
     #[serde(default = "default_click_through_shortcut")]
     pub click_through_shortcut: String,
+    /// Whether the update check includes pre-release (beta) versions.
+    #[serde(default)]
+    pub prerelease_updates: bool,
 }
 
 impl Default for Settings {
@@ -95,6 +98,7 @@ impl Default for Settings {
             active_build_override: None,
             theme: default_theme(),
             click_through_shortcut: default_click_through_shortcut(),
+            prerelease_updates: false,
         }
     }
 }
@@ -181,6 +185,7 @@ mod tests {
         assert_eq!(s.active_build_override, None);
         assert_eq!(s.theme, "system");
         assert_eq!(s.click_through_shortcut, "CmdOrCtrl+Shift+S");
+        assert!(!s.prerelease_updates);
     }
 
     #[test]
@@ -196,6 +201,7 @@ mod tests {
         assert_eq!(s.active_build_override, None);
         assert_eq!(s.theme, "system");
         assert_eq!(s.click_through_shortcut, "CmdOrCtrl+Shift+S");
+        assert!(!s.prerelease_updates);
     }
 
     #[test]
@@ -210,7 +216,8 @@ mod tests {
             "windowY": 200.0,
             "activeBuildOverride": "tvp.json",
             "theme": "dark",
-            "clickThroughShortcut": "Alt+T"
+            "clickThroughShortcut": "Alt+T",
+            "prereleaseUpdates": true
         }"#;
         let s = parse_settings(json).unwrap();
         assert_eq!(s.client_api_port, 5000);
@@ -223,6 +230,7 @@ mod tests {
         assert_eq!(s.active_build_override, Some("tvp.json".to_string()));
         assert_eq!(s.theme, "dark");
         assert_eq!(s.click_through_shortcut, "Alt+T");
+        assert!(s.prerelease_updates);
     }
 
     #[test]
@@ -255,6 +263,7 @@ mod tests {
             active_build_override: Some("tvz.json".to_string()),
             theme: "light".to_string(),
             click_through_shortcut: "CmdOrCtrl+Alt+P".to_string(),
+            prerelease_updates: true,
         };
         let json = serialize_settings(&original).unwrap();
         let parsed = parse_settings(&json).unwrap();

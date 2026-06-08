@@ -27,6 +27,7 @@ const DEFAULT_SETTINGS: Settings = {
   activeBuildOverride: null,
   theme: "system",
   clickThroughShortcut: "CmdOrCtrl+Shift+S",
+  prereleaseUpdates: false,
 };
 
 describe("useSettings", () => {

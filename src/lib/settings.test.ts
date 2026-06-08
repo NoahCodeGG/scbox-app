@@ -72,6 +72,7 @@ describe("normalizeSettings", () => {
     activeBuildOverride: null,
     theme: "system",
     clickThroughShortcut: "CmdOrCtrl+Shift+S",
+    prereleaseUpdates: false,
   };
 
   it("passes a valid settings object through unchanged", () => {
@@ -90,6 +91,7 @@ describe("normalizeSettings", () => {
       activeBuildOverride: "  ",
       theme: "bogus" as Settings["theme"],
       clickThroughShortcut: "  ",
+      prereleaseUpdates: false,
     });
     expect(repaired).toEqual({
       clientApiPort: 6119,
@@ -102,6 +104,7 @@ describe("normalizeSettings", () => {
       activeBuildOverride: null,
       theme: "system",
       clickThroughShortcut: "CmdOrCtrl+Shift+S",
+      prereleaseUpdates: false,
     });
   });
 

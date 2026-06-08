@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
+import { invoke } from "@tauri-apps/api/core";
 
 /** State + actions for the auto-update flow exposed to the UI. */
 export interface UpdateCheckState {
@@ -25,16 +26,23 @@ function errorMessage(error: unknown): string {
 }
 
 /**
- * Drives the Tauri 2 updater: checks for a newer signed release and, on demand,
- * downloads/installs it then relaunches. Runs one check on mount (cancel-safe
- * like `useAppVersion`).
+ * Drives the Tauri 2 updater across two channels:
  *
- * Every path is wrapped in try/catch and degrades to an `error` string rather
- * than throwing, so an offline machine or the placeholder pubkey (which makes
- * verification fail) never crashes the overlay or produces an uncaught
- * rejection.
+ * - **Stable** (default, `prereleaseUpdates` off): the plugin's JS `check()`
+ *   resolves the static `releases/latest` endpoint; an available update is
+ *   surfaced and installed on demand via {@link UpdateCheckState.install}.
+ * - **Pre-release** (`prereleaseUpdates` on): the JS `check()` cannot include
+ *   pre-releases, so checking invokes the Rust `check_prerelease_update`
+ *   command, which queries the GitHub Releases API, verifies, and installs in
+ *   one step. It returns the installed version (or `null` when up to date); a
+ *   non-null result means the app must relaunch.
+ *
+ * Runs one check on mount (cancel-safe like `useAppVersion`). Every path is
+ * wrapped in try/catch and degrades to an `error` string rather than throwing,
+ * so an offline machine or a verification failure never crashes the overlay or
+ * produces an uncaught rejection.
  */
-export function useUpdateCheck(): UpdateCheckState {
+export function useUpdateCheck(prereleaseUpdates = false): UpdateCheckState {
   const [available, setAvailable] = useState(false);
   const [version, setVersion] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -46,6 +54,23 @@ export function useUpdateCheck(): UpdateCheckState {
     setError(null);
     setUpToDate(false);
     try {
+      if (prereleaseUpdates) {
+        // Pre-release: the Rust command checks AND installs in one call.
+        // A non-null version means an update was installed → relaunch.
+        const installedVersion = await invoke<string | null>(
+          "check_prerelease_update",
+        );
+        if (installedVersion) {
+          setAvailable(true);
+          setVersion(installedVersion);
+          await relaunch();
+        } else {
+          setAvailable(false);
+          setVersion(null);
+          setUpToDate(true);
+        }
+        return;
+      }
       const update = await check();
       if (update) {
         setAvailable(true);
@@ -56,17 +81,33 @@ export function useUpdateCheck(): UpdateCheckState {
         setUpToDate(true);
       }
     } catch (err: unknown) {
-      // Offline or placeholder-pubkey verification failure: degrade silently.
+      // Offline, placeholder-pubkey verification failure, or a failed
+      // pre-release install: degrade to a visible error instead of crashing.
       setError(errorMessage(err));
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [prereleaseUpdates]);
 
   const install = useCallback(async (): Promise<void> => {
     setBusy(true);
     setError(null);
     try {
+      if (prereleaseUpdates) {
+        // Pre-release install is the same one-shot check-and-install command.
+        const installedVersion = await invoke<string | null>(
+          "check_prerelease_update",
+        );
+        if (!installedVersion) {
+          setAvailable(false);
+          setVersion(null);
+          setUpToDate(true);
+          return;
+        }
+        setVersion(installedVersion);
+        await relaunch();
+        return;
+      }
       const update = await check();
       if (!update) {
         setAvailable(false);
@@ -81,10 +122,13 @@ export function useUpdateCheck(): UpdateCheckState {
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [prereleaseUpdates]);
 
   // One check on mount; guard the post-unmount setState in case the check
   // resolves after the component is gone (StrictMode double-invoke safe).
+  // The mount check only *detects* an update on both channels — it never
+  // auto-installs — so the pre-release path is the cheap stable `check()` too;
+  // the user must press 检查更新 to trigger the installing Rust command.
   useEffect(() => {
     let cancelled = false;
     void (async () => {

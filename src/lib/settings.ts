@@ -113,5 +113,6 @@ export function normalizeSettings(raw: Settings): Settings {
     clickThroughShortcut: normalizeClickThroughShortcut(
       raw.clickThroughShortcut,
     ),
+    prereleaseUpdates: raw.prereleaseUpdates === true,
   };
 }

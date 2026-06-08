@@ -55,7 +55,7 @@ function EditorPage() {
  */
 function SettingsPage() {
   const { settings, saveSettings } = useSettings();
-  const update = useUpdateCheck();
+  const update = useUpdateCheck(settings.prereleaseUpdates);
 
   return (
     <div className="mx-auto max-w-2xl">

@@ -33,6 +33,8 @@ export interface Settings {
   theme: "light" | "dark" | "system";
   /** Global shortcut (Tauri accelerator) that toggles overlay click-through. */
   clickThroughShortcut: string;
+  /** Whether the update check includes pre-release (beta) versions. */
+  prereleaseUpdates: boolean;
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -46,6 +48,7 @@ const DEFAULT_SETTINGS: Settings = {
   activeBuildOverride: null,
   theme: "system",
   clickThroughShortcut: "CmdOrCtrl+Shift+S",
+  prereleaseUpdates: false,
 };
 
 /** UI state surfaced by the settings hook. */

@@ -5,6 +5,7 @@ import { useUpdateCheck } from "./useUpdateCheck";
 
 const checkMock = vi.fn();
 const relaunchMock = vi.fn<() => Promise<void>>();
+const invokeMock = vi.fn();
 
 vi.mock("@tauri-apps/plugin-updater", () => ({
   check: () => checkMock(),
@@ -12,6 +13,10 @@ vi.mock("@tauri-apps/plugin-updater", () => ({
 
 vi.mock("@tauri-apps/plugin-process", () => ({
   relaunch: () => relaunchMock(),
+}));
+
+vi.mock("@tauri-apps/api/core", () => ({
+  invoke: (cmd: string) => invokeMock(cmd),
 }));
 
 /** A minimal fake of the plugin's `Update` object used in tests. */
@@ -27,6 +32,7 @@ describe("useUpdateCheck", () => {
     checkMock.mockReset();
     relaunchMock.mockReset();
     relaunchMock.mockResolvedValue(undefined);
+    invokeMock.mockReset();
   });
 
   it("flags available + version when the mount check finds an update", async () => {
@@ -149,5 +155,68 @@ describe("useUpdateCheck", () => {
     await Promise.resolve();
 
     expect(result.current.available).toBe(false);
+  });
+
+  describe("pre-release channel", () => {
+    it("stable check() is used when prereleaseUpdates is false", async () => {
+      checkMock.mockResolvedValueOnce(null); // mount
+      const { result } = renderHook(() => useUpdateCheck(false));
+      await waitFor(() => expect(result.current.upToDate).toBe(true));
+
+      checkMock.mockResolvedValueOnce(fakeUpdate("0.3.0"));
+      await act(async () => {
+        await result.current.check();
+      });
+
+      expect(invokeMock).not.toHaveBeenCalled();
+      expect(result.current.available).toBe(true);
+      expect(result.current.version).toBe("0.3.0");
+    });
+
+    it("checking invokes the Rust command and relaunches on install", async () => {
+      checkMock.mockResolvedValueOnce(null); // mount uses stable check()
+      invokeMock.mockResolvedValueOnce("0.2.0-beta.1"); // installed version
+      const { result } = renderHook(() => useUpdateCheck(true));
+      await waitFor(() => expect(result.current.upToDate).toBe(true));
+
+      await act(async () => {
+        await result.current.check();
+      });
+
+      expect(invokeMock).toHaveBeenCalledWith("check_prerelease_update");
+      expect(result.current.available).toBe(true);
+      expect(result.current.version).toBe("0.2.0-beta.1");
+      expect(relaunchMock).toHaveBeenCalledOnce();
+    });
+
+    it("checking reports up-to-date when the command returns null", async () => {
+      checkMock.mockResolvedValueOnce(null); // mount
+      invokeMock.mockResolvedValueOnce(null); // no pre-release update
+      const { result } = renderHook(() => useUpdateCheck(true));
+      await waitFor(() => expect(result.current.upToDate).toBe(true));
+
+      await act(async () => {
+        await result.current.check();
+      });
+
+      expect(result.current.available).toBe(false);
+      expect(result.current.version).toBeNull();
+      expect(result.current.upToDate).toBe(true);
+      expect(relaunchMock).not.toHaveBeenCalled();
+    });
+
+    it("surfaces a visible error when the pre-release command rejects", async () => {
+      checkMock.mockResolvedValueOnce(null); // mount
+      invokeMock.mockRejectedValueOnce(new Error("no release"));
+      const { result } = renderHook(() => useUpdateCheck(true));
+      await waitFor(() => expect(result.current.upToDate).toBe(true));
+
+      await act(async () => {
+        await result.current.check();
+      });
+
+      expect(result.current.error).toBe("no release");
+      expect(relaunchMock).not.toHaveBeenCalled();
+    });
   });
 });

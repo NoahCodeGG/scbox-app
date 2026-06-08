@@ -1,0 +1,4 @@
+{"file": ".trellis/tasks/06-08-manual-check-and-prerelease-toggle/research/tauri2-runtime-updater-prerelease.md", "reason": "核对实现是否符合调研结论（endpoints 覆盖、验签、版本比较坑）"}
+{"file": ".trellis/spec/tauri/ipc-commands.md", "reason": "校验新 command 的注册/错误处理/序列化约定"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "校验前端代码质量、错误处理、不可变"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "校验 settings 字段前后端类型一致"}

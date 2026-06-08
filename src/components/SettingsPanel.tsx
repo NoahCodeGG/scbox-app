@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import { useAppVersion } from "../hooks/useAppVersion";
 import { useAppName } from "../hooks/useAppName";
 import type { Settings } from "../hooks/useSettings";
@@ -337,8 +338,8 @@ function SettingsPanel({
 
       <Card className="gap-0 overflow-hidden py-0">
         <GroupHeading>外观</GroupHeading>
-        <CardContent className="px-3 py-3">
-          <div className="flex items-center justify-between gap-3">
+        <CardContent className="flex flex-col px-3 py-0">
+          <div className="flex items-center justify-between gap-3 py-3">
             <Label className="text-[13px]">主题</Label>
             <div className="flex items-center gap-1">
               {THEME_OPTIONS.map((option) => (
@@ -357,6 +358,26 @@ function SettingsPanel({
               ))}
             </div>
           </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between gap-3 py-3">
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="settings-prerelease" className="text-[13px]">
+                预发布版本更新
+              </Label>
+              <span className="text-[11px] leading-tight text-muted-foreground">
+                开启后会更新到测试版（beta）。
+              </span>
+            </div>
+            <Switch
+              id="settings-prerelease"
+              checked={draft.prereleaseUpdates}
+              onCheckedChange={(checked) =>
+                setDraft((prev) => ({ ...prev, prereleaseUpdates: checked }))
+              }
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -371,13 +392,13 @@ function SettingsPanel({
       <div className="flex items-center gap-2">
         <Button
           type="button"
-          variant="secondary"
           size="sm"
           onClick={() => {
             void onCheckUpdate();
           }}
           disabled={updateBusy}
         >
+          <RefreshCw className={updateBusy ? "animate-spin" : undefined} />
           检查更新
         </Button>
         <span className="text-[12px] text-muted-foreground">{statusText}</span>

@@ -2,6 +2,7 @@ mod builds;
 mod sc2;
 mod settings;
 mod tts;
+mod updater;
 
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -204,7 +205,8 @@ pub fn run() {
             open_overlay,
             hide_overlay,
             open_main,
-            app_icon
+            app_icon,
+            updater::check_prerelease_update
         ])
         .setup(|app| {
             // Load settings early to seed shared state and restore window position.

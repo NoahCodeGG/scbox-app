@@ -39,6 +39,7 @@ const SETTINGS: Settings = {
   activeBuildOverride: null,
   theme: "system",
   clickThroughShortcut: "CmdOrCtrl+Shift+S",
+  prereleaseUpdates: false,
 };
 
 /** A close-requested event carrying a preventDefault spy. */
