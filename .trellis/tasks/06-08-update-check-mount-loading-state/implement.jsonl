@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "改 useUpdateCheck mount useEffect 的 busy 状态与 cancelled 守卫"}
+{"file": ".trellis/spec/frontend/hook-testing.md", "reason": "useUpdateCheck.test 同步覆盖 mount busy 状态"}

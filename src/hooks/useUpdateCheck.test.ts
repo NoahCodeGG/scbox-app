@@ -44,6 +44,7 @@ describe("useUpdateCheck", () => {
     expect(result.current.version).toBe("0.2.0");
     expect(result.current.upToDate).toBe(false);
     expect(result.current.error).toBeNull();
+    expect(result.current.busy).toBe(false);
   });
 
   it("stays unavailable + upToDate when no update is returned", async () => {
@@ -54,6 +55,7 @@ describe("useUpdateCheck", () => {
     await waitFor(() => expect(result.current.upToDate).toBe(true));
     expect(result.current.available).toBe(false);
     expect(result.current.version).toBeNull();
+    expect(result.current.busy).toBe(false);
   });
 
   it("captures the error and does not throw when the check rejects", async () => {
@@ -63,6 +65,28 @@ describe("useUpdateCheck", () => {
 
     await waitFor(() => expect(result.current.error).toBe("offline"));
     expect(result.current.available).toBe(false);
+    expect(result.current.busy).toBe(false);
+  });
+
+  it("flags busy during the mount check and clears it when done", async () => {
+    let resolve: (v: unknown) => void = () => {};
+    checkMock.mockReturnValue(
+      new Promise((r) => {
+        resolve = r;
+      }),
+    );
+
+    const { result } = renderHook(() => useUpdateCheck());
+
+    // Check is in flight → SettingsPanel shows "检查中…" + spinning button.
+    await waitFor(() => expect(result.current.busy).toBe(true));
+
+    await act(async () => {
+      resolve(null);
+    });
+
+    expect(result.current.busy).toBe(false);
+    expect(result.current.upToDate).toBe(true);
   });
 
   it("re-checks via check() and surfaces a fresh result", async () => {

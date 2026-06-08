@@ -131,6 +131,7 @@ export function useUpdateCheck(prereleaseUpdates = false): UpdateCheckState {
   // the user must press 检查更新 to trigger the installing Rust command.
   useEffect(() => {
     let cancelled = false;
+    setBusy(true);
     void (async () => {
       try {
         const update = await check();
@@ -143,6 +144,8 @@ export function useUpdateCheck(prereleaseUpdates = false): UpdateCheckState {
         }
       } catch (err: unknown) {
         if (!cancelled) setError(errorMessage(err));
+      } finally {
+        if (!cancelled) setBusy(false);
       }
     })();
     return () => {
