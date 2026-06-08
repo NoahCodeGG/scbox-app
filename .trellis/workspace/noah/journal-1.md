@@ -1518,3 +1518,36 @@ overlay 编辑按钮跳转到当前流程编辑页（emit 导航事件+pendingEd
 ### Next Steps
 
 - None - task complete
+
+
+## Session 46: 仪表盘流程列表腾空间+按钮可见性
+
+**Date**: 2026-06-08
+**Task**: 仪表盘流程列表腾空间+按钮可见性
+**Branch**: `main`
+
+### Summary
+
+「流程·自动匹配」卡片移除底部常驻说明文字，列表 flex-1 撑满获更多空间；说明改挂标题旁 Info 图标 title tooltip。恢复自动按钮 ghost→outline。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `94355e3` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
