@@ -4,6 +4,8 @@
 
 灵感来源于手机应用 SCBox，但作为原生桌面应用运行在 SC2 旁边，无需额外设备。
 
+> 🤖 **AI 开发申明** — 本项目在开发过程中大量借助 AI 编程工具辅助实现。
+
 ---
 
 ## ✨ 核心特性
@@ -104,7 +106,6 @@ pnpm tauri build
 
 | 设置项 | 说明 | 默认值 |
 |--------|------|--------|
-| **玩家名** | 你的游戏内 ID（用于多人对战时识别"我"） | 空（自动识别） |
 | **Client API 端口** | SC2 API 端口，匹配启动参数 | 6119 |
 | **提前播报时间** | 覆盖 build order 的 leadTimeSec | null（使用 build 自带） |
 | **语音播报** | 开关语音提示 | 开启 |
@@ -182,7 +183,7 @@ pnpm tauri build       # 输出到 src-tauri/target/release/bundle/
    每秒轮询 `http://127.0.0.1:6119/game`，前端插值到 ~100ms 粒度（`useInterpolatedClock`），暂停时冻结。
 
 2. **敌我识别**  
-   优先匹配玩家名 → 回退 1v1 user vs computer → 兜底 `players[0]`。多人对战时第一个通常是本地玩家。
+   取第一个 `type:"user"` 玩家为"我"（SC2 API 通常把本地玩家列在最前），无 user 时回退第一个玩家；对手为 2 人局中的另一方。
 
 3. **语音分层回退**  
    Web Speech（浏览器）→ 原生 TTS（Rust `tts` crate，WinRT/AVFoundation）→ 安装提示。中文语音是 OS 级功能，需用户自行安装语音包。
