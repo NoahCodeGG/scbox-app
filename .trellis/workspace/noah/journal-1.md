@@ -1551,3 +1551,36 @@ overlay 编辑按钮跳转到当前流程编辑页（emit 导航事件+pendingEd
 ### Next Steps
 
 - None - task complete
+
+
+## Session 47: 修复卡片标题行按钮换行
+
+**Date**: 2026-06-08
+**Task**: 修复卡片标题行按钮换行
+**Branch**: `main`
+
+### Summary
+
+CardHeader 默认 grid 布局使调用处 flex-row 失效，连接状态「诊断/如何启用」与流程卡片「恢复自动」按钮换行到标题下方。两处 CardHeader className 补 flex 覆盖 grid，按钮回到标题同行右侧；其它卡片未受影响。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f822403` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

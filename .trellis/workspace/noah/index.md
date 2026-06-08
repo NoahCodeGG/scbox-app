@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 46
+- **Total Sessions**: 47
 - **Last Active**: 2026-06-08
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1553 | Active |
+| `journal-1.md` | ~1586 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 47 | 2026-06-08 | 修复卡片标题行按钮换行 | `f822403` | `main` |
 | 46 | 2026-06-08 | 仪表盘流程列表腾空间+按钮可见性 | `94355e3` | `main` |
 | 45 | 2026-06-08 | overlay 编辑跳转/关闭按钮/标题流程名 | `34a9fa7` | `main` |
 | 44 | 2026-06-08 | 诊断框与仪表盘按钮暗色可见性 | `2b92ee1` | `main` |
