@@ -1,6 +1,6 @@
 [package]
 name = "scbox-app"
-version = "0.1.0"
+version = "0.2.0"
 description = "SC2 build-order voice assistant (6119 auto-sync)"
 authors = ["NoahCode"]
 edition = "2021"

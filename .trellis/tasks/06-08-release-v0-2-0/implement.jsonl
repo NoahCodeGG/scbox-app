@@ -1,0 +1,1 @@
+{"file": ".trellis/spec/tauri/permissions.md", "reason": "发布签名/更新相关，确认 updater 配置不被版本 bump 影响（参考）"}
