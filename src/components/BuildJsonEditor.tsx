@@ -15,6 +15,8 @@ interface BuildJsonEditorProps {
   onFocusChange: (focused: boolean) => void;
   /** Best-effort copy of the current text to the clipboard. */
   onCopy: () => void;
+  /** When true, the textarea is read-only (text stays selectable/copyable). */
+  readOnly?: boolean;
 }
 
 /**
@@ -33,6 +35,7 @@ function BuildJsonEditor({
   error,
   onFocusChange,
   onCopy,
+  readOnly = false,
 }: BuildJsonEditorProps) {
   return (
     <div className="xl:sticky xl:top-6">
@@ -68,9 +71,13 @@ function BuildJsonEditor({
         onChange={(e) => onChange(e.currentTarget.value)}
         onFocus={() => onFocusChange(true)}
         onBlur={() => onFocusChange(false)}
+        readOnly={readOnly}
         spellCheck={false}
         aria-label="建造顺序 JSON"
-        className="m-0 block h-[480px] w-full resize-none overflow-auto rounded-lg border-0 bg-[#0b0d10] p-[18px] font-mono text-[13px] leading-[1.65] text-[#e7e9ec] outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className={cn(
+          "m-0 block h-[480px] w-full resize-none overflow-auto rounded-lg border-0 bg-[#0b0d10] p-[18px] font-mono text-[13px] leading-[1.65] text-[#e7e9ec] outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          readOnly && "cursor-not-allowed opacity-70",
+        )}
       />
       {!valid && error && (
         <p className="mt-2 font-mono text-[12px] text-destructive">{error}</p>

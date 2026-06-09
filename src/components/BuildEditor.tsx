@@ -547,6 +547,7 @@ export default function BuildEditor() {
                 这是内置默认流程（只读）。点「复制为我的流程」生成可编辑副本。
               </div>
             )}
+            <fieldset disabled={selectedReadOnly} className="contents">
             <div className="mb-4 flex flex-col gap-1.5">
               <FieldLabel htmlFor="editor-name">名称</FieldLabel>
               <Input
@@ -787,6 +788,7 @@ export default function BuildEditor() {
                 按时间自动排序
               </span>
             </div>
+            </fieldset>
 
             <div className="mt-4 flex items-center gap-2">
               {selectedReadOnly ? (
@@ -863,6 +865,7 @@ export default function BuildEditor() {
               error={jsonResult.ok ? null : jsonResult.error}
               onFocusChange={handleJsonFocusChange}
               onCopy={() => void handleCopyJson()}
+              readOnly={selectedReadOnly}
             />
           </div>
         </div>
