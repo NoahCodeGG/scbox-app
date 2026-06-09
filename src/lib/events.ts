@@ -13,15 +13,22 @@ export const BUILDS_CHANGED_EVENT = "builds://changed";
 export const SETTINGS_CHANGED_EVENT = "settings://changed";
 
 /**
- * Emitted by the overlay's edit button to ask the main window to navigate to the
- * editor page and select the active build. Payload `{ filename }`; an empty
- * string means "just open the editor" without forcing a selection.
+ * Emitted by the overlay's title-bar buttons to ask the main window to navigate
+ * to a specific route. Unifies the former editor-only event so both the edit and
+ * settings buttons share one reliable mechanism.
+ *
+ * Payload `{ route, filename? }`:
+ * - `route` is a router path (`"/editor"`, `"/settings"`, …).
+ * - `filename` is only meaningful for `"/editor"`: the build to auto-select. An
+ *   empty/omitted filename means "just open the editor" without forcing a
+ *   selection.
  */
-export const NAVIGATE_EDITOR_EVENT = "navigate://editor";
+export const NAVIGATE_EVENT = "navigate://to";
 
-/** Payload for {@link NAVIGATE_EDITOR_EVENT}. */
-export interface NavigateEditorPayload {
-  filename: string;
+/** Payload for {@link NAVIGATE_EVENT}. */
+export interface NavigatePayload {
+  route: string;
+  filename?: string;
 }
 
 /**

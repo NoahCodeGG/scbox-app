@@ -31,10 +31,10 @@ import { formatGameTime, raceLabel } from "./lib/format";
 import { upcomingStepIndices } from "./lib/schedule";
 import {
   BUILDS_CHANGED_EVENT,
-  NAVIGATE_EDITOR_EVENT,
+  NAVIGATE_EVENT,
   OVERLAY_VISIBILITY_EVENT,
   SETTINGS_CHANGED_EVENT,
-  type NavigateEditorPayload,
+  type NavigatePayload,
   type OverlayVisibilityPayload,
 } from "./lib/events";
 import type { Settings } from "./hooks/useSettings";
@@ -662,17 +662,34 @@ function App() {
     stored.find((s) => s.build === activeBuild)?.filename ??
     "";
 
-  // Open + focus the main window, then ask it to navigate to the editor and
-  // select the active build (cross-window, so via an app event).
-  const openEditor = (): void => {
+  // Open + focus the main window, then ask it to navigate to a route. The main
+  // window is hidden-not-destroyed, so its NavigationBridge listener is usually
+  // resident; but if it was just (re)shown its webview listener may not be
+  // registered at the instant we emit. Events aren't buffered for late
+  // listeners, so emit once immediately and re-emit once after a short delay to
+  // defeat that race. Navigating to the same route twice is idempotent and the
+  // editor stash is consumed only once.
+  const navigateMain = (payload: NavigatePayload): void => {
     void invoke("open_main")
       .then(() => {
-        const payload: NavigateEditorPayload = { filename: activeFilename };
-        return emit(NAVIGATE_EDITOR_EVENT, payload);
+        void emit(NAVIGATE_EVENT, payload);
+        window.setTimeout(() => {
+          void emit(NAVIGATE_EVENT, payload);
+        }, 150);
       })
       .catch(() => {
         // Main window failed to focus / event failed; nothing actionable here.
       });
+  };
+
+  // Edit button: focus main + navigate to the editor and select the active build.
+  const openEditor = (): void => {
+    navigateMain({ route: "/editor", filename: activeFilename });
+  };
+
+  // Settings button: focus main + navigate to the settings page.
+  const openSettings = (): void => {
+    navigateMain({ route: "/settings" });
   };
 
   // Hide the overlay itself and tell the dashboard so its launch toggle syncs.
@@ -773,11 +790,7 @@ function App() {
                 type="button"
                 className={iconBtn}
                 onMouseDown={(e) => e.stopPropagation()}
-                onClick={() => {
-                  void invoke("open_main").catch(() => {
-                    // Main window failed to focus; nothing actionable here.
-                  });
-                }}
+                onClick={openSettings}
                 aria-label="设置"
               >
                 <SettingsIcon />

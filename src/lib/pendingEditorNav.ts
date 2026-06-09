@@ -1,6 +1,7 @@
 // Cross-component handoff for "navigate to editor and select this build".
 //
-// The overlay emits NAVIGATE_EDITOR_EVENT; the main window's NavigationBridge
+// The overlay emits NAVIGATE_EVENT (route "/editor"); the main window's
+// NavigationBridge
 // (inside the router) catches it, stashes the target filename here, then
 // navigates to /editor. The BuildEditor mounts AFTER the navigation, so it can
 // miss a live listener — instead it reads (and consumes) this stash on mount.

@@ -16,9 +16,9 @@ import { useSettings } from "../hooks/useSettings";
 import { useUpdateCheck } from "../hooks/useUpdateCheck";
 import { useUpdateToast } from "../hooks/useUpdateToast";
 import {
-  NAVIGATE_EDITOR_EVENT,
+  NAVIGATE_EVENT,
   SETTINGS_CHANGED_EVENT,
-  type NavigateEditorPayload,
+  type NavigatePayload,
 } from "../lib/events";
 import { setPendingEditorNav } from "../lib/pendingEditorNav";
 import BuildEditor from "./BuildEditor";
@@ -64,19 +64,24 @@ function EditorPage() {
 
 /**
  * Listens (inside the router, so it can call `useNavigate`) for the overlay's
- * NAVIGATE_EDITOR_EVENT. On receipt it stashes the target build filename for the
- * editor to consume on mount, then navigates to /editor. Renders nothing.
+ * NAVIGATE_EVENT. For the editor route it stashes the target build filename for
+ * the editor to consume on mount; then it navigates to the requested route.
+ * Renders nothing.
+ *
+ * The overlay may emit twice (an immediate emit plus one delayed retry) to beat
+ * the "main window just shown, listener not yet registered" race; navigating to
+ * the same route twice is idempotent, and the editor stash is consumed once.
  */
 function NavigationBridge() {
   const navigate = useNavigate();
   useEffect(() => {
-    const unlisten = listen<NavigateEditorPayload>(
-      NAVIGATE_EDITOR_EVENT,
-      (event) => {
+    const unlisten = listen<NavigatePayload>(NAVIGATE_EVENT, (event) => {
+      const route = event.payload?.route ?? "/";
+      if (route === "/editor") {
         setPendingEditorNav(event.payload?.filename ?? "");
-        navigate("/editor");
-      },
-    );
+      }
+      navigate(route);
+    });
     return () => {
       void unlisten.then((off) => off());
     };
