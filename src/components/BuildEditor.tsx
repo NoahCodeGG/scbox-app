@@ -336,6 +336,23 @@ export default function BuildEditor() {
     applySelection();
   }, [applySelection]);
 
+  // Re-sync the open form to disk when the build list reloads (manual 重载, or
+  // after save/delete). Editor stored only changes on mount / manual reload /
+  // post-save reload (it does NOT listen to external BUILDS_CHANGED), so this
+  // never clobbers edits from an unrelated/background reload.
+  useEffect(() => {
+    if (selectedFilename === null) return; // unsaved new draft: keep as-is
+    const match = stored.find((s) => s.filename === selectedFilename);
+    if (match) {
+      setForm(toForm(match.build)); // refresh to the on-disk version
+    } else {
+      startNew(); // selected file gone (deleted): reset
+    }
+    // selectedFilename intentionally omitted: only re-sync on a stored reload,
+    // not when the user switches selection (selectBuild already sets the form).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stored]);
+
   function startNew(): void {
     setSelectedFilename(null);
     setForm(emptyForm());
