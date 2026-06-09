@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { emit } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import { Plus, RotateCw, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useBuildOrders } from "../hooks/useBuildOrders";
@@ -16,7 +16,7 @@ import {
 } from "../lib/buildValidation";
 import { parseMatchup, raceNameToLetter, type RaceLetter } from "../lib/matchup";
 import type { BuildOrder } from "../types/build";
-import { BUILDS_CHANGED_EVENT } from "../lib/events";
+import { BUILDS_CHANGED_EVENT, NAVIGATE_EVENT, type NavigatePayload } from "../lib/events";
 import { consumePendingEditorNav } from "../lib/pendingEditorNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -278,22 +278,63 @@ export default function BuildEditor() {
     setConfirmingDelete(false);
   }
 
-  // One-shot: when the overlay's edit button navigated us here with a target
-  // build, select it once `stored` has loaded. Consumed exactly once (the stash
-  // is cleared on read, and `navConsumedRef` guards against re-running if
-  // `stored` reloads), so manually opening the editor later starts fresh.
-  const navConsumedRef = useRef(false);
-  useEffect(() => {
-    if (navConsumedRef.current) return;
-    if (stored.length === 0) return;
-    const filename = consumePendingEditorNav();
-    navConsumedRef.current = true;
-    if (filename === null) return;
+  // Robust auto-select for "navigate to editor and select this build".
+  //
+  // The main window is hide-not-destroy, so BuildEditor may already be mounted
+  // when the overlay's edit button fires again. We can't rely on a one-shot
+  // mount effect: `pendingSelectRef` holds the target filename and is applied
+  // (then cleared) whenever it is set AND `stored` is loaded. Three entry points
+  // feed it, covering every ordering:
+  //   1. mount      — consume the module stash (event arrived before we mounted)
+  //   2. live event — listen for NAVIGATE_EVENT (already mounted, repeat click)
+  //   3. stored load — re-apply after async builds finish loading
+  const pendingSelectRef = useRef<string | null>(null);
+
+  const applySelection = useCallback(() => {
+    const filename = pendingSelectRef.current;
+    if (filename === null) return; // nothing pending: leave current selection
+    if (stored.length === 0) return; // builds not loaded yet: keep pending
+    pendingSelectRef.current = null; // consume now to prevent re-running
     const match = stored.find((s) => s.filename === filename);
     if (match) selectBuild(filename, match.build);
     // selectBuild only calls stable state setters; safe to omit from deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stored]);
+
+  // Entry 1: on mount, consume any stash left by NavigationBridge before we
+  // mounted. Empty/none yields null, so we leave the current selection alone.
+  useEffect(() => {
+    const filename = consumePendingEditorNav();
+    if (filename !== null) {
+      pendingSelectRef.current = filename;
+      applySelection();
+    }
+    // Run once on mount; applySelection is stable enough and re-running here
+    // would re-consume an already-empty stash.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Entry 2: live NAVIGATE_EVENT while already mounted (e.g. user is on /editor
+  // and clicks the overlay edit button again — navigate() is a no-op and the
+  // mount effect never re-runs, so we must catch the event directly here).
+  // An empty/undefined filename means "just open" → null → no forced selection.
+  useEffect(() => {
+    const unlisten = listen<NavigatePayload>(NAVIGATE_EVENT, (e) => {
+      if (e.payload?.route !== "/editor") return;
+      const filename = e.payload.filename?.trim() ? e.payload.filename : null;
+      pendingSelectRef.current = filename;
+      applySelection();
+    });
+    return () => {
+      void unlisten.then((off) => off());
+    };
+  }, [applySelection]);
+
+  // Entry 3: when stored finishes (re)loading, apply any pending selection that
+  // was deferred because builds weren't loaded when the event/stash arrived.
+  useEffect(() => {
+    applySelection();
+  }, [applySelection]);
 
   function startNew(): void {
     setSelectedFilename(null);
