@@ -616,9 +616,9 @@ export default function BuildEditor() {
                 >
                   <div className="flex items-center gap-1">
                     <Input
-                      className="h-8 w-20 font-mono text-[13px]"
+                      className="h-8 w-28 font-mono text-[13px]"
                       value={step.time}
-                      placeholder="如 90 或 1:30"
+                      placeholder="90 或 1:30"
                       inputMode="decimal"
                       onChange={(e) =>
                         updateStep(index, "time", e.currentTarget.value)
