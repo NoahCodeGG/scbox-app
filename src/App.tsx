@@ -414,30 +414,33 @@ function OverlayFooter({
   // Smaller, secondary chip for the two voice sub-toggles (流程 / 周期). Active
   // (and master on) → accent; off or disabled → muted/dim.
   const subChip =
-    "inline-flex items-center rounded border-0 bg-transparent px-1 font-mono text-[10px] transition-colors disabled:opacity-30";
+    "inline-flex shrink-0 items-center whitespace-nowrap rounded border-0 bg-transparent px-1.5 py-0.5 font-mono text-[10px] transition-colors disabled:opacity-30";
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-[color:var(--o-border)] px-3.5 pt-2 pb-3">
-      {/* Voice on/off — the whole chip toggles the master `voiceEnabled`. */}
-      <button
-        type="button"
-        className={cn(
-          "inline-flex items-center gap-1.5 rounded border-0 bg-transparent font-mono text-[11px] transition-colors [&_svg]:size-[13px]",
-          speaking && voiceOn
-            ? "text-[color:var(--o-accent)]"
-            : "text-[color:var(--o-muted)] hover:text-[color:var(--o-fg)]",
-        )}
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={() => onSave({ ...settings, voiceEnabled: !voiceOn })}
-        aria-pressed={voiceOn}
-        aria-label="语音开关"
-      >
-        {voiceOn ? <Volume2 /> : <VolumeX />}
-        {voiceOn ? "语音 开" : "语音 关"}
-      </button>
+    <div className="flex items-center justify-between gap-1.5 border-t border-[color:var(--o-border)] px-3.5 pt-2 pb-2.5">
+      {/* Left group: master voice icon toggle + build/recurring sub-chips. */}
+      <div className="inline-flex shrink-0 items-center gap-1">
+        {/* Master on/off — icon only; `title` conveys the state label. */}
+        <button
+          type="button"
+          className={cn(
+            "grid size-[18px] shrink-0 place-items-center rounded border-0 bg-transparent transition-colors [&_svg]:size-[15px]",
+            voiceOn
+              ? speaking
+                ? "text-[color:var(--o-accent)]"
+                : "text-[color:var(--o-fg)] hover:text-[color:var(--o-accent)]"
+              : "text-[color:var(--o-muted)] hover:text-[color:var(--o-fg)]",
+          )}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={() => onSave({ ...settings, voiceEnabled: !voiceOn })}
+          aria-pressed={voiceOn}
+          aria-label="语音播报"
+          title={voiceOn ? "语音 开" : "语音 关"}
+        >
+          {voiceOn ? <Volume2 /> : <VolumeX />}
+        </button>
 
-      {/* Sub-toggles: build-order voice + recurring voice, gated by the master. */}
-      <div className="inline-flex items-center gap-1">
+        {/* Sub-toggles: build-order voice + recurring voice, gated by master. */}
         <button
           type="button"
           className={cn(
@@ -476,72 +479,75 @@ function OverlayFooter({
         </button>
       </div>
 
-      {/* Voice rate stepper (0.1 step, clamped 0.5–2.0×). */}
-      <div className="inline-flex items-center gap-1">
-        <button
-          type="button"
-          className={stepBtn}
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={() =>
-            onSave({ ...settings, voiceRate: clampVoiceRate(rate - VOICE_RATE_STEP) })
-          }
-          disabled={rateAtMin}
-          aria-label="降低语速"
-        >
-          <Minus />
-        </button>
-        <span className="min-w-[34px] text-center font-mono text-[11px] tabular-nums text-[color:var(--o-fg)]">
-          {rate.toFixed(1)}×
-        </span>
-        <button
-          type="button"
-          className={stepBtn}
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={() =>
-            onSave({ ...settings, voiceRate: clampVoiceRate(rate + VOICE_RATE_STEP) })
-          }
-          disabled={rateAtMax}
-          aria-label="提高语速"
-        >
-          <Plus />
-        </button>
-      </div>
+      {/* Right group: rate stepper (×) + lead-time stepper (s). The suffixes
+          alone distinguish the two — no text labels needed. */}
+      <div className="inline-flex shrink-0 items-center gap-1.5">
+        {/* Voice rate stepper (0.1 step, clamped 0.5–2.0×). */}
+        <div className="inline-flex shrink-0 items-center">
+          <button
+            type="button"
+            className={stepBtn}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={() =>
+              onSave({ ...settings, voiceRate: clampVoiceRate(rate - VOICE_RATE_STEP) })
+            }
+            disabled={rateAtMin}
+            aria-label="降低语速"
+          >
+            <Minus />
+          </button>
+          <span className="min-w-[30px] whitespace-nowrap text-center font-mono text-[11px] tabular-nums text-[color:var(--o-fg)]">
+            {rate.toFixed(1)}×
+          </span>
+          <button
+            type="button"
+            className={stepBtn}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={() =>
+              onSave({ ...settings, voiceRate: clampVoiceRate(rate + VOICE_RATE_STEP) })
+            }
+            disabled={rateAtMax}
+            aria-label="提高语速"
+          >
+            <Plus />
+          </button>
+        </div>
 
-      {/* Lead-time stepper (1s step, clamped ≥0); writes leadTimeSecOverride. */}
-      <div className="inline-flex items-center gap-1">
-        <span className="font-mono text-[11px] text-[color:var(--o-muted)]">提前</span>
-        <button
-          type="button"
-          className={stepBtn}
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={() =>
-            onSave({
-              ...settings,
-              leadTimeSecOverride: Math.max(0, leadBase - 1),
-            })
-          }
-          disabled={leadAtMin}
-          aria-label="减少提前播报"
-        >
-          <Minus />
-        </button>
-        <span className="min-w-[28px] text-center font-mono text-[11px] tabular-nums text-[color:var(--o-fg)]">
-          {leadTime}s
-        </span>
-        <button
-          type="button"
-          className={stepBtn}
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={() =>
-            onSave({
-              ...settings,
-              leadTimeSecOverride: Math.max(0, leadBase + 1),
-            })
-          }
-          aria-label="增加提前播报"
-        >
-          <Plus />
-        </button>
+        {/* Lead-time stepper (1s step, clamped ≥0); writes leadTimeSecOverride. */}
+        <div className="inline-flex shrink-0 items-center">
+          <button
+            type="button"
+            className={stepBtn}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={() =>
+              onSave({
+                ...settings,
+                leadTimeSecOverride: Math.max(0, leadBase - 1),
+              })
+            }
+            disabled={leadAtMin}
+            aria-label="减少提前播报"
+          >
+            <Minus />
+          </button>
+          <span className="min-w-[26px] whitespace-nowrap text-center font-mono text-[11px] tabular-nums text-[color:var(--o-fg)]">
+            {leadTime}s
+          </span>
+          <button
+            type="button"
+            className={stepBtn}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={() =>
+              onSave({
+                ...settings,
+                leadTimeSecOverride: Math.max(0, leadBase + 1),
+              })
+            }
+            aria-label="增加提前播报"
+          >
+            <Plus />
+          </button>
+        </div>
       </div>
     </div>
   );
