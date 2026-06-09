@@ -295,6 +295,8 @@ pub fn run() {
                     .build()
                     .expect("failed to build reqwest client");
                 let mut interval_ms = sc2::BASE_POLL_INTERVAL_MS;
+                let mut consecutive_failures: u32 = 0;
+                let mut last_good: Option<sc2::GameSnapshot> = None;
                 loop {
                     // Lock, copy the port, drop the guard BEFORE awaiting — never
                     // hold a std::sync::Mutex guard across `.await`.
@@ -302,9 +304,20 @@ pub fn run() {
                         Ok(guard) => *guard,
                         Err(poisoned) => *poisoned.into_inner(),
                     };
-                    let snapshot = sc2::fetch_snapshot(&client, port).await;
-                    let connected = snapshot.connected;
-                    let _ = handle.emit(sc2::GAME_EVENT, snapshot);
+                    let fresh = sc2::fetch_snapshot(&client, port).await;
+                    if fresh.connected {
+                        consecutive_failures = 0;
+                        last_good = Some(fresh.clone());
+                    } else {
+                        consecutive_failures = consecutive_failures.saturating_add(1);
+                    }
+                    // Debounce transient gaps (SC2 reloading at game start/end) so
+                    // the overlay doesn't flicker through "未连接". The surfaced
+                    // snapshot drives both the UI and the backoff decision.
+                    let surfaced =
+                        sc2::debounce_disconnect(fresh, last_good.as_ref(), consecutive_failures);
+                    let connected = surfaced.connected;
+                    let _ = handle.emit(sc2::GAME_EVENT, surfaced);
                     // Exponential backoff while disconnected; snaps to base on
                     // reconnect. Pure curve lives in `sc2::next_poll_interval_ms`.
                     interval_ms = sc2::next_poll_interval_ms(interval_ms, connected);

@@ -96,7 +96,10 @@ describe("useBuildOrderVoice", () => {
     expect(result.current.spokenCount).toBe(1);
 
     rerender({
+      // Backend flips in_game to false once a result is decided (single source
+      // of truth); players stay populated on the SC2 end screen.
       snapshot: liveSnapshot({
+        in_game: false,
         players: [
           { id: 1, name: "P1", type: "user", race: "Terr", result: "Victory" },
         ],
@@ -129,5 +132,51 @@ describe("useBuildOrderVoice", () => {
     unmount();
 
     expect(cancelAllMock).toHaveBeenCalled();
+  });
+
+  it("re-seeds from scratch on a fast rematch (clock jumps back while live)", () => {
+    // Drive a game forward so several steps land in the spoken set.
+    const { rerender, result } = renderHook(
+      ({ snapshot, time }) => useBuildOrderVoice(snapshot, ORDER, time, VOICE_ON),
+      {
+        initialProps: { snapshot: liveSnapshot({ display_time: 0 }), time: 0 },
+      },
+    );
+
+    rerender({ snapshot: liveSnapshot({ display_time: 40 }), time: 40 });
+    expect(result.current.spokenCount).toBe(3); // all steps spoken by t40
+    expect(result.current.nextStep).toBeNull();
+
+    cancelAllMock.mockClear();
+
+    // New match WITHOUT ever leaving live: in_game stays true but the in-game
+    // clock (and display_time) snap back to ~0 — a fast "play again".
+    rerender({ snapshot: liveSnapshot({ display_time: 0 }), time: 0 });
+
+    // Reset + re-seed from scratch: empty spoken set (previewSpokenSet at t<=0),
+    // first step is upcoming again, and pending speech was cancelled.
+    expect(cancelAllMock).toHaveBeenCalled();
+    expect(result.current.spokenCount).toBe(0);
+    expect(result.current.nextStep?.say).toBe("补给站");
+  });
+
+  it("speaks the time-0 opening step instead of silently suppressing it", () => {
+    // ORDER_WITH_OPENER has a time-0 step with the default 4s lead: triggerTime
+    // is -4, which initialSpokenSet would mark as already-spoken at t=0 (0 >= -4)
+    // and thus skip without audio. previewSpokenSet returns an empty set at t<=0,
+    // so the opener is NOT pre-suppressed and instead gets announced normally.
+    const ORDER_WITH_OPENER: BuildOrder = {
+      ...ORDER,
+      steps: [{ time: 0, say: "建造农民" }, ...ORDER.steps],
+    };
+
+    const { result } = renderHook(() =>
+      useBuildOrderVoice(liveSnapshot({ display_time: 0 }), ORDER_WITH_OPENER, 0, VOICE_ON),
+    );
+
+    // The opener was spoken (audio fired), not silently swallowed by seeding.
+    expect(speakMock).toHaveBeenCalledWith("建造农民", 1.2);
+    expect(result.current.spokenCount).toBe(1);
+    expect(result.current.nextStep?.say).toBe("补给站");
   });
 });

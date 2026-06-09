@@ -45,8 +45,11 @@ pub enum ConnectionStatus {
 /// Snapshot pushed to the frontend on every poll tick.
 ///
 /// `connected` = SC2 client API reachable AND returned a usable body
-/// (`status == Ok`). `in_game` = a real game (not the empty between-games
-/// state) is active. `status` carries the disconnect reason for diagnostics.
+/// (`status == Ok`). `in_game` = a real, still-undecided game is active; a
+/// finished match whose result is in (Victory/Defeat/Tie) is treated as
+/// non-in-game (idle), even though SC2 keeps the players populated on that end
+/// screen until you return to the main menu. `status` carries the disconnect
+/// reason for diagnostics.
 #[derive(Debug, Clone, Serialize)]
 pub struct GameSnapshot {
     pub connected: bool,
@@ -73,7 +76,15 @@ impl GameSnapshot {
     }
 
     fn from_raw(raw: RawGame) -> Self {
-        let in_game = !raw.players.is_empty();
+        // A finished match still reports a non-empty players array (SC2 keeps it
+        // until you leave to the main menu), but each player's `result` flips
+        // from "Undecided" to "Victory"/"Defeat"/"Tie". Treat that as idle so the
+        // overlay, clock, and voice all stop together.
+        let decided = raw
+            .players
+            .iter()
+            .any(|p| !p.result.is_empty() && p.result != "Undecided");
+        let in_game = !raw.players.is_empty() && !decided;
         Self {
             connected: true,
             status: ConnectionStatus::Ok,
@@ -143,6 +154,30 @@ pub fn next_poll_interval_ms(current_ms: u64, connected: bool) -> u64 {
     base.saturating_mul(2).min(MAX_POLL_INTERVAL_MS)
 }
 
+/// Consecutive failed polls tolerated before a transient gap (SC2 reloading at
+/// game start/end) is surfaced to the UI as a real disconnect.
+pub const DISCONNECT_GRACE_TICKS: u32 = 3;
+
+/// Debounce transient disconnects. If the fresh snapshot is connected, emit it
+/// as-is. If it failed but we are still within the grace window AND we have a
+/// last-known-connected snapshot, re-emit that snapshot so the overlay does not
+/// flicker through "未连接" during the brief gap at game start/end. Once failures
+/// reach the grace threshold (or there is no prior connected snapshot), surface
+/// the real disconnected snapshot.
+pub fn debounce_disconnect(
+    fresh: GameSnapshot,
+    last_good: Option<&GameSnapshot>,
+    consecutive_failures: u32,
+) -> GameSnapshot {
+    if fresh.connected {
+        return fresh;
+    }
+    match last_good {
+        Some(prev) if consecutive_failures < DISCONNECT_GRACE_TICKS => prev.clone(),
+        _ => fresh,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -170,6 +205,23 @@ mod tests {
         assert_eq!(snap.players.len(), 2);
         assert_eq!(snap.players[0].race, "Terr");
         assert_eq!(snap.players[1].player_type, "user");
+    }
+
+    #[test]
+    fn decided_result_is_idle_but_keeps_players_and_time() {
+        // After a surrender/exit SC2 still returns both players, but one has a
+        // decisive result. That end screen must read as not-in-game (idle) so the
+        // overlay/clock/voice all stop, while connected and player data persist.
+        let json = r#"{"isReplay":false,"displayTime":423.0,"players":[
+            {"id":1,"name":"me","type":"user","race":"Terr","result":"Defeat"},
+            {"id":2,"name":"foe","type":"user","race":"Prot","result":"Victory"}
+        ]}"#;
+        let raw: RawGame = serde_json::from_str(json).unwrap();
+        let snap = GameSnapshot::from_raw(raw);
+        assert!(!snap.in_game);
+        assert!(snap.connected);
+        assert_eq!(snap.players.len(), 2);
+        assert_eq!(snap.display_time, 423.0);
     }
 
     #[test]
@@ -268,6 +320,49 @@ mod tests {
     fn backoff_treats_sub_base_current_as_base() {
         assert_eq!(next_poll_interval_ms(0, false), 2000);
         assert_eq!(next_poll_interval_ms(500, false), 2000);
+    }
+
+    /// A minimal connected snapshot for debounce tests.
+    fn connected_snapshot() -> GameSnapshot {
+        let raw: RawGame =
+            serde_json::from_str(r#"{"isReplay":false,"displayTime":0.0,"players":[]}"#)
+                .unwrap();
+        GameSnapshot::from_raw(raw)
+    }
+
+    #[test]
+    fn debounce_passes_through_a_connected_fresh_snapshot() {
+        // Even with a last_good present, a connected fresh snapshot wins.
+        let last_good = connected_snapshot();
+        let fresh = connected_snapshot();
+        let out = debounce_disconnect(fresh, Some(&last_good), 0);
+        assert!(out.connected);
+    }
+
+    #[test]
+    fn debounce_reemits_last_good_within_grace_window() {
+        let last_good = connected_snapshot();
+        let fresh = GameSnapshot::not_ok(ConnectionStatus::Unreachable);
+        let out = debounce_disconnect(fresh, Some(&last_good), DISCONNECT_GRACE_TICKS - 1);
+        assert!(out.connected);
+    }
+
+    #[test]
+    fn debounce_surfaces_disconnect_at_grace_threshold() {
+        let last_good = connected_snapshot();
+        let fresh = GameSnapshot::not_ok(ConnectionStatus::Timeout);
+        let out = debounce_disconnect(fresh, Some(&last_good), DISCONNECT_GRACE_TICKS);
+        assert!(!out.connected);
+        assert_eq!(out.status, ConnectionStatus::Timeout);
+    }
+
+    #[test]
+    fn debounce_surfaces_disconnect_when_never_connected() {
+        // No prior connected snapshot → no grace, surface immediately.
+        let fresh = GameSnapshot::not_ok(ConnectionStatus::Unreachable);
+        let out = debounce_disconnect(fresh, None, 1);
+        assert!(!out.connected);
+        assert_eq!(out.status, ConnectionStatus::Unreachable);
     }
 }
 

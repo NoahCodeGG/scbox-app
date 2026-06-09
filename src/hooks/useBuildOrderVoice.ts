@@ -5,9 +5,14 @@ import { cancelAll, speak } from "../lib/speech";
 import { spokenText } from "../lib/sayVoice";
 import {
   dueStepIndices,
-  initialSpokenSet,
   nextStepIndex,
+  previewSpokenSet,
 } from "../lib/schedule";
+
+/** A backwards jump in the in-game clock larger than this (seconds) means a new
+ *  match started while we never left the live state (fast rematch, or a debounced
+ *  reconnect that held the live snapshot). Real play only moves forward. */
+const RESTART_BACKSTEP_SEC = 5;
 
 /** UI state surfaced by the build-order voice hook. */
 export interface BuildOrderVoiceState {
@@ -33,13 +38,6 @@ export interface VoiceOptions {
 /** A live game we should be guiding: in a real (non-replay) match. */
 function isLiveGame(snapshot: GameSnapshot): boolean {
   return snapshot.in_game && !snapshot.is_replay;
-}
-
-/** A player result has been decided (game over). */
-function hasResult(snapshot: GameSnapshot): boolean {
-  return snapshot.players.some(
-    (p) => p.result !== "" && p.result !== "Undecided",
-  );
 }
 
 /**
@@ -86,9 +84,12 @@ export function useBuildOrderVoice(
   // StrictMode guard: indices already passed to `speak` in this mounted
   // lifetime, so a dev double-invoke of the effect cannot double-speak.
   const spokenGuardRef = useRef<Set<number>>(new Set());
+  // Last in-game clock seen while live. A large backwards jump means a new
+  // match started without ever leaving the live state (see RESTART_BACKSTEP_SEC).
+  const lastTimeRef = useRef(0);
 
   useEffect(() => {
-    const live = isLiveGame(snapshot) && !hasResult(snapshot);
+    const live = isLiveGame(snapshot);
 
     if (!live) {
       // Game end / replay / idle: reset and silence for a clean next game.
@@ -98,17 +99,29 @@ export function useBuildOrderVoice(
         cancelAll();
         setSpoken(new Set());
       }
+      lastTimeRef.current = 0;
       return;
     }
 
-    if (!activeRef.current) {
-      // First live snapshot: suppress steps whose trigger time already passed.
+    // New match while staying live: the in-game clock jumped backwards well past
+    // any interpolation jitter, so reset and re-seed from scratch.
+    const restarted =
+      activeRef.current && currentTime < lastTimeRef.current - RESTART_BACKSTEP_SEC;
+
+    if (!activeRef.current || restarted) {
+      // First live snapshot (or a fresh match): suppress steps whose trigger
+      // time already passed; previewSpokenSet returns empty at t<=0 so an
+      // opening (time-0) step is not wrongly pre-marked as spoken.
       activeRef.current = true;
-      const seeded = initialSpokenSet(scheduledOrder, currentTime);
+      if (restarted) cancelAll();
+      const seeded = previewSpokenSet(scheduledOrder, currentTime);
       spokenGuardRef.current = new Set(seeded);
       setSpoken(seeded);
+      lastTimeRef.current = currentTime;
       return;
     }
+
+    lastTimeRef.current = currentTime;
 
     const due = dueStepIndices(scheduledOrder, currentTime, spoken);
     const toSpeak = due.filter((i) => !spokenGuardRef.current.has(i));
