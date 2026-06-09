@@ -43,6 +43,11 @@ const OPPONENT_OPTIONS: ReadonlyArray<{ letter: RaceLetter; label: string }> = [
   { letter: "X", label: "任意 (Any)" },
 ];
 
+/** Resolve the Chinese label for an opponent race letter (fallback to the letter). */
+function opponentLabel(letter: RaceLetter): string {
+  return OPPONENT_OPTIONS.find((o) => o.letter === letter)?.label ?? letter;
+}
+
 const RACE_LABELS_ZH: Record<AuthorRace, string> = {
   Terran: "人族 (Terran)",
   Protoss: "神族 (Protoss)",
@@ -557,7 +562,7 @@ export default function BuildEditor() {
                 <FieldLabel>种族</FieldLabel>
                 <Select value={form.race} onValueChange={(v) => updateRace(v as AuthorRace)}>
                   <SelectTrigger className="w-full font-mono text-[13px]">
-                    <SelectValue />
+                    <SelectValue>{RACE_LABELS_ZH[form.race]}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {AUTHOR_RACES.map((race) => (
@@ -575,7 +580,7 @@ export default function BuildEditor() {
                   onValueChange={(v) => updateOpponent(v as RaceLetter)}
                 >
                   <SelectTrigger className="w-full font-mono text-[13px]">
-                    <SelectValue />
+                    <SelectValue>{opponentLabel(form.opponent)}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {OPPONENT_OPTIONS.map(({ letter, label }) => (
