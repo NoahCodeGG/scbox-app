@@ -431,8 +431,7 @@ export default function BuildEditor() {
   }
 
   return (
-    <main className="min-h-screen bg-muted/40 text-foreground">
-      <div className="mx-auto max-w-[1080px] px-6 py-8 sm:px-8">
+    <div className="flex h-full flex-col">
         <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
@@ -862,7 +861,6 @@ export default function BuildEditor() {
             />
           </div>
         </div>
-      </div>
-    </main>
+    </div>
   );
 }
