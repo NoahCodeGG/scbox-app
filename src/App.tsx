@@ -181,7 +181,7 @@ function BuildPanel({
     build,
     currentTime,
     {
-      voiceEnabled: settings.voiceEnabled,
+      voiceEnabled: settings.voiceEnabled && settings.buildVoiceEnabled,
       voiceRate: settings.voiceRate,
       leadTimeSecOverride: settings.leadTimeSecOverride,
     },
@@ -191,7 +191,7 @@ function BuildPanel({
   // linear build order, driven by their own independent voice toggle. The hook
   // must run unconditionally at the top of the component.
   const recurring = useRecurringCues(snapshot, build, currentTime, {
-    voiceEnabled: settings.recurringVoiceEnabled,
+    voiceEnabled: settings.voiceEnabled && settings.recurringVoiceEnabled,
     voiceRate: settings.voiceRate,
     leadTimeSecOverride: settings.leadTimeSecOverride,
   });
@@ -396,6 +396,8 @@ function OverlayFooter({
   speaking,
 }: OverlayFooterProps) {
   const voiceOn = settings.voiceEnabled;
+  const buildVoiceOn = settings.buildVoiceEnabled;
+  const recurringVoiceOn = settings.recurringVoiceEnabled;
   const rate = settings.voiceRate;
   const rateAtMin = rate <= VOICE_RATE_MIN;
   const rateAtMax = rate >= VOICE_RATE_MAX;
@@ -409,9 +411,14 @@ function OverlayFooter({
   const stepBtn =
     "grid size-[18px] place-items-center rounded border-0 bg-transparent text-[color:var(--o-muted)] transition-colors hover:bg-[color:color-mix(in_oklab,var(--o-fg),transparent_90%)] hover:text-[color:var(--o-fg)] disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[color:var(--o-muted)] [&_svg]:size-[12px]";
 
+  // Smaller, secondary chip for the two voice sub-toggles (流程 / 周期). Active
+  // (and master on) → accent; off or disabled → muted/dim.
+  const subChip =
+    "inline-flex items-center rounded border-0 bg-transparent px-1 font-mono text-[10px] transition-colors disabled:opacity-30";
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-[color:var(--o-border)] px-3.5 pt-2 pb-3">
-      {/* Voice on/off — the whole chip toggles `voiceEnabled`. */}
+      {/* Voice on/off — the whole chip toggles the master `voiceEnabled`. */}
       <button
         type="button"
         className={cn(
@@ -426,8 +433,48 @@ function OverlayFooter({
         aria-label="语音开关"
       >
         {voiceOn ? <Volume2 /> : <VolumeX />}
-        {voiceOn ? `语音 开 · ${rate.toFixed(1)}×` : "语音 关"}
+        {voiceOn ? "语音 开" : "语音 关"}
       </button>
+
+      {/* Sub-toggles: build-order voice + recurring voice, gated by the master. */}
+      <div className="inline-flex items-center gap-1">
+        <button
+          type="button"
+          className={cn(
+            subChip,
+            voiceOn && buildVoiceOn
+              ? "text-[color:var(--o-accent)]"
+              : "text-[color:var(--o-muted)] hover:text-[color:var(--o-fg)]",
+          )}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={() =>
+            onSave({ ...settings, buildVoiceEnabled: !buildVoiceOn })
+          }
+          disabled={!voiceOn}
+          aria-pressed={buildVoiceOn}
+          aria-label="流程语音开关"
+        >
+          流程
+        </button>
+        <button
+          type="button"
+          className={cn(
+            subChip,
+            voiceOn && recurringVoiceOn
+              ? "text-[color:var(--o-accent)]"
+              : "text-[color:var(--o-muted)] hover:text-[color:var(--o-fg)]",
+          )}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={() =>
+            onSave({ ...settings, recurringVoiceEnabled: !recurringVoiceOn })
+          }
+          disabled={!voiceOn}
+          aria-pressed={recurringVoiceOn}
+          aria-label="周期提醒语音开关"
+        >
+          周期
+        </button>
+      </div>
 
       {/* Voice rate stepper (0.1 step, clamped 0.5–2.0×). */}
       <div className="inline-flex items-center gap-1">

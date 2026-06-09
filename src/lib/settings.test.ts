@@ -65,6 +65,7 @@ describe("normalizeSettings", () => {
     clientApiPort: 6119,
     leadTimeSecOverride: null,
     voiceEnabled: true,
+    buildVoiceEnabled: true,
     recurringVoiceEnabled: true,
     voiceRate: 1.0,
     clickThrough: false,
@@ -85,6 +86,7 @@ describe("normalizeSettings", () => {
       clientApiPort: 0,
       leadTimeSecOverride: -5,
       voiceEnabled: false,
+      buildVoiceEnabled: false,
       recurringVoiceEnabled: false,
       voiceRate: 10,
       clickThrough: true,
@@ -99,6 +101,7 @@ describe("normalizeSettings", () => {
       clientApiPort: 6119,
       leadTimeSecOverride: null,
       voiceEnabled: false,
+      buildVoiceEnabled: false,
       recurringVoiceEnabled: false,
       voiceRate: 2.0,
       clickThrough: true,
@@ -116,6 +119,19 @@ describe("normalizeSettings", () => {
       normalizeSettings({ ...valid, activeBuildOverride: " tvp.json " })
         .activeBuildOverride,
     ).toBe("tvp.json");
+  });
+
+  it("defaults buildVoiceEnabled to true when missing (back-compat)", () => {
+    const legacy = { ...valid } as Partial<Settings>;
+    delete legacy.buildVoiceEnabled;
+    expect(normalizeSettings(legacy as Settings).buildVoiceEnabled).toBe(true);
+  });
+
+  it("keeps buildVoiceEnabled false when explicitly off", () => {
+    expect(
+      normalizeSettings({ ...valid, buildVoiceEnabled: false })
+        .buildVoiceEnabled,
+    ).toBe(false);
   });
 });
 

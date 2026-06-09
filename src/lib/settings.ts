@@ -104,6 +104,7 @@ export function normalizeSettings(raw: Settings): Settings {
     clientApiPort: normalizePort(raw.clientApiPort),
     leadTimeSecOverride: normalizeLeadTimeOverride(raw.leadTimeSecOverride),
     voiceEnabled: raw.voiceEnabled,
+    buildVoiceEnabled: raw.buildVoiceEnabled !== false,
     recurringVoiceEnabled: raw.recurringVoiceEnabled !== false,
     voiceRate: normalizeVoiceRate(raw.voiceRate),
     clickThrough: raw.clickThrough,

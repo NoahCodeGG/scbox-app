@@ -258,9 +258,14 @@ function SettingsPanel({
           <Separator />
 
           <div className="flex items-center justify-between gap-3 py-3">
-            <Label htmlFor="settings-voice" className="text-[13px]">
-              语音播报
-            </Label>
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="settings-voice" className="text-[13px]">
+                语音播报
+              </Label>
+              <span className="text-[11px] leading-tight text-muted-foreground">
+                总开关，关闭后流程与周期提醒都不播报。
+              </span>
+            </div>
             <Switch
               id="settings-voice"
               checked={draft.voiceEnabled}
@@ -272,7 +277,28 @@ function SettingsPanel({
 
           <Separator />
 
-          <div className="flex items-center justify-between gap-3 py-3">
+          <div className="flex items-center justify-between gap-3 border-l-2 border-border py-3 pl-4">
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="settings-build-voice" className="text-[13px]">
+                流程语音
+              </Label>
+              <span className="text-[11px] leading-tight text-muted-foreground">
+                建造顺序步骤播报。
+              </span>
+            </div>
+            <Switch
+              id="settings-build-voice"
+              checked={draft.buildVoiceEnabled}
+              disabled={!draft.voiceEnabled}
+              onCheckedChange={(checked) =>
+                setDraft((prev) => ({ ...prev, buildVoiceEnabled: checked }))
+              }
+            />
+          </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between gap-3 border-l-2 border-border py-3 pl-4">
             <div className="flex flex-col gap-1">
               <Label htmlFor="settings-recurring-voice" className="text-[13px]">
                 周期提醒语音
@@ -284,6 +310,7 @@ function SettingsPanel({
             <Switch
               id="settings-recurring-voice"
               checked={draft.recurringVoiceEnabled}
+              disabled={!draft.voiceEnabled}
               onCheckedChange={(checked) =>
                 setDraft((prev) => ({
                   ...prev,
@@ -309,6 +336,7 @@ function SettingsPanel({
               min={0.5}
               max={2}
               step={0.1}
+              disabled={!draft.voiceEnabled}
               value={draft.voiceRate}
               onValueChange={(value) =>
                 setDraft((prev) => ({ ...prev, voiceRate: value }))

@@ -56,11 +56,14 @@ pub struct Settings {
     /// When set, overrides each build's `leadTimeSec`; `None` uses the build's.
     #[serde(default)]
     pub lead_time_sec_override: Option<f64>,
-    /// Whether build-order voice cues are spoken at all.
+    /// Master voice toggle; gates both build-order and recurring voice.
     #[serde(default = "default_voice_enabled")]
     pub voice_enabled: bool,
+    /// Build-order voice sub-toggle, gated by the master `voice_enabled`.
+    #[serde(default = "default_voice_enabled")]
+    pub build_voice_enabled: bool,
     /// Whether recurring discipline reminders (inject/creep) are spoken;
-    /// independent of build-order voice.
+    /// independent of build-order voice but gated by the master `voice_enabled`.
     #[serde(default = "default_voice_enabled")]
     pub recurring_voice_enabled: bool,
     /// Web Speech utterance rate (clamped 0.5–2.0 by the frontend).
@@ -95,6 +98,7 @@ impl Default for Settings {
             client_api_port: DEFAULT_CLIENT_API_PORT,
             lead_time_sec_override: None,
             voice_enabled: true,
+            build_voice_enabled: true,
             recurring_voice_enabled: true,
             voice_rate: DEFAULT_VOICE_RATE,
             click_through: false,
@@ -183,6 +187,7 @@ mod tests {
         assert_eq!(s.client_api_port, DEFAULT_CLIENT_API_PORT);
         assert_eq!(s.lead_time_sec_override, None);
         assert!(s.voice_enabled);
+        assert!(s.build_voice_enabled);
         assert!(s.recurring_voice_enabled);
         assert_eq!(s.voice_rate, 1.0);
         assert!(!s.click_through);
@@ -199,6 +204,7 @@ mod tests {
         let s = Settings::default();
         assert_eq!(s.client_api_port, 6119);
         assert!(s.voice_enabled);
+        assert!(s.build_voice_enabled);
         assert!(s.recurring_voice_enabled);
         assert_eq!(s.voice_rate, 1.0);
         assert_eq!(s.lead_time_sec_override, None);
@@ -217,6 +223,7 @@ mod tests {
             "clientApiPort": 5000,
             "leadTimeSecOverride": 2.5,
             "voiceEnabled": false,
+            "buildVoiceEnabled": false,
             "recurringVoiceEnabled": false,
             "voiceRate": 1.5,
             "clickThrough": true,
@@ -231,6 +238,7 @@ mod tests {
         assert_eq!(s.client_api_port, 5000);
         assert_eq!(s.lead_time_sec_override, Some(2.5));
         assert!(!s.voice_enabled);
+        assert!(!s.build_voice_enabled);
         assert!(!s.recurring_voice_enabled);
         assert_eq!(s.voice_rate, 1.5);
         assert!(s.click_through);
@@ -240,6 +248,14 @@ mod tests {
         assert_eq!(s.theme, "dark");
         assert_eq!(s.click_through_shortcut, "Alt+T");
         assert!(s.prerelease_updates);
+    }
+
+    #[test]
+    fn missing_build_voice_enabled_defaults_to_true() {
+        // Back-compat: a settings.json written before the build-voice sub-toggle
+        // existed must default it to true (master gate still applies).
+        let s = parse_settings(r#"{ "voiceEnabled": true }"#).unwrap();
+        assert!(s.build_voice_enabled);
     }
 
     #[test]
@@ -265,6 +281,7 @@ mod tests {
             client_api_port: 6120,
             lead_time_sec_override: Some(3.0),
             voice_enabled: false,
+            build_voice_enabled: false,
             recurring_voice_enabled: false,
             voice_rate: 1.25,
             click_through: true,

@@ -17,11 +17,13 @@ export interface Settings {
    * value.
    */
   leadTimeSecOverride: number | null;
-  /** Whether build-order voice cues are spoken at all. */
+  /** Master voice toggle; gates both build-order and recurring voice. */
   voiceEnabled: boolean;
+  /** Build-order voice sub-toggle, gated by the master `voiceEnabled`. */
+  buildVoiceEnabled: boolean;
   /**
    * Whether recurring discipline reminders (inject/creep) are spoken;
-   * independent of build-order voice.
+   * independent of build-order voice but gated by the master `voiceEnabled`.
    */
   recurringVoiceEnabled: boolean;
   /** Web Speech utterance rate (clamped 0.5–2.0). */
@@ -46,6 +48,7 @@ const DEFAULT_SETTINGS: Settings = {
   clientApiPort: 6119,
   leadTimeSecOverride: null,
   voiceEnabled: true,
+  buildVoiceEnabled: true,
   recurringVoiceEnabled: true,
   voiceRate: 1.0,
   clickThrough: false,
