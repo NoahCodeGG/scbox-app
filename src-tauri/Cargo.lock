@@ -3396,7 +3396,7 @@ dependencies = [
 
 [[package]]
 name = "scbox-app"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "base64 0.22.1",
  "include_dir",
