@@ -100,9 +100,9 @@ function toForm(build: BuildOrder): EditorForm {
       sayAs: step.sayAs ?? "",
     })),
     recurring: (build.recurring ?? []).map((cue) => ({
-      startSec: String(cue.startSec),
+      startSec: formatClockTime(cue.startSec),
       intervalSec: String(cue.intervalSec),
-      endSec: cue.endSec !== undefined ? String(cue.endSec) : "",
+      endSec: cue.endSec !== undefined ? formatClockTime(cue.endSec) : "",
       say: cue.say,
       sayAs: cue.sayAs ?? "",
     })),
@@ -619,7 +619,7 @@ export default function BuildEditor() {
                     <Input
                       className="h-8 w-20 font-mono text-[13px]"
                       value={step.time}
-                      placeholder="0:00"
+                      placeholder="如 90 或 1:30"
                       inputMode="decimal"
                       onChange={(e) =>
                         updateStep(index, "time", e.currentTarget.value)
@@ -738,7 +738,7 @@ export default function BuildEditor() {
                         <Input
                           className="h-8 font-mono text-[13px]"
                           value={cue.endSec}
-                          placeholder="留空=到对局结束"
+                          placeholder="留空=到对局结束（如 10:00）"
                           inputMode="decimal"
                           onChange={(e) =>
                             updateRecurring(
