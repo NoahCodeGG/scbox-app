@@ -3,12 +3,15 @@ import { invoke } from "@tauri-apps/api/core";
 import { emit, listen } from "@tauri-apps/api/event";
 import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import {
+  Minus,
   MousePointer2,
   Pencil,
+  Plus,
   Repeat,
   RotateCw,
   Settings as SettingsIcon,
   Volume2,
+  VolumeX,
   X,
 } from "lucide-react";
 import { useGameSnapshot } from "./hooks/useGameSnapshot";
@@ -356,6 +359,147 @@ function OverlayBanner({ state, port }: { state: OverlayState; port: number }) {
   );
 }
 
+interface OverlayFooterProps {
+  settings: Settings;
+  /** Persist + emit SETTINGS_CHANGED; updates local state immediately. */
+  onSave: (next: Settings) => void;
+  /** Current effective lead-time seconds (override or build's own). */
+  leadTime: number;
+  /** `activeBuild.leadTimeSec`, the base when the override is null. */
+  baseLeadFromBuild: number;
+  /** Whether a cue is actively firing, to highlight the voice control. */
+  speaking: boolean;
+}
+
+/** Voice-rate clamp bounds, mirroring the settings panel's 0.5–2.0× range. */
+const VOICE_RATE_MIN = 0.5;
+const VOICE_RATE_MAX = 2.0;
+const VOICE_RATE_STEP = 0.1;
+
+/** Round to one decimal to avoid float drift when stepping by 0.1. */
+function clampVoiceRate(rate: number): number {
+  const clamped = Math.min(VOICE_RATE_MAX, Math.max(VOICE_RATE_MIN, rate));
+  return Math.round(clamped * 10) / 10;
+}
+
+/**
+ * Always-on, compact footer with inline-adjustable voice toggle, voice rate,
+ * and lead-time stepper. Each change calls `onSave` so it persists and syncs
+ * across windows immediately. Renders in every overlay state (live or not), so
+ * the controls are reachable even before a game starts.
+ */
+function OverlayFooter({
+  settings,
+  onSave,
+  leadTime,
+  baseLeadFromBuild,
+  speaking,
+}: OverlayFooterProps) {
+  const voiceOn = settings.voiceEnabled;
+  const rate = settings.voiceRate;
+  const rateAtMin = rate <= VOICE_RATE_MIN;
+  const rateAtMax = rate >= VOICE_RATE_MAX;
+  const leadAtMin = leadTime <= 0;
+
+  // Base for lead stepping: the explicit override if set, else the build's own.
+  const leadBase = settings.leadTimeSecOverride ?? baseLeadFromBuild;
+
+  // Compact icon button shared by the steppers; smaller than the title-bar
+  // `iconBtn` so three control groups fit the fixed 328px width.
+  const stepBtn =
+    "grid size-[18px] place-items-center rounded border-0 bg-transparent text-[color:var(--o-muted)] transition-colors hover:bg-[color:color-mix(in_oklab,var(--o-fg),transparent_90%)] hover:text-[color:var(--o-fg)] disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[color:var(--o-muted)] [&_svg]:size-[12px]";
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-[color:var(--o-border)] px-3.5 pt-2 pb-3">
+      {/* Voice on/off — the whole chip toggles `voiceEnabled`. */}
+      <button
+        type="button"
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded border-0 bg-transparent font-mono text-[11px] transition-colors [&_svg]:size-[13px]",
+          speaking && voiceOn
+            ? "text-[color:var(--o-accent)]"
+            : "text-[color:var(--o-muted)] hover:text-[color:var(--o-fg)]",
+        )}
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={() => onSave({ ...settings, voiceEnabled: !voiceOn })}
+        aria-pressed={voiceOn}
+        aria-label="语音开关"
+      >
+        {voiceOn ? <Volume2 /> : <VolumeX />}
+        {voiceOn ? `语音 开 · ${rate.toFixed(1)}×` : "语音 关"}
+      </button>
+
+      {/* Voice rate stepper (0.1 step, clamped 0.5–2.0×). */}
+      <div className="inline-flex items-center gap-1">
+        <button
+          type="button"
+          className={stepBtn}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={() =>
+            onSave({ ...settings, voiceRate: clampVoiceRate(rate - VOICE_RATE_STEP) })
+          }
+          disabled={rateAtMin}
+          aria-label="降低语速"
+        >
+          <Minus />
+        </button>
+        <span className="min-w-[34px] text-center font-mono text-[11px] tabular-nums text-[color:var(--o-fg)]">
+          {rate.toFixed(1)}×
+        </span>
+        <button
+          type="button"
+          className={stepBtn}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={() =>
+            onSave({ ...settings, voiceRate: clampVoiceRate(rate + VOICE_RATE_STEP) })
+          }
+          disabled={rateAtMax}
+          aria-label="提高语速"
+        >
+          <Plus />
+        </button>
+      </div>
+
+      {/* Lead-time stepper (1s step, clamped ≥0); writes leadTimeSecOverride. */}
+      <div className="inline-flex items-center gap-1">
+        <span className="font-mono text-[11px] text-[color:var(--o-muted)]">提前</span>
+        <button
+          type="button"
+          className={stepBtn}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={() =>
+            onSave({
+              ...settings,
+              leadTimeSecOverride: Math.max(0, leadBase - 1),
+            })
+          }
+          disabled={leadAtMin}
+          aria-label="减少提前播报"
+        >
+          <Minus />
+        </button>
+        <span className="min-w-[28px] text-center font-mono text-[11px] tabular-nums text-[color:var(--o-fg)]">
+          {leadTime}s
+        </span>
+        <button
+          type="button"
+          className={stepBtn}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={() =>
+            onSave({
+              ...settings,
+              leadTimeSecOverride: Math.max(0, leadBase + 1),
+            })
+          }
+          aria-label="增加提前播报"
+        >
+          <Plus />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const { snapshot } = useGameSnapshot();
   const currentTime = useInterpolatedClock(snapshot);
@@ -620,30 +764,20 @@ function App() {
                 settings={settings}
                 onSpeakingChange={setSpeaking}
               />
-
-              {/* Footer: voice + lead time */}
-              <div className="flex items-center justify-between border-t border-[color:var(--o-border)] px-3.5 pt-2 pb-3">
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1.5 font-mono text-[11px] [&_svg]:size-[13px]",
-                    speaking
-                      ? "text-[color:var(--o-accent)]"
-                      : "text-[color:var(--o-muted)]",
-                  )}
-                >
-                  <Volume2 />
-                  {settings.voiceEnabled
-                    ? `语音 开 · ${settings.voiceRate.toFixed(1)}×`
-                    : "语音 关"}
-                </span>
-                <span className="font-mono text-[11px] text-[color:var(--o-muted)]">
-                  提前 {leadTime}s 播报
-                </span>
-              </div>
             </>
           ) : (
             <OverlayBanner state={state} port={settings.clientApiPort} />
           )}
+
+          {/* Footer: always rendered (every state). Voice toggle + rate +
+              lead-time steppers, each persisting via saveSettings. */}
+          <OverlayFooter
+            settings={settings}
+            onSave={saveSettings}
+            leadTime={leadTime}
+            baseLeadFromBuild={activeBuild.leadTimeSec}
+            speaking={speaking}
+          />
         </div>
 
         {/* Auxiliary surfaces — outside the overlay card so they don't disturb
