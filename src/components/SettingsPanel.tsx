@@ -186,14 +186,11 @@ function SettingsPanel({
   });
 
   return (
-    <section
-      className="flex flex-col gap-3 rounded-lg border bg-card p-3 text-card-foreground"
-      aria-label="设置"
-    >
+    <section className="flex h-full flex-col gap-4" aria-label="设置">
       <header className="flex items-start justify-between">
         <div>
-          <h2 className="text-sm font-semibold tracking-tight">设置</h2>
-          <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
+          <h1 className="text-[26px] font-semibold tracking-tight">设置</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             改动持久化后即时生效
           </p>
         </div>
