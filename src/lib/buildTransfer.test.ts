@@ -179,3 +179,60 @@ describe("parseImportedBuild", () => {
     }
   });
 });
+
+describe("recurring round-trip", () => {
+  function withRecurring(): BuildOrder {
+    return build({
+      recurring: [
+        { startSec: 162, intervalSec: 29, say: "注卵" },
+        {
+          startSec: 120,
+          intervalSec: 40,
+          endSec: 480,
+          say: "菌毯",
+          sayAs: "铺菌毯",
+        },
+      ],
+    });
+  }
+
+  it("preserves recurring cues through parse → validate → export", () => {
+    const source = withRecurring();
+    const json = exportBuildJson(source);
+    const parsed = parseImportedBuild(json);
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.build.recurring).toEqual(source.recurring);
+      // Full re-export is byte-identical (clean round-trip).
+      expect(exportBuildJson(parsed.build)).toBe(json);
+    }
+  });
+
+  it("does not emit a recurring key when absent or empty", () => {
+    const withoutKey = JSON.parse(exportBuildJson(build())) as Record<
+      string,
+      unknown
+    >;
+    expect("recurring" in withoutKey).toBe(false);
+
+    const emptyArr = JSON.parse(
+      exportBuildJson(build({ recurring: [] })),
+    ) as Record<string, unknown>;
+    expect("recurring" in emptyArr).toBe(false);
+  });
+
+  it("rejects a non-array recurring field", () => {
+    const result = parseImportedBuild(
+      JSON.stringify({
+        matchup: "TvP",
+        race: "Terran",
+        name: "x",
+        leadTimeSec: 4,
+        steps: [],
+        recurring: {},
+      }),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toBe("recurring 必须是数组");
+  });
+});

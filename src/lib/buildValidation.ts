@@ -4,12 +4,26 @@
 // `BuildOrder` ready to persist — or an error message to show. Per the cross-
 // layer guide, validation happens once, here, before crossing into Rust.
 
-import type { BuildOrder, BuildStep } from "../types/build";
+import type { BuildOrder, BuildStep, RecurringCue } from "../types/build";
 import { parseClockTime } from "./clockTime";
 
 /** A step as held by the editor form (numbers kept as raw strings). */
 export interface DraftStep {
   time: string;
+  say: string;
+  /** Optional spoken override (empty string = unset). */
+  sayAs: string;
+}
+
+/**
+ * A recurring discipline reminder as held by the editor form (numbers kept as
+ * raw strings; `endSec`/`sayAs` empty string = unset).
+ */
+export interface DraftRecurring {
+  startSec: string;
+  intervalSec: string;
+  /** Optional last displayTime (empty string = until game end). */
+  endSec: string;
   say: string;
   /** Optional spoken override (empty string = unset). */
   sayAs: string;
@@ -22,6 +36,7 @@ export interface DraftBuild {
   name: string;
   leadTimeSec: string;
   steps: DraftStep[];
+  recurring: DraftRecurring[];
 }
 
 /** Discriminated result of validating a draft build. */
@@ -45,6 +60,9 @@ function parseNonNegative(raw: string, label: string): number | string {
  * - `leadTimeSec` a non-negative number.
  * - each step: `say` required, `time` a non-negative number.
  * - steps sorted ascending by `time` (the scheduler expects ascending order).
+ * - each recurring cue: `say` required, `startSec`/`intervalSec` valid clock
+ *   times (interval > 0), optional `endSec` >= `startSec`. Recurring order is
+ *   preserved (parallel timers have no single ordering).
  *
  * Returns the normalized `BuildOrder` on success, or the first error found.
  */
@@ -83,5 +101,57 @@ export function validateBuild(draft: DraftBuild): ValidationResult {
   // Auto-sort ascending by time (stable) so entry order doesn't matter.
   const sorted = [...steps].sort((a, b) => a.time - b.time);
 
-  return { ok: true, build: { matchup, race, name, leadTimeSec, steps: sorted } };
+  // Recurring cues: validated after steps, order preserved (parallel timers).
+  const recurring: RecurringCue[] = [];
+  for (let i = 0; i < draft.recurring.length; i++) {
+    const draftCue = draft.recurring[i];
+    const label = `第 ${i + 1} 条循环提醒`;
+
+    const say = draftCue.say.trim();
+    if (say === "") return { ok: false, error: `${label}的语音内容不能为空` };
+
+    const startSec = parseClockTime(draftCue.startSec);
+    if (startSec === null) {
+      return { ok: false, error: `${label}的起始时间格式应为 秒 或 mm:ss` };
+    }
+
+    const intervalSec = parseClockTime(draftCue.intervalSec);
+    if (intervalSec === null || intervalSec <= 0) {
+      return { ok: false, error: `${label}的间隔必须大于 0` };
+    }
+
+    const rawEnd = draftCue.endSec.trim();
+    let endSec: number | undefined;
+    if (rawEnd !== "") {
+      const parsedEnd = parseClockTime(draftCue.endSec);
+      if (parsedEnd === null) {
+        return { ok: false, error: `${label}的结束时间格式应为 秒 或 mm:ss` };
+      }
+      if (parsedEnd < startSec) {
+        return { ok: false, error: `${label}的结束时间不能早于起始时间` };
+      }
+      endSec = parsedEnd;
+    }
+
+    const sayAs = draftCue.sayAs.trim();
+    recurring.push({
+      startSec,
+      intervalSec,
+      say,
+      ...(endSec !== undefined ? { endSec } : {}),
+      ...(sayAs === "" ? {} : { sayAs }),
+    });
+  }
+
+  return {
+    ok: true,
+    build: {
+      matchup,
+      race,
+      name,
+      leadTimeSec,
+      steps: sorted,
+      ...(recurring.length ? { recurring } : {}),
+    },
+  };
 }

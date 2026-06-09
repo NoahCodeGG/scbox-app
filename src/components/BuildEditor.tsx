@@ -11,6 +11,7 @@ import { formatClockTime } from "../lib/clockTime";
 import {
   validateBuild,
   type DraftBuild,
+  type DraftRecurring,
   type DraftStep,
 } from "../lib/buildValidation";
 import { parseMatchup, raceNameToLetter, type RaceLetter } from "../lib/matchup";
@@ -61,6 +62,10 @@ function emptyStep(): DraftStep {
   return { time: "", say: "", sayAs: "" };
 }
 
+function emptyRecurring(): DraftRecurring {
+  return { startSec: "", intervalSec: "", endSec: "", say: "", sayAs: "" };
+}
+
 /** Editor form fields, excluding the derived `matchup`. */
 interface EditorForm {
   race: AuthorRace;
@@ -68,6 +73,7 @@ interface EditorForm {
   name: string;
   leadTimeSec: string;
   steps: DraftStep[];
+  recurring: DraftRecurring[];
 }
 
 function emptyForm(): EditorForm {
@@ -77,6 +83,7 @@ function emptyForm(): EditorForm {
     name: "",
     leadTimeSec: "4",
     steps: [emptyStep()],
+    recurring: [],
   };
 }
 
@@ -92,6 +99,13 @@ function toForm(build: BuildOrder): EditorForm {
       say: step.say,
       sayAs: step.sayAs ?? "",
     })),
+    recurring: (build.recurring ?? []).map((cue) => ({
+      startSec: String(cue.startSec),
+      intervalSec: String(cue.intervalSec),
+      endSec: cue.endSec !== undefined ? String(cue.endSec) : "",
+      say: cue.say,
+      sayAs: cue.sayAs ?? "",
+    })),
   };
 }
 
@@ -104,6 +118,7 @@ function toDraft(form: EditorForm): DraftBuild {
     name: form.name,
     leadTimeSec: form.leadTimeSec,
     steps: form.steps,
+    recurring: form.recurring,
   };
 }
 
@@ -132,6 +147,21 @@ function formToJson(form: EditorForm): string {
         ? { time: step.time, say: step.say }
         : { time: step.time, say: step.say, sayAs };
     }),
+    ...(form.recurring.length
+      ? {
+          recurring: form.recurring.map((cue) => {
+            const sayAs = cue.sayAs.trim();
+            const endSec = cue.endSec.trim();
+            return {
+              say: cue.say,
+              ...(sayAs === "" ? {} : { sayAs }),
+              startSec: cue.startSec,
+              intervalSec: cue.intervalSec,
+              ...(endSec === "" ? {} : { endSec }),
+            };
+          }),
+        }
+      : {}),
   };
   return JSON.stringify(lenient, null, 2);
 }
@@ -299,6 +329,33 @@ export default function BuildEditor() {
     setForm((prev) => ({
       ...prev,
       steps: prev.steps.filter((_, i) => i !== index),
+    }));
+  }
+
+  function updateRecurring(
+    index: number,
+    field: keyof DraftRecurring,
+    value: string,
+  ): void {
+    setForm((prev) => ({
+      ...prev,
+      recurring: prev.recurring.map((cue, i) =>
+        i === index ? { ...cue, [field]: value } : cue,
+      ),
+    }));
+  }
+
+  function addRecurring(): void {
+    setForm((prev) => ({
+      ...prev,
+      recurring: [...prev.recurring, emptyRecurring()],
+    }));
+  }
+
+  function removeRecurring(index: number): void {
+    setForm((prev) => ({
+      ...prev,
+      recurring: prev.recurring.filter((_, i) => i !== index),
     }));
   }
 
@@ -609,6 +666,113 @@ export default function BuildEditor() {
             >
               <Plus />
               添加步骤
+            </Button>
+
+            <div className="mt-6 mb-3 flex items-center justify-between">
+              <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">
+                循环提醒（注卵/菌毯等）
+              </span>
+              <span className="font-mono text-[12px] tabular-nums text-muted-foreground">
+                {form.recurring.length} 条
+              </span>
+            </div>
+
+            <ul className="flex flex-col gap-2">
+              {form.recurring.map((cue, index) => (
+                <li
+                  key={index}
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-md border bg-card p-2"
+                >
+                  <div className="flex flex-col gap-1.5">
+                    <Input
+                      className="h-8 text-[14px]"
+                      value={cue.say}
+                      placeholder="语音内容，如「注卵」"
+                      onChange={(e) =>
+                        updateRecurring(index, "say", e.currentTarget.value)
+                      }
+                    />
+                    <Input
+                      className="h-8 text-[13px] text-muted-foreground"
+                      value={cue.sayAs}
+                      placeholder="朗读文案（可选），如「女王补卵」"
+                      onChange={(e) =>
+                        updateRecurring(index, "sayAs", e.currentTarget.value)
+                      }
+                    />
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      <div className="flex flex-col gap-1">
+                        <FieldLabel>起始</FieldLabel>
+                        <Input
+                          className="h-8 font-mono text-[13px]"
+                          value={cue.startSec}
+                          placeholder="162 或 2:42"
+                          inputMode="decimal"
+                          onChange={(e) =>
+                            updateRecurring(
+                              index,
+                              "startSec",
+                              e.currentTarget.value,
+                            )
+                          }
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <FieldLabel>间隔</FieldLabel>
+                        <Input
+                          className="h-8 font-mono text-[13px]"
+                          value={cue.intervalSec}
+                          placeholder="29 或 0:29"
+                          inputMode="decimal"
+                          onChange={(e) =>
+                            updateRecurring(
+                              index,
+                              "intervalSec",
+                              e.currentTarget.value,
+                            )
+                          }
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <FieldLabel>结束</FieldLabel>
+                        <Input
+                          className="h-8 font-mono text-[13px]"
+                          value={cue.endSec}
+                          placeholder="留空=到对局结束"
+                          inputMode="decimal"
+                          onChange={(e) =>
+                            updateRecurring(
+                              index,
+                              "endSec",
+                              e.currentTarget.value,
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="text-muted-foreground hover:text-destructive"
+                    onClick={() => removeRecurring(index)}
+                    aria-label="删除循环提醒"
+                  >
+                    <Trash2 />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+
+            <Button
+              type="button"
+              variant="ghost"
+              className="mt-2.5 w-full justify-center border border-dashed border-border text-muted-foreground hover:border-foreground hover:text-foreground"
+              onClick={addRecurring}
+            >
+              <Plus />
+              添加循环提醒
             </Button>
 
             <div className="mt-6 flex items-center justify-between border-t pt-5">

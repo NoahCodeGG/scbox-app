@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { validateBuild, type DraftBuild } from "./buildValidation";
+import {
+  validateBuild,
+  type DraftBuild,
+  type DraftRecurring,
+} from "./buildValidation";
 
 function draft(overrides: Partial<DraftBuild> = {}): DraftBuild {
   return {
@@ -8,6 +12,20 @@ function draft(overrides: Partial<DraftBuild> = {}): DraftBuild {
     name: "test build",
     leadTimeSec: "4",
     steps: [{ time: "17", say: "14 补给站", sayAs: "" }],
+    recurring: [],
+    ...overrides,
+  };
+}
+
+function recurring(
+  overrides: Partial<DraftRecurring> = {},
+): DraftRecurring {
+  return {
+    startSec: "162",
+    intervalSec: "29",
+    endSec: "",
+    say: "注卵",
+    sayAs: "",
     ...overrides,
   };
 }
@@ -109,6 +127,110 @@ describe("validateBuild", () => {
         time: 166,
         say: "火车 x2",
         sayAs: "造两辆火车",
+      });
+    }
+  });
+});
+
+describe("validateBuild recurring", () => {
+  it("omits recurring entirely when there are no cues", () => {
+    const result = validateBuild(draft({ recurring: [] }));
+    expect(result.ok).toBe(true);
+    if (result.ok) expect("recurring" in result.build).toBe(false);
+  });
+
+  it("accepts multiple valid cues in input order", () => {
+    const result = validateBuild(
+      draft({
+        recurring: [
+          recurring({ say: "注卵", startSec: "162", intervalSec: "29" }),
+          recurring({ say: "菌毯", startSec: "120", intervalSec: "40" }),
+        ],
+      }),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.build.recurring).toEqual([
+        { startSec: 162, intervalSec: 29, say: "注卵" },
+        { startSec: 120, intervalSec: 40, say: "菌毯" },
+      ]);
+    }
+  });
+
+  it("rejects an empty cue say", () => {
+    const result = validateBuild(
+      draft({ recurring: [recurring({ say: "  " })] }),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain("第 1 条循环提醒的语音内容");
+  });
+
+  it("rejects an invalid startSec", () => {
+    const result = validateBuild(
+      draft({ recurring: [recurring({ startSec: "soon" })] }),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain("起始时间格式");
+  });
+
+  it("rejects a zero interval", () => {
+    const result = validateBuild(
+      draft({ recurring: [recurring({ intervalSec: "0" })] }),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain("间隔必须大于 0");
+  });
+
+  it("rejects a negative interval", () => {
+    const result = validateBuild(
+      draft({ recurring: [recurring({ intervalSec: "-5" })] }),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain("间隔必须大于 0");
+  });
+
+  it("rejects endSec earlier than startSec", () => {
+    const result = validateBuild(
+      draft({ recurring: [recurring({ startSec: "200", endSec: "100" })] }),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain("结束时间不能早于起始时间");
+  });
+
+  it("omits endSec / sayAs from the cue when unset", () => {
+    const result = validateBuild(
+      draft({ recurring: [recurring({ endSec: "  ", sayAs: "  " })] }),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const cue = result.build.recurring?.[0];
+      expect(cue).toEqual({ startSec: 162, intervalSec: 29, say: "注卵" });
+      expect(cue && "endSec" in cue).toBe(false);
+      expect(cue && "sayAs" in cue).toBe(false);
+    }
+  });
+
+  it("keeps endSec and sayAs when set, parsing mm:ss", () => {
+    const result = validateBuild(
+      draft({
+        recurring: [
+          recurring({
+            startSec: "2:42",
+            intervalSec: "0:29",
+            endSec: "8:00",
+            sayAs: " 女王补卵 ",
+          }),
+        ],
+      }),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.build.recurring?.[0]).toEqual({
+        startSec: 162,
+        intervalSec: 29,
+        endSec: 480,
+        say: "注卵",
+        sayAs: "女王补卵",
       });
     }
   });

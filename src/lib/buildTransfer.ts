@@ -4,8 +4,13 @@
 // imported builds can never corrupt the builds dir. No Tauri plugin, no backend
 // change — transport is plain clipboard/text JSON (see the task PRD, Q1–Q3).
 
-import { validateBuild, type DraftBuild, type DraftStep } from "./buildValidation";
-import type { BuildOrder } from "../types/build";
+import {
+  validateBuild,
+  type DraftBuild,
+  type DraftRecurring,
+  type DraftStep,
+} from "./buildValidation";
+import type { BuildOrder, RecurringCue } from "../types/build";
 
 /** Result of parsing imported text — mirrors `validateBuild`'s shape. */
 export type ImportResult =
@@ -14,8 +19,10 @@ export type ImportResult =
 
 /**
  * Serialize a build to pretty (2-space) JSON containing exactly the on-disk
- * contract fields — matchup, race, name, leadTimeSec, and each step's
- * time/say/optional sayAs. Never leaks loader metadata such as `filename`.
+ * contract fields — matchup, race, name, leadTimeSec, each step's
+ * time/say/optional sayAs, and any recurring cues
+ * (startSec/intervalSec/say/optional endSec/optional sayAs). Never leaks loader
+ * metadata such as `filename`.
  */
 export function exportBuildJson(build: BuildOrder): string {
   const clean = {
@@ -28,8 +35,22 @@ export function exportBuildJson(build: BuildOrder): string {
         ? { time: step.time, say: step.say, sayAs: step.sayAs }
         : { time: step.time, say: step.say },
     ),
+    ...(build.recurring && build.recurring.length > 0
+      ? { recurring: build.recurring.map(cleanRecurring) }
+      : {}),
   };
   return JSON.stringify(clean, null, 2);
+}
+
+/** Serialize one recurring cue, omitting absent optional `endSec`/`sayAs`. */
+function cleanRecurring(cue: RecurringCue): Record<string, unknown> {
+  return {
+    say: cue.say,
+    ...(cue.sayAs !== undefined && cue.sayAs !== "" ? { sayAs: cue.sayAs } : {}),
+    startSec: cue.startSec,
+    intervalSec: cue.intervalSec,
+    ...(cue.endSec !== undefined ? { endSec: cue.endSec } : {}),
+  };
 }
 
 /** True for a non-null, non-array object value. */
@@ -59,14 +80,27 @@ function toDraftStep(value: unknown): DraftStep {
   };
 }
 
+/** Coerce one parsed recurring cue into a `DraftRecurring` (strings only). */
+function toDraftRecurring(value: unknown): DraftRecurring {
+  const obj = isPlainObject(value) ? value : {};
+  return {
+    startSec: toFieldString(obj.startSec),
+    intervalSec: toFieldString(obj.intervalSec),
+    endSec: toFieldString(obj.endSec),
+    say: toFieldString(obj.say),
+    sayAs: toFieldString(obj.sayAs),
+  };
+}
+
 /**
  * Parse untrusted shared text into a validated `BuildOrder`:
  * 1. JSON.parse (guarded).
  * 2. Require a non-null plain object.
  * 3. If `steps` is present it must be an array (missing → treated as empty).
- * 4. Coerce fields to a `DraftBuild` and delegate to `validateBuild`, reusing
+ * 4. If `recurring` is present it must be an array (missing → treated as empty).
+ * 5. Coerce fields to a `DraftBuild` and delegate to `validateBuild`, reusing
  *    every existing rule (required matchup/race, numeric/non-negative time,
- *    ascending sort).
+ *    ascending sort, recurring interval > 0, etc.).
  */
 export function parseImportedBuild(text: string): ImportResult {
   let parsed: unknown;
@@ -86,12 +120,18 @@ export function parseImportedBuild(text: string): ImportResult {
     return { ok: false, error: "steps 必须是数组" };
   }
 
+  const rawRecurring = parsed.recurring;
+  if (rawRecurring !== undefined && !Array.isArray(rawRecurring)) {
+    return { ok: false, error: "recurring 必须是数组" };
+  }
+
   const draft: DraftBuild = {
     matchup: toFieldString(parsed.matchup),
     race: toFieldString(parsed.race),
     name: toFieldString(parsed.name),
     leadTimeSec: toFieldString(parsed.leadTimeSec),
     steps: (rawSteps ?? []).map(toDraftStep),
+    recurring: (rawRecurring ?? []).map(toDraftRecurring),
   };
 
   return validateBuild(draft);
