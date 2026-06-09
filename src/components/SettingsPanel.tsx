@@ -275,6 +275,29 @@ function SettingsPanel({
 
           <Separator />
 
+          <div className="flex items-center justify-between gap-3 py-3">
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="settings-recurring-voice" className="text-[13px]">
+                周期提醒语音
+              </Label>
+              <span className="text-[11px] leading-tight text-muted-foreground">
+                注卵 / 菌毯等循环提醒，独立于建造播报。
+              </span>
+            </div>
+            <Switch
+              id="settings-recurring-voice"
+              checked={draft.recurringVoiceEnabled}
+              onCheckedChange={(checked) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  recurringVoiceEnabled: checked,
+                }))
+              }
+            />
+          </div>
+
+          <Separator />
+
           <div className="flex flex-col gap-2 py-3">
             <div className="flex items-center justify-between">
               <Label htmlFor="settings-rate" className="text-[13px]">

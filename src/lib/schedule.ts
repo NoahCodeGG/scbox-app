@@ -2,7 +2,7 @@
 // current in-game clock and a build order, decide which steps are now due.
 // Unit-tested in schedule.test.ts.
 
-import type { BuildOrder } from "../types/build";
+import type { BuildOrder, RecurringCue } from "../types/build";
 
 /** The `displayTime` at which step `i` should be announced. */
 export function triggerTime(order: BuildOrder, stepIndex: number): number {
@@ -96,4 +96,66 @@ export function upcomingStepIndices(
     }
   }
   return upcoming;
+}
+
+// --- Recurring discipline cues -------------------------------------------
+//
+// A `RecurringCue` is a parallel timer (e.g. Zerg inject/creep): occurrence
+// `k` (0-based) targets `displayTime = startSec + k*intervalSec` and, reusing
+// the build's announce-ahead, should be spoken at `targetTime - leadTimeSec`.
+// These pure helpers expand a cue against the current clock so a hook can
+// detect new triggers (with dedup) and the UI can show the next countdown.
+// `intervalSec <= 0` is treated as invalid: the cue never fires.
+
+/** The `displayTime` target of occurrence `k` of a recurring cue. */
+export function recurringTargetTime(cue: RecurringCue, k: number): number {
+  return cue.startSec + k * cue.intervalSec;
+}
+
+/**
+ * Occurrence index (0-based) of the latest trigger that is due at or before
+ * `displayTime` for `cue`, given `leadTimeSec`, or `null` if none is due yet
+ * (clock before the first trigger) or the cue is invalid. A cue's announce
+ * time is `startSec + k*intervalSec - leadTimeSec`, so the latest due `k` is
+ * `floor((displayTime + leadTimeSec - startSec) / intervalSec)`.
+ *
+ * If `endSec` is set, occurrences whose *target* time exceeds `endSec` are not
+ * produced; the returned index is clamped to the last in-window occurrence (or
+ * `null` if even occurrence 0 is past `endSec`).
+ */
+export function lastDueOccurrence(
+  cue: RecurringCue,
+  displayTime: number,
+  leadTimeSec: number,
+): number | null {
+  if (cue.intervalSec <= 0) return null;
+  const k = Math.floor(
+    (displayTime + leadTimeSec - cue.startSec) / cue.intervalSec,
+  );
+  if (k < 0) return null;
+  if (cue.endSec !== undefined) {
+    const maxK = Math.floor((cue.endSec - cue.startSec) / cue.intervalSec);
+    if (maxK < 0) return null;
+    if (k > maxK) return maxK;
+  }
+  return k;
+}
+
+/**
+ * The `displayTime` target of the next occurrence strictly after the latest
+ * one already due at `displayTime`, or `null` if the cue is invalid or the next
+ * occurrence's target would exceed `endSec`. Drives the UI countdown ("注卵
+ * -8s") — the value returned is the target clock time, not the announce time.
+ */
+export function nextRecurringTargetTime(
+  cue: RecurringCue,
+  displayTime: number,
+  leadTimeSec: number,
+): number | null {
+  if (cue.intervalSec <= 0) return null;
+  const last = lastDueOccurrence(cue, displayTime, leadTimeSec);
+  const nextK = last === null ? 0 : last + 1;
+  const target = recurringTargetTime(cue, nextK);
+  if (cue.endSec !== undefined && target > cue.endSec) return null;
+  return target;
 }

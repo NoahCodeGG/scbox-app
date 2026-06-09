@@ -121,6 +121,24 @@ Renaming a field on a Rust `Serialize` struct silently breaks the TS type that
 mirrors it. Search for the field name on the frontend before/after renaming, and
 update the shared TS type in the same change.
 
+### Gotcha: Pass-Through Structs Drop Fields Not Declared in Rust
+
+`src-tauri/src/builds.rs` deserializes each build JSON into the typed
+`BuildOrder`/`BuildStep` structs and then **re-serializes** them back to the
+frontend (via `load_build_orders`). Unknown JSON keys are intentionally ignored
+(no `deny_unknown_fields`, so `_note` etc. are allowed) — which means a new build
+field that exists **only in the TS type** is silently dropped on the round-trip:
+the frontend never receives it, even though the on-disk JSON has it.
+
+**Rule**: a new field in a build (or any Rust→TS pass-through) JSON must be added
+to **both** the TS interface (`src/types/build.ts`) **and** the Rust struct, with
+serde aligned (`rename_all = "camelCase"`, `#[serde(default, skip_serializing_if
+= "Option::is_none")]` for optional fields so old files round-trip unchanged).
+
+**Verify**: add a Rust test that deserializes a JSON containing the new field and
+re-serializes it, asserting the field survives (see
+`recurring_field_round_trips_through_serde` in `builds.rs`).
+
 ---
 
 ## When to Create Flow Documentation

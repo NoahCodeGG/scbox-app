@@ -44,6 +44,29 @@ pub struct BuildStep {
     pub say_as: Option<String>,
 }
 
+/// A recurring discipline reminder (e.g. Zerg inject/creep) that fires every
+/// `interval_sec` starting at `start_sec`, optionally stopping at `end_sec`.
+/// Runs independently of the linear build `steps`.
+///
+/// Mirrors `RecurringCue` in `src/types/build.ts`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecurringCue {
+    /// First trigger's target `displayTime` (seconds).
+    pub start_sec: f64,
+    /// Seconds between repeats (must be > 0).
+    pub interval_sec: f64,
+    /// Optional last `displayTime` to keep firing through. Absent → until game
+    /// end.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub end_sec: Option<f64>,
+    /// Text shown in the UI when due.
+    pub say: String,
+    /// Optional spoken override; same semantics as `BuildStep::say_as`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub say_as: Option<String>,
+}
+
 /// A full build order for one matchup.
 ///
 /// Mirrors `BuildOrder` in `src/types/build.ts`. Unknown keys (e.g. the doc-only
@@ -63,6 +86,11 @@ pub struct BuildOrder {
     pub lead_time_sec: f64,
     /// Cues in (expected) ascending `time` order.
     pub steps: Vec<BuildStep>,
+    /// Parallel recurring discipline reminders that run independently of
+    /// `steps`. Absent in older files → `None`; not serialized when `None` to
+    /// keep existing file output unchanged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub recurring: Option<Vec<RecurringCue>>,
 }
 
 /// A loaded build paired with the name of the file it came from. The filename is
@@ -527,6 +555,7 @@ mod tests {
                 BuildStep { time: 17.0, say: "depot".to_string(), say_as: None },
                 BuildStep { time: 30.0, say: "rax".to_string(), say_as: None },
             ],
+            recurring: None,
         };
 
         save_to_dir(&dir, "tvz.json", &build).expect("save");
@@ -549,8 +578,56 @@ mod tests {
             name: "x".to_string(),
             lead_time_sec: 4.0,
             steps: vec![],
+            recurring: None,
         };
         assert!(save_to_dir(tmp.path(), "../escape.json", &build).is_err());
+    }
+
+    #[test]
+    fn recurring_field_round_trips_through_serde() {
+        let with_recurring = r#"{
+            "matchup": "ZvP",
+            "race": "Zerg",
+            "name": "inject build",
+            "leadTimeSec": 4,
+            "steps": [{ "time": 17, "say": "extractor" }],
+            "recurring": [
+                { "startSec": 60, "intervalSec": 29, "say": "注卵" },
+                { "startSec": 120, "intervalSec": 40, "endSec": 600, "say": "菌毯", "sayAs": "铺菌毯" }
+            ]
+        }"#;
+
+        let order: BuildOrder =
+            serde_json::from_str(with_recurring).expect("parse recurring build");
+        let recurring = order.recurring.as_ref().expect("recurring preserved");
+        assert_eq!(recurring.len(), 2);
+        assert_eq!(recurring[0].start_sec, 60.0);
+        assert_eq!(recurring[0].interval_sec, 29.0);
+        assert_eq!(recurring[0].end_sec, None);
+        assert_eq!(recurring[1].end_sec, Some(600.0));
+        assert_eq!(recurring[1].say_as.as_deref(), Some("铺菌毯"));
+
+        // Re-serialize and confirm the camelCase keys survive the round-trip.
+        let json = serde_json::to_string(&order).expect("serialize");
+        assert!(json.contains("\"recurring\""));
+        assert!(json.contains("\"startSec\""));
+        assert!(json.contains("\"intervalSec\""));
+        assert!(json.contains("\"endSec\""));
+        assert!(json.contains("\"sayAs\""));
+    }
+
+    #[test]
+    fn absent_recurring_is_omitted_on_serialize() {
+        let build = BuildOrder {
+            matchup: "TvP".to_string(),
+            race: "Terran".to_string(),
+            name: "x".to_string(),
+            lead_time_sec: 4.0,
+            steps: vec![],
+            recurring: None,
+        };
+        let json = serde_json::to_string(&build).expect("serialize");
+        assert!(!json.contains("recurring"));
     }
 
     #[test]

@@ -1,0 +1,21 @@
+{
+  "name": "ZvP 注卵菌毯示例",
+  "matchup": "ZvP",
+  "race": "Zerg",
+  "leadTimeSec": 4,
+  "steps": [
+    { "time": 0,   "say": "工蜂" },
+    { "time": 12,  "say": "王虫" },
+    { "time": 16,  "say": "工蜂" },
+    { "time": 48,  "say": "孵化场" },
+    { "time": 70,  "say": "气矿" },
+    { "time": 75,  "say": "血池" },
+    { "time": 110, "say": "王虫" },
+    { "time": 122, "say": "虫后 x2.小狗 x4" },
+    { "time": 137, "say": "狗速" }
+  ],
+  "recurring": [
+    { "say": "注卵", "startSec": 162, "intervalSec": 29 },
+    { "say": "菌毯", "startSec": 162, "intervalSec": 40, "endSec": 600 }
+  ]
+}

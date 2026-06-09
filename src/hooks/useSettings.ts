@@ -19,6 +19,11 @@ export interface Settings {
   leadTimeSecOverride: number | null;
   /** Whether build-order voice cues are spoken at all. */
   voiceEnabled: boolean;
+  /**
+   * Whether recurring discipline reminders (inject/creep) are spoken;
+   * independent of build-order voice.
+   */
+  recurringVoiceEnabled: boolean;
   /** Web Speech utterance rate (clamped 0.5–2.0). */
   voiceRate: number;
   /** Whether the overlay window passes clicks through to the game. */
@@ -41,6 +46,7 @@ const DEFAULT_SETTINGS: Settings = {
   clientApiPort: 6119,
   leadTimeSecOverride: null,
   voiceEnabled: true,
+  recurringVoiceEnabled: true,
   voiceRate: 1.0,
   clickThrough: false,
   windowX: null,

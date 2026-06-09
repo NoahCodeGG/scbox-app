@@ -16,6 +16,24 @@ export interface BuildStep {
   sayAs?: string;
 }
 
+/**
+ * A recurring discipline reminder (e.g. Zerg inject/creep): fires every
+ * intervalSec starting at startSec, optionally stopping at endSec. Independent
+ * of the linear build steps.
+ */
+export interface RecurringCue {
+  /** First trigger's target displayTime (seconds). */
+  startSec: number;
+  /** Seconds between repeats (must be > 0). */
+  intervalSec: number;
+  /** Optional last displayTime to keep firing through; omitted = until game end. */
+  endSec?: number;
+  /** Text shown in the UI when due. */
+  say: string;
+  /** Optional spoken override (verbatim TTS); same semantics as BuildStep.sayAs. */
+  sayAs?: string;
+}
+
 /** A full build order for one matchup. */
 export interface BuildOrder {
   /** e.g. "TvP". Display/identification only in the MVP. */
@@ -31,6 +49,11 @@ export interface BuildOrder {
   leadTimeSec: number;
   /** Cues in (expected) ascending `time` order. */
   steps: BuildStep[];
+  /**
+   * Parallel recurring discipline reminders (e.g. inject/creep) that run
+   * independently of `steps`. Absent/empty means there are none.
+   */
+  recurring?: RecurringCue[];
 }
 
 /**

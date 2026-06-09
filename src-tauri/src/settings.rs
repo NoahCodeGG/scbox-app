@@ -59,6 +59,10 @@ pub struct Settings {
     /// Whether build-order voice cues are spoken at all.
     #[serde(default = "default_voice_enabled")]
     pub voice_enabled: bool,
+    /// Whether recurring discipline reminders (inject/creep) are spoken;
+    /// independent of build-order voice.
+    #[serde(default = "default_voice_enabled")]
+    pub recurring_voice_enabled: bool,
     /// Web Speech utterance rate (clamped 0.5–2.0 by the frontend).
     #[serde(default = "default_voice_rate")]
     pub voice_rate: f64,
@@ -91,6 +95,7 @@ impl Default for Settings {
             client_api_port: DEFAULT_CLIENT_API_PORT,
             lead_time_sec_override: None,
             voice_enabled: true,
+            recurring_voice_enabled: true,
             voice_rate: DEFAULT_VOICE_RATE,
             click_through: false,
             window_x: None,
@@ -178,6 +183,7 @@ mod tests {
         assert_eq!(s.client_api_port, DEFAULT_CLIENT_API_PORT);
         assert_eq!(s.lead_time_sec_override, None);
         assert!(s.voice_enabled);
+        assert!(s.recurring_voice_enabled);
         assert_eq!(s.voice_rate, 1.0);
         assert!(!s.click_through);
         assert_eq!(s.window_x, None);
@@ -193,6 +199,7 @@ mod tests {
         let s = Settings::default();
         assert_eq!(s.client_api_port, 6119);
         assert!(s.voice_enabled);
+        assert!(s.recurring_voice_enabled);
         assert_eq!(s.voice_rate, 1.0);
         assert_eq!(s.lead_time_sec_override, None);
         assert!(!s.click_through);
@@ -210,6 +217,7 @@ mod tests {
             "clientApiPort": 5000,
             "leadTimeSecOverride": 2.5,
             "voiceEnabled": false,
+            "recurringVoiceEnabled": false,
             "voiceRate": 1.5,
             "clickThrough": true,
             "windowX": 100.0,
@@ -223,6 +231,7 @@ mod tests {
         assert_eq!(s.client_api_port, 5000);
         assert_eq!(s.lead_time_sec_override, Some(2.5));
         assert!(!s.voice_enabled);
+        assert!(!s.recurring_voice_enabled);
         assert_eq!(s.voice_rate, 1.5);
         assert!(s.click_through);
         assert_eq!(s.window_x, Some(100.0));
@@ -256,6 +265,7 @@ mod tests {
             client_api_port: 6120,
             lead_time_sec_override: Some(3.0),
             voice_enabled: false,
+            recurring_voice_enabled: false,
             voice_rate: 1.25,
             click_through: true,
             window_x: Some(150.0),

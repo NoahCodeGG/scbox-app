@@ -20,6 +20,7 @@ const DEFAULT_SETTINGS: Settings = {
   clientApiPort: 6119,
   leadTimeSecOverride: null,
   voiceEnabled: true,
+  recurringVoiceEnabled: true,
   voiceRate: 1.0,
   clickThrough: false,
   windowX: null,

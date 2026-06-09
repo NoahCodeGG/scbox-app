@@ -5,6 +5,7 @@ import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import {
   MousePointer2,
   Pencil,
+  Repeat,
   RotateCw,
   Settings as SettingsIcon,
   Volume2,
@@ -13,6 +14,8 @@ import {
 import { useGameSnapshot } from "./hooks/useGameSnapshot";
 import { useBuildOrders } from "./hooks/useBuildOrders";
 import { useBuildOrderVoice } from "./hooks/useBuildOrderVoice";
+import { useRecurringCues } from "./hooks/useRecurringCues";
+import type { RecurringCueState } from "./hooks/useRecurringCues";
 import { useInterpolatedClock } from "./hooks/useInterpolatedClock";
 import { useVoiceCapability } from "./hooks/useVoiceCapability";
 import { useApplyTheme } from "./hooks/useApplyTheme";
@@ -101,6 +104,58 @@ interface BuildPanelProps {
 }
 
 /**
+ * Per-cue UI state plus the live clock, so the discipline rows can compute their
+ * own countdown without threading `currentTime` separately into the renderer.
+ */
+interface RecurringRow extends RecurringCueState {
+  currentTime: number;
+}
+
+/**
+ * The "discipline timer" section: a compact, always-on row per recurring cue
+ * showing its next-occurrence countdown, kept separate from the upcoming-steps
+ * list so it never crowds the future-3-steps view. Renders nothing when the
+ * active build has no recurring cues, so layout is unchanged for those builds.
+ *
+ * Countdown mirrors the imminent-step text: `-Ns` while pending, `现在` at/after
+ * the target, and `—` when there is no upcoming occurrence (past `endSec`).
+ */
+function RecurringRows({ cues }: { cues: RecurringRow[] }) {
+  if (cues.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-1 border-t border-[color:var(--o-border)] px-3.5 pt-2 pb-1">
+      <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.08em] text-[color:var(--o-muted)] [&_svg]:size-[11px]">
+        <Repeat />
+        循环提醒
+      </div>
+      {cues.map((cue, i) => {
+        const remaining =
+          cue.nextTargetTime === null
+            ? null
+            : Math.max(0, Math.ceil(cue.nextTargetTime - cue.currentTime));
+        const countdownText =
+          remaining === null ? "—" : remaining > 0 ? `-${remaining}s` : "现在";
+
+        return (
+          <div
+            key={`${cue.say}-${i}`}
+            className="grid grid-cols-[1fr_auto] items-center gap-2 py-0.5"
+          >
+            <span className="truncate text-[13px] font-medium text-[color:var(--o-fg)]">
+              {cue.say}
+            </span>
+            <span className="font-mono text-[13px] tabular-nums text-[color:var(--o-accent)]">
+              {countdownText}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
  * The next-step coach panel. Extracted so the voice hook only runs (and only
  * needs a non-null build) when there is actually a build to coach with.
  * `currentTime` is the interpolated in-game clock, driving both the cue
@@ -129,6 +184,15 @@ function BuildPanel({
     },
   );
 
+  // Recurring discipline cues (e.g. inject/creep) run in parallel with the
+  // linear build order, driven by their own independent voice toggle. The hook
+  // must run unconditionally at the top of the component.
+  const recurring = useRecurringCues(snapshot, build, currentTime, {
+    voiceEnabled: settings.recurringVoiceEnabled,
+    voiceRate: settings.voiceRate,
+    leadTimeSecOverride: settings.leadTimeSecOverride,
+  });
+
   // Effective lead time mirrors the scheduler: the override when set, else the
   // build's own value. Keeps the countdown in lockstep with when cues fire.
   const effectiveLeadTime = settings.leadTimeSecOverride ?? build.leadTimeSec;
@@ -152,26 +216,37 @@ function BuildPanel({
 
   const upcomingIndices = upcomingStepIndices(build, spoken, 3);
 
+  // Pair each cue's UI state with the live clock so the row renderer can compute
+  // its own countdown.
+  const recurringRows: RecurringRow[] = recurring.map((cue) => ({
+    ...cue,
+    currentTime,
+  }));
+
   if (upcomingIndices.length === 0) {
     return (
-      <div className="px-2.5 pt-1.5 pb-3">
-        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2.5 rounded-[10px] border border-[color:color-mix(in_oklab,var(--o-accent),transparent_75%)] bg-[color:color-mix(in_oklab,var(--o-accent),transparent_90%)] px-3 py-2.5">
-          <span className="font-mono text-[13px] tabular-nums text-[color:var(--o-accent)]">
-            —
-          </span>
-          <span className="text-[14px] font-medium text-[color:var(--o-fg)]">
-            建造顺序已播完
-          </span>
-          <span className="font-mono text-[13px] tabular-nums text-[color:var(--o-accent)]">
-            ✓
-          </span>
+      <>
+        <div className="px-2.5 pt-1.5 pb-3">
+          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2.5 rounded-[10px] border border-[color:color-mix(in_oklab,var(--o-accent),transparent_75%)] bg-[color:color-mix(in_oklab,var(--o-accent),transparent_90%)] px-3 py-2.5">
+            <span className="font-mono text-[13px] tabular-nums text-[color:var(--o-accent)]">
+              —
+            </span>
+            <span className="text-[14px] font-medium text-[color:var(--o-fg)]">
+              建造顺序已播完
+            </span>
+            <span className="font-mono text-[13px] tabular-nums text-[color:var(--o-accent)]">
+              ✓
+            </span>
+          </div>
         </div>
-      </div>
+        <RecurringRows cues={recurringRows} />
+      </>
     );
   }
 
   return (
-    <div className="flex flex-col gap-1.5 px-2.5 pt-1.5 pb-3">
+    <>
+      <div className="flex flex-col gap-1.5 px-2.5 pt-1.5 pb-3">
       {upcomingIndices.map((idx, position) => {
         const step = build.steps[idx];
         const isImminent = position === 0;
@@ -228,7 +303,9 @@ function BuildPanel({
           </div>
         );
       })}
-    </div>
+      </div>
+      <RecurringRows cues={recurringRows} />
+    </>
   );
 }
 
