@@ -93,7 +93,7 @@ function SettingsPage() {
   const update = useUpdateCheck(settings.prereleaseUpdates);
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="flex h-full flex-col">
       <SettingsPanel
         settings={settings}
         onSave={saveSettings}

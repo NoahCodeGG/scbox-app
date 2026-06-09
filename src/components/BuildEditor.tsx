@@ -481,7 +481,7 @@ export default function BuildEditor() {
           </ul>
         )}
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[208px_minmax(0,1.25fr)] xl:grid-cols-[208px_minmax(0,1.25fr)_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-[208px_minmax(0,1.25fr)] xl:grid-cols-[208px_minmax(0,1.25fr)_minmax(0,1fr)]">
           {/* sidebar build list */}
           <aside className="flex flex-col gap-2">
             <Button
@@ -849,7 +849,7 @@ export default function BuildEditor() {
           </section>
 
           {/* live, editable JSON pane (import = edit/paste, export = copy) */}
-          <div className="lg:col-span-2 xl:col-span-1">
+          <div className="md:col-span-2 xl:col-span-1">
             <BuildJsonEditor
               filename={previewFilename}
               value={jsonText}
