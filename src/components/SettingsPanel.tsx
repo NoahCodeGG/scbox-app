@@ -186,7 +186,7 @@ function SettingsPanel({
   });
 
   return (
-    <section className="flex h-full flex-col gap-4" aria-label="设置">
+    <section className="flex flex-col gap-4" aria-label="设置">
       <header className="flex items-start justify-between">
         <div>
           <h1 className="text-[26px] font-semibold tracking-tight">设置</h1>

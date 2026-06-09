@@ -93,7 +93,7 @@ function SettingsPage() {
   const update = useUpdateCheck(settings.prereleaseUpdates);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex flex-col">
       <SettingsPanel
         settings={settings}
         onSave={saveSettings}
